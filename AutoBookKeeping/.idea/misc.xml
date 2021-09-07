@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="DesignSurface">
+    <option name="filePathToZoomLevelMap">
+      <map>
+        <entry key="..\:/Users/fengchuiyusan/Desktop/AutoBookKeeping/app/src/main/res/drawable/corner_btn.xml" value="0.2" />
+        <entry key="..\:/Users/fengchuiyusan/Desktop/AutoBookKeeping/app/src/main/res/drawable/payment_editor_button_bg.xml" value="0.1" />
+        <entry key="..\:/Users/fengchuiyusan/Desktop/AutoBookKeeping/app/src/main/res/layout/activity_main.xml" value="0.22" />
+        <entry key="..\:/Users/fengchuiyusan/Desktop/AutoBookKeeping/app/src/main/res/layout/activity_order_detail.xml" value="0.22" />
+        <entry key="..\:/Users/fengchuiyusan/Desktop/AutoBookKeeping/app/src/main/res/layout/activity_settings.xml" value="0.3333333333333333" />
+        <entry key="..\:/Users/fengchuiyusan/Desktop/AutoBookKeeping/app/src/main/res/layout/activity_test.xml" value="0.13385416666666666" />
+        <entry key="..\:/Users/fengchuiyusan/Desktop/AutoBookKeeping/app/src/main/res/layout/activity_text.xml" value="0.18385416666666668" />
+        <entry key="..\:/Users/fengchuiyusan/Desktop/AutoBookKeeping/app/src/main/res/layout/payment_activity_editor.xml" value="0.28191489361702127" />
+        <entry key="..\:/Users/fengchuiyusan/Desktop/AutoBookKeeping/app/src/main/res/layout/payment_activity_home.xml" value="0.28191489361702127" />
+        <entry key="..\:/Users/fengchuiyusan/Desktop/AutoBookKeeping/app/src/main/res/layout/payment_activity_month_record_list.xml" value="0.13815789473684212" />
+        <entry key="..\:/Users/fengchuiyusan/Desktop/AutoBookKeeping/app/src/main/res/layout/payment_activity_monthly_statement.xml" value="0.28191489361702127" />
+        <entry key="..\:/Users/fengchuiyusan/Desktop/AutoBookKeeping/app/src/main/res/layout/payment_amount_view_layout.xml" value="0.28191489361702127" />
+        <entry key="..\:/Users/fengchuiyusan/Desktop/AutoBookKeeping/app/src/main/res/layout/payment_category_editor_dialog_item_view.xml" value="0.28191489361702127" />
+        <entry key="..\:/Users/fengchuiyusan/Desktop/AutoBookKeeping/app/src/main/res/layout/payment_category_editor_dialog_view.xml" value="0.28191489361702127" />
+        <entry key="..\:/Users/fengchuiyusan/Desktop/AutoBookKeeping/app/src/main/res/layout/payment_category_view_layout.xml" value="0.28191489361702127" />
+        <entry key="..\:/Users/fengchuiyusan/Desktop/AutoBookKeeping/app/src/main/res/layout/payment_datetime_picker_dialog.xml" value="0.28191489361702127" />
+        <entry key="..\:/Users/fengchuiyusan/Desktop/AutoBookKeeping/app/src/main/res/layout/payment_editor_action_bar.xml" value="0.28191489361702127" />
+        <entry key="..\:/Users/fengchuiyusan/Desktop/AutoBookKeeping/app/src/main/res/layout/payment_home_header_total_container.xml" value="0.28191489361702127" />
+        <entry key="..\:/Users/fengchuiyusan/Desktop/AutoBookKeeping/app/src/main/res/layout/payment_method_view_layout.xml" value="0.28191489361702127" />
+        <entry key="..\:/Users/fengchuiyusan/Desktop/AutoBookKeeping/app/src/main/res/layout/payment_month_category_detail.xml" value="0.28191489361702127" />
+        <entry key="..\:/Users/fengchuiyusan/Desktop/AutoBookKeeping/app/src/main/res/layout/payment_month_category_detail_layout.xml" value="0.28191489361702127" />
+        <entry key="..\:/Users/fengchuiyusan/Desktop/AutoBookKeeping/app/src/main/res/layout/payment_month_record_list_actionbar.xml" value="0.28191489361702127" />
+        <entry key="..\:/Users/fengchuiyusan/Desktop/AutoBookKeeping/app/src/main/res/layout/payment_month_record_list_header.xml" value="0.28191489361702127" />
+        <entry key="..\:/Users/fengchuiyusan/Desktop/AutoBookKeeping/app/src/main/res/layout/payment_monthly_column_chart_item.xml" value="0.28191489361702127" />
+        <entry key="..\:/Users/fengchuiyusan/Desktop/AutoBookKeeping/app/src/main/res/layout/payment_monthly_report_bar_chart_item.xml" value="0.28191489361702127" />
+        <entry key="..\:/Users/fengchuiyusan/Desktop/AutoBookKeeping/app/src/main/res/layout/payment_monthly_report_header.xml" value="0.5" />
+        <entry key="..\:/Users/fengchuiyusan/Desktop/AutoBookKeeping/app/src/main/res/layout/payment_monthly_report_pie_chart_list_item.xml" value="0.28191489361702127" />
+        <entry key="..\:/Users/fengchuiyusan/Desktop/AutoBookKeeping/app/src/main/res/layout/payment_record_footer.xml" value="0.28191489361702127" />
+        <entry key="..\:/Users/fengchuiyusan/Desktop/AutoBookKeeping/app/src/main/res/layout/payment_record_item.xml" value="0.28191489361702127" />
+        <entry key="..\:/Users/fengchuiyusan/Desktop/AutoBookKeeping/app/src/main/res/layout/payment_time_view_layout.xml" value="0.28191489361702127" />
+      </map>
+    </option>
+  </component>
+  <component name="ProjectRootManager" version="2" languageLevel="JDK_11" default="true" project-jdk-name="Android Studio default JDK" project-jdk-type="JavaSDK">
+    <output url="file://$PROJECT_DIR$/build/classes" />
+  </component>
+  <component name="ProjectType">
+    <option name="id" value="Android" />
+  </component>
+</project>

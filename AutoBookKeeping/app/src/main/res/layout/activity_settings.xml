@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    >
+
+    <!-- 第一行,包含我的支出图标-->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/theFirstLine"
+        android:layout_marginTop="10dp"
+        android:orientation="horizontal">
+        <!-- 我的收支-->
+        <TextView
+            android:id="@+id/tv_title"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="50dp"
+            android:text="@string/main_page_title"
+            android:textColor="@color/black"
+            android:textSize="20sp"
+            android:gravity="center">
+        </TextView>
+    </LinearLayout>
+
+    <!-- 灰色分割线-->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1px"
+        android:background="@color/black"
+        android:layout_marginTop="10dp">
+    </View>
+
+    <!--第二行,包括各种设置选项-->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+        <!--清空账单记录-->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:padding="5dp"
+            android:id="@+id/llDeleteAllOrders">
+            <TextView
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:text="@string/deleteAllOrders"
+                android:layout_marginStart="10dp"
+                android:gravity="start"
+                android:textSize="20sp"
+                android:textColor="@color/black">
+            </TextView>
+            <ImageView
+                android:layout_width="30dp"
+                android:layout_height="match_parent"
+                android:background="@drawable/choose_arrow"
+                android:gravity="end"
+                android:layout_marginEnd="10dp">
+            </ImageView>
+        </LinearLayout>
+    </LinearLayout>
+
+</LinearLayout>
