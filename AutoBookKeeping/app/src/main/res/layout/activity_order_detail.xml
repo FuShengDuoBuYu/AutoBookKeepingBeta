@@ -44,15 +44,24 @@
             android:id="@+id/etOrderNumber"
             android:padding="10dp"
             android:layout_width="0dp"
-            android:layout_weight="0.7"
+            android:layout_weight="0.4"
             android:layout_height="wrap_content"
             android:hint="@string/hint_input_cost_number"
             android:inputType="numberDecimal"
             android:background="@null"
             >
-
         </EditText>
-
+        <!--收支类型-->
+        <Button
+            android:layout_width="0dp"
+            android:layout_weight="0.2"
+            android:layout_height="wrap_content"
+            android:text="支出"
+            android:textColor="@color/white"
+            android:background="@drawable/corner_btn"
+            android:id="@+id/btnOrderType"
+            >
+        </Button>
         <!--竖向分割线-->
         <View
             android:layout_width="1px"

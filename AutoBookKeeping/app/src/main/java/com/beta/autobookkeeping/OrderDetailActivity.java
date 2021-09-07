@@ -19,11 +19,12 @@ import Util.Util;
 
 public class OrderDetailActivity extends AppCompatActivity {
 
-    private Button btnSaveChanges,btnCostType,btnGetCurrentTime,btnPayWay;
+    private Button btnSaveChanges,btnCostType,btnGetCurrentTime,btnPayWay,btnOrderType;
     private EditText etOrderNumber;
-    int costType,payWayType;
+    int costType,payWayType,orderTypeIndex;
     final String[] costTypes = {"消费","饮食","交通","娱乐","购物","通讯","红包","医疗"};
     final String[] payWays = {"银行卡","支付宝","微信","现金"};
+    final String[] orderType = {"支出","收入"};
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -58,7 +59,14 @@ public class OrderDetailActivity extends AppCompatActivity {
 //                Util.showDialog(OrderDetailActivity.this,"选择支出类型",costTypes,"确定",btnCostType);
             }
         });
-
+        //选择账单是支出还是收入的按钮
+        btnOrderType = findViewById(R.id.btnOrderType);
+        btnOrderType.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                showOrderType();
+            }
+        });
         //获取当前时间的按钮
         btnGetCurrentTime = findViewById(R.id.btnGetCurrentTime);
         btnGetCurrentTime.setOnClickListener(new View.OnClickListener() {
@@ -133,19 +141,58 @@ public class OrderDetailActivity extends AppCompatActivity {
         payWayDialog.show();
     }
 
+    //选择账单是收入还是支出并显示的方法
+    private void showOrderType(){
+        orderTypeIndex = -1;
+        AlertDialog.Builder orderTypeDialog = new AlertDialog.Builder(OrderDetailActivity.this);
+        orderTypeDialog.setTitle("选择账单类型");
+        //第二个参数是默认选项,此处设置为0.即数组的第一个元素
+        orderTypeDialog.setSingleChoiceItems(orderType, 0, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                //将选择的数据赋值(下标)
+                orderTypeIndex = i;
+            }
+        });
+        //设置确定按钮并将结果返回给界面
+        orderTypeDialog.setPositiveButton("确定", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                if(orderTypeIndex!=-1){
+                    btnOrderType.setText(orderType[orderTypeIndex]);
+                }
+            }
+        });
+        //调用dialog的show方法
+        orderTypeDialog.show();
+    }
+
     //获取短信内容并处理的方法
     public String[] handleMsg(){
         SMSApplication smsApplication;
         smsApplication = (SMSApplication) getApplication();
         String msg = smsApplication.getSMSMsg();
         smsApplication.setSMSMsg(null);
-        return Util.getBankOrderInfo(msg);
+//        if(msg!=null){
+//            return Util.getBankOrderInfo(msg);
+//        }
+//        else{
+//            return null;
+//        }
+        return (msg==null)?null:Util.getBankOrderInfo(msg);
     }
 
     @Override
     protected void onStart() {
         String[] msgContent = handleMsg();
-        etOrderNumber.setText(msgContent[2]);
+        if(msgContent != null){
+            etOrderNumber.setText(msgContent[2]);
+            btnOrderType.setText(msgContent[1]);
+            btnPayWay.setText(msgContent[0]);
+        }
+        else{
+            Util.toastMsg(this,"刚进入页面");
+        }
         super.onStart();
     }
 }
