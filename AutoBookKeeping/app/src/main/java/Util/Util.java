@@ -31,23 +31,23 @@ public class Util {
         String[] result = new String[3];
         //获取银行名称
         Matcher matchBank = Pattern.compile(regExBank).matcher(bankOrder);
-        result[0] = getString(matchBank);
+        result[0] = getString(matchBank,false);
         //获取支付类型
         Matcher matchMoneyType = Pattern.compile(regExMoneyType).matcher(bankOrder);
-        result[1] = getString(matchMoneyType);
+        result[1] = getString(matchMoneyType,false);
         //获取收入或支出金额
         Matcher matchMoney = Pattern.compile(regExMoney).matcher(bankOrder);
-        result[2] = getString(matchMoney);
+        result[2] = getString(matchMoney,true);
         return result;
     }
-    //获取账单单个数据的方法
-    public static String getString(Matcher matcher){
+    //获取账单单个数据的方法,第二个参数为是否匹配到第一个符合条件的就结束
+    public static String getString(Matcher matcher,boolean stopAtFirstResult){
         StringBuffer sb = new StringBuffer();
         while (matcher.find()) {
             sb.append(matcher.group());
-            if(!sb.toString().equals("")){
+            if(stopAtFirstResult && (!sb.toString().equals("")))
                 break;
-            }
+
         }
         String result = sb.toString();
         if(result.equals("出")||result.equals("-")){

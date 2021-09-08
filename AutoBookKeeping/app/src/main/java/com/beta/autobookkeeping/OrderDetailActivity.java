@@ -46,6 +46,7 @@ public class OrderDetailActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 Util.toastMsg(OrderDetailActivity.this,"保存成功");
+                finish();
             }
         });
 
@@ -56,7 +57,6 @@ public class OrderDetailActivity extends AppCompatActivity {
             public void onClick(View view) {
                 //弹出选择消费类型的dialog
                 showCostType();
-//                Util.showDialog(OrderDetailActivity.this,"选择支出类型",costTypes,"确定",btnCostType);
             }
         });
         //选择账单是支出还是收入的按钮
@@ -173,12 +173,6 @@ public class OrderDetailActivity extends AppCompatActivity {
         smsApplication = (SMSApplication) getApplication();
         String msg = smsApplication.getSMSMsg();
         smsApplication.setSMSMsg(null);
-//        if(msg!=null){
-//            return Util.getBankOrderInfo(msg);
-//        }
-//        else{
-//            return null;
-//        }
         return (msg==null)?null:Util.getBankOrderInfo(msg);
     }
 
@@ -189,9 +183,6 @@ public class OrderDetailActivity extends AppCompatActivity {
             etOrderNumber.setText(msgContent[2]);
             btnOrderType.setText(msgContent[1]);
             btnPayWay.setText(msgContent[0]);
-        }
-        else{
-            Util.toastMsg(this,"刚进入页面");
         }
         super.onStart();
     }

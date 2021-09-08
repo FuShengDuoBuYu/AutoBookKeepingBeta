@@ -27,12 +27,13 @@ public class SMSReader extends AppCompatActivity {
         public void handleMessage(android.os.Message msg) {
             Bundle bundle=msg.getData();
             body=bundle.getString("body");
-            Intent intent = context.getPackageManager().getLaunchIntentForPackage(context.getPackageName());
-//            Util.toastMsg(context,bundle.getString("body"));
-            intent.putExtras(bundle);
-            smsApplication  = (SMSApplication) context.getApplicationContext();
-            smsApplication.setSMSMsg(body);
-            context.startActivity(intent);
+            if(isBankOrderMsg(body)){
+                Intent intent = context.getPackageManager().getLaunchIntentForPackage(context.getPackageName());
+                intent.putExtras(bundle);
+                smsApplication  = (SMSApplication) context.getApplicationContext();
+                smsApplication.setSMSMsg(body);
+                context.startActivity(intent);
+            }
         };
     };
 
@@ -47,5 +48,14 @@ public class SMSReader extends AppCompatActivity {
         context.getContentResolver().registerContentObserver(Uri.parse("content://sms/"), true, smsObsever);
     }
 
-
+    //判断短信是否是银行发的账单短信
+    public boolean isBankOrderMsg(String msg){
+        String[] msgInfo = Util.getBankOrderInfo(msg);
+        //如果三个银行信息中有一个为空,就说明不是银行信息
+        if(msgInfo[0].equals("")||msgInfo[1].equals("")||msgInfo[2].equals("")){
+            return false;
+        }else{
+            return true;
+        }
+    }
 }
