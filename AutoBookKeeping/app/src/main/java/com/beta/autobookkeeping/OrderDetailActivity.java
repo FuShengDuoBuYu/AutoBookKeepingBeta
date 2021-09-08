@@ -3,8 +3,10 @@ package com.beta.autobookkeeping;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.content.ContentValues;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -12,6 +14,7 @@ import android.widget.Button;
 import android.widget.EditText;
 
 import com.beta.autobookkeeping.SMStools.SMSApplication;
+import com.beta.autobookkeeping.SMStools.SMSDataBase;
 import com.beta.autobookkeeping.SMStools.SMSReader;
 import com.beta.autobookkeeping.SMStools.SMSService;
 
@@ -22,6 +25,7 @@ public class OrderDetailActivity extends AppCompatActivity {
     private Button btnSaveChanges,btnCostType,btnGetCurrentTime,btnPayWay,btnOrderType;
     private EditText etOrderNumber;
     int costType,payWayType,orderTypeIndex;
+    String[] msgContent;
     final String[] costTypes = {"消费","饮食","交通","娱乐","购物","通讯","红包","医疗"};
     final String[] payWays = {"银行卡","支付宝","微信","现金"};
     final String[] orderType = {"支出","收入"};
@@ -46,6 +50,17 @@ public class OrderDetailActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 Util.toastMsg(OrderDetailActivity.this,"保存成功");
+                //设置数据库????????
+                SMSDataBase smsDb = new SMSDataBase(OrderDetailActivity.this,"orderInfo",null,1);
+                SQLiteDatabase db = smsDb.getWritableDatabase();
+                ContentValues values = new ContentValues();
+                values.put("year",Util.getCurrentYear());
+                values.put("month",Util.getCurrentMonth());
+                values.put("day",Util.getCurrentDay());
+                values.put("clock",Util.getCurrentClock());
+                //todo:设置正负号
+//                values.put("money",msgContent[2]==null?"银行卡":Double.valueOf(etOrderNumber.getText().toString()));
+                //??????????????????
                 finish();
             }
         });
@@ -178,7 +193,7 @@ public class OrderDetailActivity extends AppCompatActivity {
 
     @Override
     protected void onStart() {
-        String[] msgContent = handleMsg();
+        msgContent = handleMsg();
         if(msgContent != null){
             etOrderNumber.setText(msgContent[2]);
             btnOrderType.setText(msgContent[1]);

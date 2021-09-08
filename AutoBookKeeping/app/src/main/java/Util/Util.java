@@ -8,6 +8,7 @@ import android.widget.Toast;
 import androidx.appcompat.app.AlertDialog;
 
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -25,6 +26,22 @@ public class Util {
     public static String getCurrentTime(){
         SimpleDateFormat s_format = new SimpleDateFormat("MM月dd日 HH:mm");
         return s_format.format(new Date());
+    }
+    public static int getCurrentYear(){
+        Calendar cal = Calendar.getInstance();
+        return cal.get(Calendar.YEAR);
+    }
+    public static int getCurrentMonth(){
+        Calendar cal = Calendar.getInstance();
+        return cal.get(Calendar.MONTH) + 1;
+    }
+    public static int getCurrentDay(){
+        Calendar cal = Calendar.getInstance();
+        return cal.get(Calendar.DATE);
+    }
+    public static String getCurrentClock(){
+        SimpleDateFormat s_format = new SimpleDateFormat("HH:mm");
+        return s_format.toString();
     }
     //获取字符串中的银行账单数据的方法
     public static String[] getBankOrderInfo(String bankOrder){

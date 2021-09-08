@@ -1,37 +1,52 @@
 package com.beta.autobookkeeping;
 
 
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+import android.os.Bundle;
+import android.widget.Button;
+
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
+
+import com.beta.autobookkeeping.SMStools.SMSDataBase;
+
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class TestActivity {
-    public static void main(String[] args) {
-        String msg1 = "您尾号1276的储蓄卡9月6日0时1分消费支出人民币50.00元,活期余额440.04元。[建设银行]";
-        String msg2 = "【中国农业银行】您尾号8475账户09月06日17:36完成支付宝交易人民币-11.00，余额39.99。";
-        String msg3 = "【郑州银行】03月25日17:57，您尾号为1758的卡,财付通,支出人民币25.00元,余额159.87元。";
-        String regExBank = "[(农业银行)|(建设银行)|(郑州银行)|(工商银行)|(交通银行)]";
-        Matcher matchBank = Pattern.compile(regExBank).matcher(msg3);
-        String regExMoneyType = "[-|出|入]";
-        Matcher matchMoneyType = Pattern.compile(regExMoneyType).matcher(msg2);
-
-        String regExMoney = "([1-9]\\d*\\.\\d*)?";
-        Matcher matchMoney = Pattern.compile(regExMoney).matcher(msg2);
-    }
-    public static String getString(Matcher matcher){
-        StringBuffer sb = new StringBuffer();
-        while (matcher.find()) {
-            sb.append(matcher.group());
-            if(!sb.toString().equals("")){
-                break;
-            }
+public class TestActivity extends AppCompatActivity {
+    @Override
+    protected void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_test);
+        Button btn = findViewById(R.id.start);
+        SMSDataBase smsDb = new SMSDataBase(TestActivity.this,"orderInfo",null,1);
+        SQLiteDatabase db = smsDb.getWritableDatabase();
+        Cursor cursor = db.query("orderInfo", new String[]{"year"}, null, null, null, null, null);
+        //利用游标遍历所有数据对象
+        //为了显示全部，把所有对象连接起来，放到TextView中
+        String textview_data = "";
+        while(cursor.moveToNext()){
+            String number = cursor.getString(cursor.getColumnIndex("year"));
+            textview_data = textview_data + "\n" + number;
         }
-        String result = sb.toString();
-        if(result.equals("出")||result.equals("-")){
-            return "支出";
-        }else if(result.equals("入")){
-            return "收入";
+        while(cursor.moveToNext()){
+            String number = cursor.getString(cursor.getColumnIndex("day"));
+            textview_data = textview_data + "\n" + number;
         }
-        return result;
+        while(cursor.moveToNext()){
+            String number = cursor.getString(cursor.getColumnIndex("clock"));
+            textview_data = textview_data + "\n" + number;
+        }
+        while(cursor.moveToNext()){
+            String number = cursor.getString(cursor.getColumnIndex("money"));
+            textview_data = textview_data + "\n" + number;
+        }
+        while(cursor.moveToNext()){
+            String number = cursor.getString(cursor.getColumnIndex("bankName"));
+            textview_data = textview_data + "\n" + number;
+        }
+        btn.setText(textview_data);
     }
 }
 

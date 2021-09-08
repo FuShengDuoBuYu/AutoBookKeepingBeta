@@ -3,12 +3,15 @@ package com.beta.autobookkeeping;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
+import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteOpenHelper;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 
 import com.beta.autobookkeeping.SMStools.SMSApplication;
+import com.beta.autobookkeeping.SMStools.SMSDataBase;
 import com.beta.autobookkeeping.SMStools.SMSReader;
 import com.beta.autobookkeeping.SMStools.SMSService;
 
@@ -52,8 +55,13 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View view) {
                 //TOdo:跳转到月度报告页面
                 Util.toastMsg(MainActivity.this,"进入月度报告成功");
+                Intent intent = new Intent(MainActivity.this,TestActivity.class);
+                startActivity(intent);
             }
         });
+        //设置数据库
+        SMSDataBase smsDb = new SMSDataBase(this,"orderInfo",null,1);
+        SQLiteDatabase db = smsDb.getWritableDatabase();
     }
 
     @Override
