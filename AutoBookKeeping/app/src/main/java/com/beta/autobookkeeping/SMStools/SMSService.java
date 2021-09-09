@@ -26,7 +26,7 @@ public class SMSService extends Service {
         //调用读取短信的功能类
         SMSReader smsReader = new SMSReader(SMSService.this);
         smsReader.readSMS();
-        return START_REDELIVER_INTENT;
+        return super.onStartCommand(intent,flags,startId);
     }
 
     public void onDestroy() {

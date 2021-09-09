@@ -27,6 +27,7 @@ public class SMSReader extends AppCompatActivity {
         public void handleMessage(android.os.Message msg) {
             Bundle bundle=msg.getData();
             body=bundle.getString("body");
+            //如果短信是银行账单短信,就调开app并进行下一步操作
             if(isBankOrderMsg(body)){
                 Intent intent = context.getPackageManager().getLaunchIntentForPackage(context.getPackageName());
                 intent.putExtras(bundle);

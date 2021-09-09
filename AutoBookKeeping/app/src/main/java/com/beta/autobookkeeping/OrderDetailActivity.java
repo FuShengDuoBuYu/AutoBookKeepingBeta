@@ -193,6 +193,7 @@ public class OrderDetailActivity extends AppCompatActivity {
 
     @Override
     protected void onStart() {
+        //先尝试查找Application中是否有信息
         msgContent = handleMsg();
         if(msgContent != null){
             etOrderNumber.setText(msgContent[2]);
