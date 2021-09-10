@@ -23,7 +23,7 @@ import Util.Util;
 public class OrderDetailActivity extends AppCompatActivity {
 
     private Button btnSaveChanges,btnCostType,btnGetCurrentTime,btnPayWay,btnOrderType;
-    private EditText etOrderNumber;
+    private EditText etOrderNumber,etOrderRemark;
     int costType,payWayType,orderTypeIndex;
     String[] msgContent;
     final String[] costTypes = {"消费","饮食","交通","娱乐","购物","通讯","红包","医疗"};
@@ -50,17 +50,7 @@ public class OrderDetailActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 Util.toastMsg(OrderDetailActivity.this,"保存成功");
-                //设置数据库????????
-                SMSDataBase smsDb = new SMSDataBase(OrderDetailActivity.this,"orderInfo",null,1);
-                SQLiteDatabase db = smsDb.getWritableDatabase();
-                ContentValues values = new ContentValues();
-                values.put("year",Util.getCurrentYear());
-                values.put("month",Util.getCurrentMonth());
-                values.put("day",Util.getCurrentDay());
-                values.put("clock",Util.getCurrentClock());
-                //todo:设置正负号
-//                values.put("money",msgContent[2]==null?"银行卡":Double.valueOf(etOrderNumber.getText().toString()));
-                //??????????????????
+                setDataBaseData();
                 finish();
             }
         });
@@ -94,6 +84,8 @@ public class OrderDetailActivity extends AppCompatActivity {
         });
         //金额
         etOrderNumber = findViewById(R.id.etOrderNumber);
+        //订单备注
+        etOrderRemark = findViewById(R.id.etOrderRemark);
         //选择消费方式的方法
         btnPayWay = findViewById(R.id.btnPayWay);
         btnPayWay.setOnClickListener(new View.OnClickListener() {
@@ -202,4 +194,49 @@ public class OrderDetailActivity extends AppCompatActivity {
         }
         super.onStart();
     }
+
+    //写入数据库数据
+    public void setDataBaseData(){
+        //设置数据库数据
+        SMSDataBase smsDb = new SMSDataBase(OrderDetailActivity.this,"orderInfo",null,1);
+        SQLiteDatabase db = smsDb.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put("year",Util.getCurrentYear());
+        values.put("month",Util.getCurrentMonth());
+        values.put("day",Util.getCurrentDay());
+        values.put("clock",btnGetCurrentTime.getText().toString());
+        //根据内容确定写入数组的金额还是用户的金额,根据支出还是收入记录正负号
+        //根据内容确定写入数组还是用户默认
+        //用户手动添加的账单信息
+        if(msgContent == null){
+            if(btnOrderType.getText().toString().equals("收入")){
+                //收入记正数
+                values.put("money",Double.valueOf(etOrderNumber.getText().toString()));
+            }
+            else{
+                //支出记负数
+                values.put("money",0.0-(Double.parseDouble(etOrderNumber.getText().toString())));
+            }
+            values.put("bankName",btnPayWay.getText().toString());
+        }
+        //短信自动读取的账单信息
+        else{
+            if(msgContent[1].equals("收入")){
+                //收入记正数
+                values.put("money",Double.parseDouble(msgContent[2]));
+            }
+            else{
+                //支出记负数
+                values.put("money",0.0-Double.parseDouble(msgContent[2]));
+            }
+            if(!msgContent[0].equals("")){
+                values.put("bankName",msgContent[0]);
+            }
+        }
+        //写入账单备注
+        values.put("orderRemark",etOrderRemark.getText().toString());
+
+        db.insert("orderInfo",null,values);
+    }
 }
+

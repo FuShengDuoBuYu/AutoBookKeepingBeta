@@ -39,10 +39,6 @@ public class Util {
         Calendar cal = Calendar.getInstance();
         return cal.get(Calendar.DATE);
     }
-    public static String getCurrentClock(){
-        SimpleDateFormat s_format = new SimpleDateFormat("HH:mm");
-        return s_format.toString();
-    }
     //获取字符串中的银行账单数据的方法
     public static String[] getBankOrderInfo(String bankOrder){
         String[] result = new String[3];
