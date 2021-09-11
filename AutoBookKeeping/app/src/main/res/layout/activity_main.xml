@@ -69,6 +69,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:id="@+id/tvAllTodayOrder"
                     android:text="@string/today_all_cost_number"
                     android:textColor="@color/black"
                     android:textSize="30sp">
@@ -93,6 +94,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:id="@+id/tvAllMonthOrder"
                 android:text="@string/month_all_cost_number"
                 android:textColor="@color/black"
                 android:textSize="30sp">
@@ -132,7 +134,13 @@
         android:background="@color/black"
         android:layout_marginTop="10dp">
     </View>
-    
+
+    <!--所有账单的详细信息-->
+    <ListView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/lvOrderDetail"
+        />
 
 
 </LinearLayout>

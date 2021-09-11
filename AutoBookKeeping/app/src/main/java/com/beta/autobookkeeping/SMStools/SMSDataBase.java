@@ -17,7 +17,7 @@ public class SMSDataBase extends SQLiteOpenHelper {
     @Override
     public void onCreate(SQLiteDatabase db) {
         //创建一个表
-        String sql = "create table orderInfo(year int(4),month int(2),day int(2),clock varchar(20),money numeric(10,2),bankName varchar(255),orderRemark varchar(255))";
+        String sql = "create table orderInfo(id integer primary key autoincrement,year int(4),month int(2),day int(2),clock varchar(20),money numeric(10,2),bankName varchar(255),orderRemark varchar(255))";
         db.execSQL(sql);
     }
 
