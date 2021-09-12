@@ -5,12 +5,14 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
 
+import com.beta.autobookkeeping.SMStools.SMSDataBase;
 import com.beta.autobookkeeping.SMStools.SMSReader;
 import com.beta.autobookkeeping.SMStools.SMSService;
 
@@ -50,7 +52,10 @@ public class SettingsActivity extends AppCompatActivity {
                     builder.setPositiveButton("确定", new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialogInterface, int i) {
-                            Util.toastMsg(SettingsActivity.this,"确定清除数据");
+                            SMSDataBase smsDb = new SMSDataBase(SettingsActivity.this,"orderInfo",null,1);
+                            SQLiteDatabase db = smsDb.getWritableDatabase();
+                            String sql = "delete from orderInfo";
+                            db.execSQL(sql);
                         }
                     });
                     builder.setNegativeButton("取消", new DialogInterface.OnClickListener() {

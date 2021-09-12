@@ -1,7 +1,9 @@
 package com.beta.autobookkeeping;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -13,6 +15,7 @@ import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.beta.autobookkeeping.OrderListView.OrderInfo;
 import com.beta.autobookkeeping.OrderListView.OrderInfoAdapter;
@@ -68,15 +71,15 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 //TOdo:跳转到月度报告页面
+//                Util.toastMsg(MainActivity.this,"进入月度报告成功");
+//                Intent intent = new Intent(MainActivity.this,TestActivity.class);
+//                startActivity(intent);
                 Util.toastMsg(MainActivity.this,"进入月度报告成功");
-                Intent intent = new Intent(MainActivity.this,TestActivity.class);
-                startActivity(intent);
             }
         });
         //设置数据库
         SMSDataBase smsDb = new SMSDataBase(this,"orderInfo",null,1);
         db = smsDb.getWritableDatabase();
-
     }
 
 
@@ -90,6 +93,67 @@ public class MainActivity extends AppCompatActivity {
             Intent intent = new Intent(MainActivity.this,OrderDetailActivity.class);
             startActivity(intent);
         }
+        //获取本日和本月累计收支
+        showDayAndMonthMoney();
+        //获取并显示所有账单详情
+        showOrderDetailList();
+        super.onStart();
+    }
+
+    //获取并显示所有账单详情的方法
+    public void showOrderDetailList(){
+        Cursor cursor = db.query ("orderInfo",null,null,null,null,null,"id desc");
+        //先清空list中的数据
+        orderInfos.clear();
+        while(cursor.moveToNext()){
+            //初始化orderInfoList
+            OrderInfo orderInfo = new OrderInfo(cursor.getString(4),cursor.getString(6),cursor.getString(7),cursor.getDouble(5),cursor.getString(8));
+            orderInfos.add(orderInfo);
+        }
+
+        //获取适配器
+        OrderInfoAdapter orderInfoAdapter = new OrderInfoAdapter(MainActivity.this,R.layout.lv_order_detail_item,orderInfos);
+        //将适配器的数据传给ListView
+        ListView listView = findViewById(R.id.lvOrderDetail);
+        listView.setAdapter(orderInfoAdapter);
+        // 为ListView注册一个监听器，当用户点击了ListView中的任何一个子项时，就会回调onItemClick()方法
+        // 在这个方法中可以通过position参数判断出用户点击的是那一个子项
+        listView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+            @Override
+            public boolean onItemLongClick(AdapterView<?> adapterView, View view, int i, long l) {
+                //弹出提示是否删除该记录的对话框,并进行对应操作
+                confirmDeleteOrderInfo(cursor,i);
+                return true;
+            }
+        });
+    }
+
+    //长按进行是否删除订单的选择
+    public void confirmDeleteOrderInfo(Cursor cursor,int itemIndex){
+        AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+        builder.setTitle("是否删除该记录?");
+        builder.setPositiveButton("确定", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                //通过itemIndex来获取后台这条数据的id
+                cursor.moveToPosition(itemIndex);
+                String sql = "delete from orderInfo where id =" + String.valueOf(cursor.getInt(0));
+                db.execSQL(sql);
+                //重新获取数据库的数据来展示信息
+                showDayAndMonthMoney();
+                showOrderDetailList();
+            }
+        });
+        builder.setNegativeButton("取消", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                Util.toastMsg(MainActivity.this,"取消删除");
+            }
+        });
+        builder.show();
+    }
+
+    public void showDayAndMonthMoney(){
         //获取本日和本月收支数据
         double allTodayOrder = 0.0,allMonthOrder = 0.0;
         tvAllTodayOrder = findViewById(R.id.tvAllTodayOrder);
@@ -109,31 +173,5 @@ public class MainActivity extends AppCompatActivity {
         tvAllMonthOrder.setText(String.valueOf(allMonthOrder));
         tvAllTodayOrder.setText(String.valueOf(allTodayOrder));
         cursor.close();
-        //获取并显示所有账单详情
-        showOrderDetailList();
-        super.onStart();
-    }
-
-    //获取并显示所有账单详情的方法
-    public void showOrderDetailList(){
-        Cursor cursor = db.query ("orderInfo",null,null,null,null,null,"id");
-        while(cursor.moveToNext()){
-            //初始化orderInfoList
-            OrderInfo orderInfo = new OrderInfo(cursor.getString(4),cursor.getString(6),cursor.getString(7),cursor.getDouble(5));
-            orderInfos.add(orderInfo);
-        }
-        //获取适配器
-        OrderInfoAdapter orderInfoAdapter = new OrderInfoAdapter(MainActivity.this,R.layout.lv_order_detail_item,orderInfos);
-        //将适配器的数据传给ListView
-        ListView listView = findViewById(R.id.lvOrderDetail);
-        listView.setAdapter(orderInfoAdapter);
-        // 为ListView注册一个监听器，当用户点击了ListView中的任何一个子项时，就会回调onItemClick()方法
-        // 在这个方法中可以通过position参数判断出用户点击的是那一个子项
-        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Util.toastMsg(MainActivity.this,String.valueOf(position));
-            }
-        });
     }
 }

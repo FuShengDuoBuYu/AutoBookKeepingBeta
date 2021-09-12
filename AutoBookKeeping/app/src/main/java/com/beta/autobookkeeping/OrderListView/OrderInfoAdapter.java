@@ -36,7 +36,10 @@ public class OrderInfoAdapter extends ArrayAdapter<OrderInfo> {
 
             // 避免每次调用getView()时都要重新获取控件实例
             viewHolder=new ViewHolder();
-            viewHolder.tvOrderDetail=view.findViewById(R.id.tvOrderDetail);
+            viewHolder.tvOrderTypeAndRemark=view.findViewById(R.id.tvOrderTypeAndRemark);
+            viewHolder.tvPayWay=view.findViewById(R.id.tvPayWay);
+            viewHolder.tvOrderMoney=view.findViewById(R.id.tvOrderMoney);
+            viewHolder.tvOrderTime=view.findViewById(R.id.tvOrderTime);
 
             // 将ViewHolder存储在View中（即将控件的实例存储在其中）
             view.setTag(viewHolder);
@@ -45,12 +48,15 @@ public class OrderInfoAdapter extends ArrayAdapter<OrderInfo> {
             viewHolder=(ViewHolder) view.getTag();
         }
 
-        // 获取控件实例，并调用set...方法使其显示出来
-        viewHolder.tvOrderDetail.setText(orderInfo.getTime());
+        // 获取控件实例，并调用set方法使其显示出来
+        viewHolder.tvOrderTypeAndRemark.setText(orderInfo.getTvOrderTypeAndRemark());
+        viewHolder.tvPayWay.setText(orderInfo.getTvPayWay());
+        viewHolder.tvOrderMoney.setText(orderInfo.getTvOrderMoney());
+        viewHolder.tvOrderTime.setText(orderInfo.getTvOrderTime());
         return view;
     }
     // 定义一个内部类，用于对控件的实例进行缓存
     class ViewHolder{
-        TextView tvOrderDetail;
+        TextView tvOrderTypeAndRemark,tvPayWay,tvOrderMoney,tvOrderTime;
     }
 }

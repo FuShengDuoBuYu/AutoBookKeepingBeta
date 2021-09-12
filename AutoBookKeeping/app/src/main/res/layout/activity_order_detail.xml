@@ -77,7 +77,7 @@
             android:layout_weight="0.3"
 
             android:background="@drawable/corner_btn"
-            android:text="消费  ▼"
+            android:text="消费"
             android:textColor="@color/white"
             android:textSize="15sp">
 
@@ -120,7 +120,7 @@
             android:layout_width="0dp"
             android:layout_weight="0.5"
             android:layout_height="wrap_content"
-            android:text="银行卡         ▼"
+            android:text="银行卡"
             android:id="@+id/btnPayWay"
             android:background="@drawable/corner_btn"
             android:textColor="@color/white"
