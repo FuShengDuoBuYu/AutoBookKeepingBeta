@@ -96,6 +96,14 @@ public class OrderDetailActivity extends AppCompatActivity {
         });
     }
 
+    @Override
+    protected void onDestroy() {
+        SMSApplication smsApplication = new SMSApplication();
+        smsApplication = (SMSApplication)getApplication();
+        smsApplication.setSMSMsg(null);
+        super.onDestroy();
+    }
+
     //选择消费类型并显示的方法
     private void showCostType(){
         costType = -1;
@@ -176,11 +184,22 @@ public class OrderDetailActivity extends AppCompatActivity {
 
     //获取短信内容并处理的方法
     public String[] handleMsg(){
-        SMSApplication smsApplication;
+        SMSApplication smsApplication = new SMSApplication();;
         smsApplication = (SMSApplication) getApplication();
         String msg = smsApplication.getSMSMsg();
         smsApplication.setSMSMsg(null);
         return (msg==null)?null:Util.getBankOrderInfo(msg);
+    }
+
+    @Override
+    protected void onPause() {
+        //在这里将Application中的数据设置为空,这样就不会跳转两次,这个bug和activity的生命周期
+        //息息相关
+        SMSApplication smsApplication = new SMSApplication();;
+        smsApplication = (SMSApplication) getApplication();
+        String msg = smsApplication.getSMSMsg();
+        smsApplication.setSMSMsg(null);
+        super.onPause();
     }
 
     @Override

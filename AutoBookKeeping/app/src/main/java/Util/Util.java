@@ -15,7 +15,7 @@ import java.util.regex.Pattern;
 
 public class Util {
     //匹配银行账单信息的正则表达式
-    private final static String regExBank = "[(农业银行)|(建设银行)|(郑州银行)|(工商银行)|(交通银行)|(招商银行)]";
+    private final static String regExBank = "[农业银行|建设银行|郑州银行|工商银行|交通银行|招商银行]";
     private final static String regExMoneyType = "[-|出|入]";
     private final static String regExMoney = "([1-9]\\d*\\.\\d*)?";
     //弹出Toast的方法
