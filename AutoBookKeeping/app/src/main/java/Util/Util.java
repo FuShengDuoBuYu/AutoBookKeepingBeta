@@ -15,9 +15,9 @@ import java.util.regex.Pattern;
 
 public class Util {
     //匹配银行账单信息的正则表达式
-    private final static String regExBank = "[农业银行|建设银行|郑州银行|工商银行|交通银行|招商银行]";
-    private final static String regExMoneyType = "[-|出|入]";
-    private final static String regExMoney = "([1-9]\\d*\\.\\d*)?";
+    private final static String regExBank = "[农业银行|建设银行|郑州银行|工商银行|招商银行]";
+    private final static String regExMoneyType = "[-|出|入|代]";
+    private final static String regExMoney = "\\d*\\.\\d*";
     //弹出Toast的方法
     public static void toastMsg(Context context,String s){
         Toast.makeText(context,s,Toast.LENGTH_LONG).show();
@@ -63,7 +63,7 @@ public class Util {
 
         }
         String result = sb.toString();
-        if(result.equals("出")||result.equals("-")){
+        if(result.equals("出")||result.equals("-")||result.equals("代")){
             return "支出";
         }else if(result.equals("入")){
             return "收入";

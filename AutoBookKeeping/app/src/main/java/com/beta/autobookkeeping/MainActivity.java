@@ -170,8 +170,8 @@ public class MainActivity extends AppCompatActivity {
             }
         }
         //重新给月和日开销赋值
-        tvAllMonthOrder.setText(String.valueOf(allMonthOrder));
-        tvAllTodayOrder.setText(String.valueOf(allTodayOrder));
+        tvAllMonthOrder.setText(String .format("%.2f",allMonthOrder));
+        tvAllTodayOrder.setText(String .format("%.2f",allTodayOrder));
         cursor.close();
     }
 }

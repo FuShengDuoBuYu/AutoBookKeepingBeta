@@ -224,7 +224,6 @@ public class OrderDetailActivity extends AppCompatActivity {
         values.put("month",Util.getCurrentMonth());
         values.put("day",Util.getCurrentDay());
         values.put("clock",btnGetCurrentTime.getText().toString());
-        values.put("costType",btnCostType.getText().toString());
         //根据内容确定写入数组的金额还是用户的金额,根据支出还是收入记录正负号
         //根据内容确定写入数组还是用户默认
         //用户手动添加的账单信息
@@ -238,6 +237,7 @@ public class OrderDetailActivity extends AppCompatActivity {
                 values.put("money",0.0-(Double.parseDouble(etOrderNumber.getText().toString())));
             }
             values.put("bankName",btnPayWay.getText().toString());
+            values.put("costType",btnCostType.getText().toString());
         }
         //短信自动读取的账单信息
         else{
@@ -252,6 +252,7 @@ public class OrderDetailActivity extends AppCompatActivity {
             if(!msgContent[0].equals("")){
                 values.put("bankName",msgContent[0]);
             }
+            values.put("costType",msgContent[1]);
         }
         //写入账单备注
         values.put("orderRemark",etOrderRemark.getText().toString());
