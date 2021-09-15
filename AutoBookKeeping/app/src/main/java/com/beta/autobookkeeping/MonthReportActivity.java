@@ -6,10 +6,13 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 
+import com.github.mikephil.charting.charts.BarChart;
+
 import Util.Util;
 
 public class MonthReportActivity extends AppCompatActivity {
-    Button btn_right_choose,btn_left_choose;
+    private Button btn_right_choose,btn_left_choose;
+    private BarChart monthMoneyBarChart;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
