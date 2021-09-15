@@ -89,4 +89,9 @@
         android:layout_marginTop="10dp">
     </View>
 
+    <com.github.mikephil.charting.charts.BarChart
+        android:layout_width="match_parent"
+        android:layout_height="200dp"
+        android:id="@+id/bar_chart_month_money">
+    </com.github.mikephil.charting.charts.BarChart>
 </LinearLayout>
