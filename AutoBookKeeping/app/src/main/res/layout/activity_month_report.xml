@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:orientation="horizontal">
+        <!-- 月度报告-->
+        <TextView
+            android:id="@+id/tv_title"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="50dp"
+            android:text="@string/month_report_page_title"
+            android:textColor="@color/black"
+            android:textSize="20sp"
+            android:gravity="center">
+        </TextView>
+    </LinearLayout>
+
+    <!-- 灰色分割线-->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1px"
+        android:background="@color/black"
+        android:layout_marginTop="10dp">
+    </View>
+
+    <!--第一行,包括左右按钮以及月度花费-->
+    <LinearLayout
+        android:layout_marginTop="15dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginStart="15dp"
+        android:layout_marginEnd="15dp">
+        <!--前一个月数据按钮-->
+        <Button
+            android:layout_marginTop="10dp"
+            android:layout_marginStart="20dp"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:id="@+id/btn_left_choose"
+            android:background="@drawable/left_button">
+        </Button>
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+            <!--当前月份-->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="2021年9月"
+                android:layout_gravity="center"
+                android:id="@+id/tv_month_time">
+            </TextView>
+            <!--当前月份总收支额-->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="233元"
+                android:textColor="@color/black"
+                android:textSize="30sp"
+                android:id="@+id/tv_month_money"
+                android:layout_gravity="center">
+            </TextView>
+        </LinearLayout>
+        <!--后一个月数据按钮-->
+        <Button
+            android:layout_marginTop="10dp"
+            android:layout_marginEnd="20dp"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:id="@+id/btn_right_choose"
+            android:background="@drawable/right_button">
+        </Button>
+    </LinearLayout>
+
+    <!-- 灰色分割线-->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1px"
+        android:background="@color/black"
+        android:layout_marginTop="10dp">
+    </View>
+
+</LinearLayout>

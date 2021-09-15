@@ -2,10 +2,14 @@ package Util;
 
 import android.content.Context;
 import android.content.DialogInterface;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.widget.Button;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AlertDialog;
+
+import com.beta.autobookkeeping.SMStools.SMSDataBase;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -69,6 +73,36 @@ public class Util {
             return "收入";
         }
         return result;
+    }
+    //获取当日收支金额的方法
+    public static double getTodayMoney(Context context) {
+        double allTodayOrder = 0.0;
+        SMSDataBase smsDb = new SMSDataBase(context, "orderInfo", null, 1);
+        SQLiteDatabase db = smsDb.getWritableDatabase();
+        Cursor cursor = db.query("orderInfo", null, null, null, null, null, "id");
+        while (cursor.moveToNext()) {
+            if (cursor.getInt(1) == Util.getCurrentYear() && cursor.getInt(2) == Util.getCurrentMonth() && cursor.getInt(3) == Util.getCurrentDay()) {
+                allTodayOrder += cursor.getDouble(5);
+            }
+        }
+        cursor.close();
+        return allTodayOrder;
+    }
+
+    //获得本月收支金额的方法
+    //获取当日收支金额的方法
+    public static double getMonthMoney(Context context) {
+        double allMonthOrder = 0.0;
+        SMSDataBase smsDb = new SMSDataBase(context, "orderInfo", null, 1);
+        SQLiteDatabase db = smsDb.getWritableDatabase();
+        Cursor cursor = db.query("orderInfo", null, null, null, null, null, "id");
+        while (cursor.moveToNext()) {
+            if (cursor.getInt(1) == Util.getCurrentYear() && cursor.getInt(2) == Util.getCurrentMonth()) {
+                allMonthOrder += cursor.getDouble(5);
+            }
+        }
+        cursor.close();
+        return allMonthOrder;
     }
 }
 

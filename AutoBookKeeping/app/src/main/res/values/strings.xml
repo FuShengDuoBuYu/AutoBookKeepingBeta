@@ -9,6 +9,7 @@
     <string name="hint_input_cost_number">请输入金额(元)</string>
     <string name="remark">备注</string>
     <string name="save_changes">保存更改</string>
+    <string name="month_report_page_title">月度报告</string>
     <!--    以下需要后台更改-->
     <string name="today_all_cost_number">0.00</string>
     <string name="month_all_cost_number">0.00</string>

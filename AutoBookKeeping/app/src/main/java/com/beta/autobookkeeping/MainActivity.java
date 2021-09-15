@@ -70,11 +70,8 @@ public class MainActivity extends AppCompatActivity {
         btnSearchMonthlyReport.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                //TOdo:跳转到月度报告页面
-//                Util.toastMsg(MainActivity.this,"进入月度报告成功");
-//                Intent intent = new Intent(MainActivity.this,TestActivity.class);
-//                startActivity(intent);
-                Util.toastMsg(MainActivity.this,"进入月度报告成功");
+                Intent intent = new Intent(MainActivity.this,MonthReportActivity.class);
+                startActivity(intent);
             }
         });
         //设置数据库
