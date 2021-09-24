@@ -3,5 +3,60 @@
     android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
 
+        <!--今日累计-->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:gravity="start"
+            android:padding="20dp"
+            >
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/today_all_cost"
+                android:textColor="@color/white">
+
+            </TextView>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/tvAllTodayOrder"
+                android:text="@string/today_all_cost_number"
+                android:textColor="@color/white"
+                android:textSize="30sp">
+            </TextView>
+        </LinearLayout>
+
+        <!--本月累计-->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:gravity="end"
+            android:padding="20dp"
+            >
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/month_all_cost"
+                android:textColor="@color/white">
+            </TextView>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/tvAllMonthOrder"
+                android:text="@string/month_all_cost_number"
+                android:textColor="@color/white"
+                android:textSize="30sp">
+            </TextView>
+        </LinearLayout>
+    </LinearLayout>
 </LinearLayout>

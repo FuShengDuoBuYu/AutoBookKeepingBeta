@@ -102,6 +102,7 @@ public class MonthReportActivity extends AppCompatActivity {
                     "119\n报警", "110\n报警", "120\n报警", "119\n报警"};
 
             @Override
+
             public String getFormattedValue(float value) {
                 if (value >= 0) {
                     return "fsfa";
