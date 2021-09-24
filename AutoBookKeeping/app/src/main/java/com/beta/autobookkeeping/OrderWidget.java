@@ -1,5 +1,6 @@
 package com.beta.autobookkeeping;
 
+import android.app.PendingIntent;
 import android.appwidget.AppWidgetManager;
 import android.appwidget.AppWidgetProvider;
 import android.content.ComponentName;
@@ -15,12 +16,23 @@ public class OrderWidget extends AppWidgetProvider {
     /**
      * 接收窗口小部件点击时发送的广播
      */
+    public static String ONCLICKTODAY = "onClickToday";
+    public static String ONCLICKMONTH = "onClickMonth";
     @Override
     public void onReceive(Context context, Intent intent) {
+        if (intent.getAction().equals(ONCLICKTODAY)) {
+            //更新消费数据
+            Log.d("tag1","今天");
+            RemoteViews remoteViews = new RemoteViews(context.getPackageName(),R.layout.order_widget);
+            remoteViews.setTextViewText(R.id.wtvAllTodayOrder, String.valueOf(Util.getTodayMoney(context)));
+            remoteViews.setTextViewText(R.id.wtvAllMonthOrder, String.valueOf(Util.getMonthMoney(context)));
+        }
+        if(intent.getAction().equals(ONCLICKMONTH)){
+            Log.d("tag1","本月");
+        }
         super.onReceive(context, intent);
-//        RemoteViews remoteViews = new RemoteViews(context.getPackageName(),R.layout.order_widget);
-//        remoteViews.setTextViewText(R.id.wtvAllTodayOrder, String.valueOf(Util.getTodayMoney(context)));
-//        remoteViews.setTextViewText(R.id.wtvAllMonthOrder, String.valueOf(Util.getMonthMoney(context)));
+
+
     }
     /**
      * 每次窗口小部件被更新都调用一次该方法
@@ -28,16 +40,17 @@ public class OrderWidget extends AppWidgetProvider {
     @Override
     public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
         super.onUpdate(context, appWidgetManager, appWidgetIds);
-        Log.d("tag", String.valueOf(Util.getMonthMoney(context)));
-//        Log.i("AppWidget", "开始了更新");
-//        RemoteViews rv = new RemoteViews(AppUMS.mContent.getPackageName(), R.layout.order_widget);
-////这里获得当前的包名，并且用AppWidgetManager来向NewAppWidget.class发送广播。
-//        AppWidgetManager manager = AppWidgetManager.getInstance(AppUMS.mContent);
-//        ComponentName cn = new ComponentName(AppUMS.mContent, NewAppWidget.class);
-//        manager.updateAppWidget(cn, rv);
         RemoteViews remoteViews = new RemoteViews(context.getPackageName(),R.layout.order_widget);
         remoteViews.setTextViewText(R.id.wtvAllTodayOrder, String.valueOf(Util.getTodayMoney(context)));
         remoteViews.setTextViewText(R.id.wtvAllMonthOrder, String.valueOf(Util.getMonthMoney(context)));
+
+        //设置小组件被点击时的事件
+        Intent intent = new Intent(context, OrderWidget.class);
+        intent.setAction(ONCLICKTODAY);
+        intent.setAction(ONCLICKMONTH);
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(context, 0, intent, 0);
+        remoteViews.setOnClickPendingIntent(R.id.wtvAllTodayOrder, pendingIntent);
+
         appWidgetManager.updateAppWidget(appWidgetIds,remoteViews);
     }
     /**
@@ -46,8 +59,6 @@ public class OrderWidget extends AppWidgetProvider {
     @Override
     public void onDeleted(Context context, int[] appWidgetIds) {
         super.onDeleted(context, appWidgetIds);
-        //context.stopService(new Intent(context, WidgetService.class));
-//        Log.i("AppWidget", "删除成功！");
     }
     /**
      * 当该窗口小部件第一次添加到桌面时调用该方法
@@ -55,13 +66,6 @@ public class OrderWidget extends AppWidgetProvider {
     @Override
     public void onEnabled(Context context) {
         super.onEnabled(context);
-//        RemoteViews remoteViews = new RemoteViews(context.getPackageName(),R.layout.order_widget);
-//        remoteViews.setTextViewText(R.id.wtvAllTodayOrder, String.valueOf(Util.getTodayMoney(context)));
-//        remoteViews.setTextViewText(R.id.wtvAllMonthOrder, String.valueOf(Util.getMonthMoney(context)));
-//            Log.d("tag", String.valueOf(Util.getMonthMoney(context)));
-        // Intent mTimerIntent = new Intent(context, WidgetService.class);
-        // context.startService(mTimerIntent);
-//        Log.i("AppWidget", "创建成功！");
     }
     /**
      * 当最后一个该窗口小部件删除时调用该方法
@@ -69,9 +73,6 @@ public class OrderWidget extends AppWidgetProvider {
     @Override
     public void onDisabled(Context context) {
         super.onDisabled(context);
-        //  Intent mTimerIntent = new Intent(context, WidgetService.class);
-        // context.stopService(mTimerIntent);
-//        Log.i("AppWidget", "删除成功！");
     }
     /**
      * 当小部件大小改变时
@@ -87,4 +88,5 @@ public class OrderWidget extends AppWidgetProvider {
     public void onRestored(Context context, int[] oldWidgetIds, int[] newWidgetIds) {
         super.onRestored(context, oldWidgetIds, newWidgetIds);
     }
+
 }
