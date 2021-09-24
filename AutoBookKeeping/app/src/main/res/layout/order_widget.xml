@@ -27,7 +27,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:id="@+id/tvAllTodayOrder"
+                android:id="@+id/wtvAllTodayOrder"
                 android:text="@string/today_all_cost_number"
                 android:textColor="@color/white"
                 android:textSize="30sp">
@@ -52,7 +52,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:id="@+id/tvAllMonthOrder"
+                android:id="@+id/wtvAllMonthOrder"
                 android:text="@string/month_all_cost_number"
                 android:textColor="@color/white"
                 android:textSize="30sp">
