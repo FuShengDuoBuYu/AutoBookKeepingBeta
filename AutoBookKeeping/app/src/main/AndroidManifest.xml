@@ -46,7 +46,7 @@
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE"/><!--必须添加的action，否则不会出现在小部件的列表中-->
                 <action android:name="com.beta.autobookkeeping.onClickToday"/><!--自定义的action，用于在点击小部件上时发送的广播Action-->
-                <action android:name="com.beta.autobookkeeping.onClickMonth"/>
+
             </intent-filter>
             <meta-data
                 android:name="android.appwidget.provider"

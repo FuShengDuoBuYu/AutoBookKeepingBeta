@@ -16,19 +16,13 @@ public class OrderWidget extends AppWidgetProvider {
     /**
      * 接收窗口小部件点击时发送的广播
      */
-    public static String ONCLICKTODAY = "onClickToday";
-    public static String ONCLICKMONTH = "onClickMonth";
+    public static String ONCLICK = "onClick";
     @Override
     public void onReceive(Context context, Intent intent) {
-        if (intent.getAction().equals(ONCLICKTODAY)) {
-            //更新消费数据
-            Log.d("tag1","今天");
-            RemoteViews remoteViews = new RemoteViews(context.getPackageName(),R.layout.order_widget);
-            remoteViews.setTextViewText(R.id.wtvAllTodayOrder, String.valueOf(Util.getTodayMoney(context)));
-            remoteViews.setTextViewText(R.id.wtvAllMonthOrder, String.valueOf(Util.getMonthMoney(context)));
-        }
-        if(intent.getAction().equals(ONCLICKMONTH)){
-            Log.d("tag1","本月");
+        if (intent.getAction().equals(ONCLICK)) {
+            //打开应用
+            Intent intent2 = context.getPackageManager().getLaunchIntentForPackage(context.getPackageName());
+            context.startActivity(intent2);
         }
         super.onReceive(context, intent);
 
@@ -41,15 +35,14 @@ public class OrderWidget extends AppWidgetProvider {
     public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
         super.onUpdate(context, appWidgetManager, appWidgetIds);
         RemoteViews remoteViews = new RemoteViews(context.getPackageName(),R.layout.order_widget);
-        remoteViews.setTextViewText(R.id.wtvAllTodayOrder, String.valueOf(Util.getTodayMoney(context)));
-        remoteViews.setTextViewText(R.id.wtvAllMonthOrder, String.valueOf(Util.getMonthMoney(context)));
+        remoteViews.setTextViewText(R.id.wtvAllTodayOrder, String .format("%.1f",Util.getTodayMoney(context)));
+        remoteViews.setTextViewText(R.id.wtvAllMonthOrder, String .format("%.1f",Util.getMonthMoney(context)));
 
         //设置小组件被点击时的事件
         Intent intent = new Intent(context, OrderWidget.class);
-        intent.setAction(ONCLICKTODAY);
-        intent.setAction(ONCLICKMONTH);
+        intent.setAction(ONCLICK);
         PendingIntent pendingIntent = PendingIntent.getBroadcast(context, 0, intent, 0);
-        remoteViews.setOnClickPendingIntent(R.id.wtvAllTodayOrder, pendingIntent);
+        remoteViews.setOnClickPendingIntent(R.id.wll, pendingIntent);
 
         appWidgetManager.updateAppWidget(appWidgetIds,remoteViews);
     }

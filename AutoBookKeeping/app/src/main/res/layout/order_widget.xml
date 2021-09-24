@@ -6,7 +6,8 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal">
+        android:orientation="horizontal"
+        android:id="@+id/wll">
 
         <!--今日累计-->
         <LinearLayout
@@ -15,7 +16,7 @@
             android:layout_height="match_parent"
             android:orientation="vertical"
             android:gravity="start"
-            android:padding="20dp"
+            android:padding="10dp"
             >
             <TextView
                 android:layout_width="wrap_content"
@@ -30,7 +31,7 @@
                 android:id="@+id/wtvAllTodayOrder"
                 android:text="@string/today_all_cost_number"
                 android:textColor="@color/white"
-                android:textSize="30sp">
+                android:textSize="25sp">
             </TextView>
         </LinearLayout>
 
@@ -41,7 +42,8 @@
             android:layout_height="match_parent"
             android:orientation="vertical"
             android:gravity="end"
-            android:padding="20dp"
+            android:padding="10dp"
+
             >
             <TextView
                 android:layout_width="wrap_content"
@@ -55,7 +57,7 @@
                 android:id="@+id/wtvAllMonthOrder"
                 android:text="@string/month_all_cost_number"
                 android:textColor="@color/white"
-                android:textSize="30sp">
+                android:textSize="25sp">
             </TextView>
         </LinearLayout>
     </LinearLayout>
