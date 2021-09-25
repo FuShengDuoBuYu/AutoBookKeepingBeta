@@ -2,11 +2,14 @@ package com.beta.autobookkeeping;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 
+import com.beta.autobookkeeping.SMStools.SMSDataBase;
 import com.github.mikephil.charting.animation.Easing;
 import com.github.mikephil.charting.charts.BarChart;
 import com.github.mikephil.charting.components.Description;
@@ -25,6 +28,11 @@ import Util.Util;
 public class MonthReportActivity extends AppCompatActivity {
     private Button btn_right_choose,btn_left_choose;
     private BarChart monthMoneyBarChart;
+    //当前页面查看的月份
+    int recordYear = Util.getCurrentYear();
+    int recordMonth = Util.getCurrentMonth();
+    SMSDataBase smsDb = new SMSDataBase(MonthReportActivity.this,"orderInfo",null,1);
+    SQLiteDatabase db;
     //保存数据的实体
     private ArrayList<BarEntry> moneyEntry = new ArrayList<>();
     //数据的集合
@@ -33,6 +41,7 @@ public class MonthReportActivity extends AppCompatActivity {
     public ArrayList<String> monthLabels = new ArrayList<String>();
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        db = smsDb.getWritableDatabase();
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_month_report);
         //获取各个组件
@@ -40,6 +49,7 @@ public class MonthReportActivity extends AppCompatActivity {
         showBarChart();
     }
 
+    //获取views的控件
     public void getViews(){
         btn_left_choose = findViewById(R.id.btn_left_choose);
         btn_right_choose = findViewById(R.id.btn_right_choose);
@@ -58,11 +68,14 @@ public class MonthReportActivity extends AppCompatActivity {
         });
     }
 
+    //显示柱状图的方法
     public void showBarChart(){
-        moneyEntry.add(0,new BarEntry(4,10));
-        moneyEntry.add(1,new BarEntry(3,10));
         moneyDataSet = new BarDataSet(moneyEntry,"收支情况");
-        monthLabels.add("测试一");
+//        moneyEntry.add(new BarEntry(4,10));
+//        moneyEntry.add(new BarEntry(3,10));
+//        monthLabels.add("test");
+//        monthLabels.add("test2");
+        setBarDataSet(moneyDataSet,Color.rgb(102,139,139));
         ArrayList<IBarDataSet> dataSets = new ArrayList<>();
         dataSets.add(moneyDataSet);
         BarData data = new BarData(dataSets);
@@ -70,6 +83,7 @@ public class MonthReportActivity extends AppCompatActivity {
         setBarChart(monthMoneyBarChart);
     }
 
+    //柱状图格式的设置
     public void setBarChart(BarChart barChart){
         XAxis xAxis = barChart.getXAxis();
         YAxis leftAxis = barChart.getAxisLeft();
@@ -97,28 +111,57 @@ public class MonthReportActivity extends AppCompatActivity {
         xAxis.setDrawGridLines(false);
         //X轴设置显示位置在底部
         xAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
-        ValueFormatter valueFormatter = new ValueFormatter() {
-            private final String[] xLableList = new String[]{"110\n报警", "120\n报警", "119\n报警", "110\n报警", "120\n报警",
-                    "119\n报警", "110\n报警", "120\n报警", "119\n报警"};
-
+        // X轴显示Value值的精度，与自定义X轴返回的Value值精度一致
+//        xAxis.setGranularity(1f);
+        //X轴横坐标显示的数量
+        xAxis.setLabelCount(12,true);
+//        xAxis.setLabelCount(5);
+        //X轴最大坐标
+        xAxis.setAxisMaximum(12);
+//        xAxis.setAxisMaximum(4);
+        //X轴最小坐标
+        xAxis.setAxisMinimum(0);
+        xAxis.setValueFormatter(new ValueFormatter() {
             @Override
-
             public String getFormattedValue(float value) {
-                if (value >= 0) {
-                    return "fsfa";
-                } else {
-                    return "";
-                }
+                Util.toastMsg(MonthReportActivity.this,String.valueOf(value));
+                return value > monthLabels.size() || value < 0? "" : monthLabels.get((int)value);
+//                return "";
             }
-        };
-        xAxis.setValueFormatter(valueFormatter);
+        });
     }
 
+    //设置柱状图的数据
     public void setBarDataSet(BarDataSet barDataSet, int color){
         barDataSet.setColor(color);
         barDataSet.setFormLineWidth(1f);
         barDataSet.setFormSize(15.f);
         //显示柱状图顶部值
         barDataSet.setDrawValues(true);
+
+        //依次查取各个月的收支数据
+        double monthCost=0.0;
+        //x轴柱的下标
+        int index = 0;
+        while (true){
+            //查出某个月的收支总和
+            monthCost=Util.getMonthMoney(recordYear,recordMonth,MonthReportActivity.this);
+            //如果某个月收支为0,说明为起始月份
+            if(monthCost==0.0){
+                break;
+            }
+            //否则将收支总和写入记录的list
+            else{
+                moneyEntry.add(new BarEntry(++index,(float)monthCost));
+                monthLabels.add(String.valueOf(recordYear)+"/"+String.valueOf(recordMonth)+"");
+            }
+            //更新要查询的月份
+            if(recordMonth==1){
+                recordMonth = 9;
+                recordYear-=1;
+            }else{
+                recordMonth-=1;
+            }
+        }
     }
 }

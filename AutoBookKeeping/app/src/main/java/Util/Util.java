@@ -104,5 +104,21 @@ public class Util {
         cursor.close();
         return allMonthOrder;
     }
+
+    //获取指定月份收支金额的方法
+    public static double getMonthMoney(int year,int month,Context context){
+        double appointMonthMoney = 0.0;
+        SMSDataBase smsDb = new SMSDataBase(context, "orderInfo", null, 1);
+        SQLiteDatabase db = smsDb.getWritableDatabase();
+        Cursor cursor = db.query("orderInfo", null, null, null, null, null, "id");
+        while (cursor.moveToNext()) {
+            if (cursor.getInt(1) == year && cursor.getInt(2) == month) {
+                appointMonthMoney += cursor.getDouble(5);
+            }
+        }
+        cursor.close();
+        return appointMonthMoney;
+    }
 }
+
 
