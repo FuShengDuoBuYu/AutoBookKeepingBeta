@@ -57,7 +57,7 @@
                 android:layout_height="wrap_content"
                 android:text="2021年9月"
                 android:layout_gravity="center"
-                android:id="@+id/tv_month_time">
+                android:id="@+id/tv_month_report_time">
             </TextView>
             <!--当前月份总收支额-->
             <TextView
@@ -66,7 +66,7 @@
                 android:text="233元"
                 android:textColor="@color/black"
                 android:textSize="30sp"
-                android:id="@+id/tv_month_money"
+                android:id="@+id/tv_month_report_money"
                 android:layout_gravity="center">
             </TextView>
         </LinearLayout>
