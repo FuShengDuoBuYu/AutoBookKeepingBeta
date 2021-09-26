@@ -215,23 +215,20 @@ public class MainActivity extends AppCompatActivity {
         switch (requestCode) {
             case 667:
                 if (grantResults[0] == PackageManager.PERMISSION_GRANTED && grantResults[1] ==PackageManager.PERMISSION_GRANTED) {
-//                    Util.toastMsg(this,"获取权限成功");
                 } else {
                     // Permission Denied 权限被拒绝
-                    AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
-                    //设置对话框的内容
-                    builder.setTitle("权限申请").setMessage("请您前往设置-应用设置-授权管理(或在多任务栏里点击本应用的设置信息) 给予本应用读取短信以及后台弹窗的权限,否则将" +
-                            "无法实现自动读取短信记账的功能");
-                    //设置对话框的两个选项
-                    builder.setPositiveButton("确定", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialogInterface, int i) {
-
-                        }
-                    }).show();
-
+//                    AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+//                    //设置对话框的内容
+//                    builder.setTitle("权限申请").setMessage("由于国内定制UI的限制,无法自动弹窗获取权限\n请您前往设置-应用设置-授权管理\n(或在多任务栏里点击本应用的设置信息) 给予本应用读取短信以及后台弹窗的权限,否则将" +
+//                            "无法实现自动读取短信记账的功能").setCancelable(false);
+//                    //设置对话框的两个选项
+//                    builder.setPositiveButton("确定", new DialogInterface.OnClickListener() {
+//                        @Override
+//                        public void onClick(DialogInterface dialogInterface, int i) {
+//
+//                        }
+//                    }).show();
                 }
-
                 break;
             default:
                 break;

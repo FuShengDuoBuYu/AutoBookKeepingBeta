@@ -94,4 +94,17 @@
         android:layout_height="200dp"
         android:id="@+id/bar_chart_month_money">
     </com.github.mikephil.charting.charts.BarChart>
+
+    <!-- 灰色分割线-->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1px"
+        android:background="@color/black"
+        android:layout_marginTop="10dp">
+    </View>
+
+    <com.github.mikephil.charting.charts.PieChart
+        android:id="@+id/pie_chart_month_money"
+        android:layout_width="match_parent"
+        android:layout_height="300dp" />
 </LinearLayout>

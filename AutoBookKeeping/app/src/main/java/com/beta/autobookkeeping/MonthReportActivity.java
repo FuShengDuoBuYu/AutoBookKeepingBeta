@@ -13,12 +13,17 @@ import android.widget.TextView;
 import com.beta.autobookkeeping.SMStools.SMSDataBase;
 import com.github.mikephil.charting.animation.Easing;
 import com.github.mikephil.charting.charts.BarChart;
+import com.github.mikephil.charting.charts.PieChart;
 import com.github.mikephil.charting.components.Description;
 import com.github.mikephil.charting.components.XAxis;
 import com.github.mikephil.charting.components.YAxis;
 import com.github.mikephil.charting.data.BarData;
 import com.github.mikephil.charting.data.BarDataSet;
 import com.github.mikephil.charting.data.BarEntry;
+import com.github.mikephil.charting.data.Entry;
+import com.github.mikephil.charting.data.PieData;
+import com.github.mikephil.charting.data.PieDataSet;
+import com.github.mikephil.charting.data.PieEntry;
 import com.github.mikephil.charting.formatter.ValueFormatter;
 import com.github.mikephil.charting.interfaces.datasets.IBarDataSet;
 
@@ -30,6 +35,7 @@ import Util.Util;
 public class MonthReportActivity extends AppCompatActivity {
     private Button btn_right_choose,btn_left_choose;
     private BarChart monthMoneyBarChart;
+    private PieChart monthMoneyPieChart;
     private TextView tv_month_report_money,tv_month_report_time;
     //当前页面查看的月份
     int recordYear = Util.getCurrentYear();
@@ -38,10 +44,13 @@ public class MonthReportActivity extends AppCompatActivity {
     SQLiteDatabase db;
     //保存数据的实体
     private final List<BarEntry> moneyEntry = new ArrayList<BarEntry>();
+    private final ArrayList<PieEntry> costEntry = new ArrayList<>();
     //数据的集合
     private BarDataSet moneyDataSet;
+    private PieDataSet costDataSet;
     //表格下方的月份文字
     public ArrayList<String> monthLabels = new ArrayList<String>();
+    public ArrayList<String> costLabels = new ArrayList<>();
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         db = smsDb.getWritableDatabase();
@@ -52,6 +61,7 @@ public class MonthReportActivity extends AppCompatActivity {
         //先更新总收支数据
         tv_month_report_money.setText(String.format("%.1f",Util.getMonthMoney(recordYear,recordMonth,MonthReportActivity.this)));
         showBarChart();
+        showPieChart();
     }
 
     //获取views的控件
@@ -59,6 +69,7 @@ public class MonthReportActivity extends AppCompatActivity {
         btn_left_choose = findViewById(R.id.btn_left_choose);
         btn_right_choose = findViewById(R.id.btn_right_choose);
         monthMoneyBarChart = findViewById(R.id.bar_chart_month_money);
+        monthMoneyPieChart = findViewById(R.id.pie_chart_month_money);
         tv_month_report_money = findViewById(R.id.tv_month_report_money);
         tv_month_report_time = findViewById(R.id.tv_month_report_time);
         btn_right_choose.setOnClickListener(new View.OnClickListener() {
@@ -106,10 +117,8 @@ public class MonthReportActivity extends AppCompatActivity {
         moneyEntry.add(new BarEntry(-0.5f,0));
         //创建第一个变量总收支的图
         moneyDataSet = new BarDataSet(moneyEntry,"总收支");
-//        moneyEntry.add(new BarEntry(1.5f,-10));
         //设置这个变量柱子的基本参数
         moneyDataSet.setColor(Color.rgb(187,255,255));
-//        moneyDataSet.setFormLineWidth(1f);
         moneyDataSet.setDrawValues(true);
 
         //创建变量组
@@ -119,8 +128,36 @@ public class MonthReportActivity extends AppCompatActivity {
         //将变量组交给图
         monthMoneyBarChart.setData(data);
         //显示柱状图
-
         setBarChart(monthMoneyBarChart);
+    }
+
+    //显示饼状图的方法
+    public void showPieChart(){
+
+        setPieChart(monthMoneyPieChart);
+    }
+
+    //饼状图格式的设置
+    public void setPieChart(PieChart pieChart){
+        //设置图表描述
+        Description description = new Description();
+        description.setText("支出占比");
+        pieChart.setDescription(description);
+        //设置使用百分比
+        pieChart.setUsePercentValues(true);
+        setPieDataSetDataMoney(recordMonth,recordYear);
+        //设置中心无空圆
+        pieChart.setHoleRadius(0);
+        //设置饼状图的颜色
+        costDataSet.setColors(new int[]{Color.rgb(181, 194, 202), Color.rgb(129, 216, 200), Color.rgb(241, 214, 145),
+
+                Color.rgb(108, 176, 223), Color.rgb(195, 221, 155), Color.rgb(251, 215, 191),
+
+                Color.rgb(237, 189, 189), Color.rgb(172, 217, 243)});
+        //设置
+        PieData pieData = new PieData(costDataSet);
+        pieChart.setData(pieData);
+        monthMoneyPieChart.setData(pieData);
     }
 
     //柱状图格式的设置
@@ -131,8 +168,6 @@ public class MonthReportActivity extends AppCompatActivity {
         //取消左右y轴显示
         leftAxis.setEnabled(false);
         rightAxis.setEnabled(false);
-
-//        rightAxis.setAxisMinimum(0f);
         //背景颜色
         barChart.setBackgroundColor(Color.WHITE);
         //不显示图表网格
@@ -197,5 +232,16 @@ public class MonthReportActivity extends AppCompatActivity {
                 recordMonth2-=1;
             }
         }
+    }
+
+    //设置柱状图的数据
+    public void setPieDataSetDataMoney(int recordMonth,int recordYear){
+
+
+        //获取本月中有消费的类型
+        costLabels = Util.getCostTypeAndMoney(recordMonth,recordYear,MonthReportActivity.this).get(0);
+        costEntry.add(new PieEntry(10,"测试1"));
+        costEntry.add(new PieEntry(20,"测试2"));
+        costDataSet = new PieDataSet(costEntry,"");
     }
 }

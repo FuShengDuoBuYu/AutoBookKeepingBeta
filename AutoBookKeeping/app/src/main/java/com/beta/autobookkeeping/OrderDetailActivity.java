@@ -26,7 +26,7 @@ public class OrderDetailActivity extends AppCompatActivity {
     private EditText etOrderNumber,etOrderRemark;
     int costType,payWayType,orderTypeIndex;
     String[] msgContent;
-    final String[] costTypes = {"消费","饮食","交通","娱乐","购物","通讯","红包","医疗","一卡通"};
+    final String[] costTypes = {"消费","饮食","交通","体育","聚会","娱乐","购物","通讯","红包","医疗","一卡通","其他"};
     final String[] payWays = {"银行卡","支付宝","微信","现金"};
     final String[] orderType = {"支出","收入"};
     @Override

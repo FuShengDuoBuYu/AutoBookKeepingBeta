@@ -12,6 +12,7 @@ import androidx.appcompat.app.AlertDialog;
 import com.beta.autobookkeeping.SMStools.SMSDataBase;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.regex.Matcher;
@@ -118,6 +119,30 @@ public class Util {
         }
         cursor.close();
         return appointMonthMoney;
+    }
+
+    //获取指定月份的支出类型和金额
+    public static ArrayList<ArrayList> getCostTypeAndMoney(int month,int year,Context context){
+        //包含金额和支付类型两个量的ArrayList
+        ArrayList<ArrayList> result = new ArrayList<>();
+        //支付类型
+        ArrayList<String> costlabels = new ArrayList<>();
+        //金额
+        ArrayList<Float> costMoney = new ArrayList<Float>();
+        SMSDataBase smsDb = new SMSDataBase(context, "orderInfo", null, 1);
+        SQLiteDatabase db = smsDb.getWritableDatabase();
+        Cursor cursor = db.query("orderInfo", null, null, null, null, null, "id");
+        while (cursor.moveToNext()) {
+            //当是查询月的时候且是支出时
+            if (cursor.getInt(1) == year && cursor.getInt(2) == month && cursor.getDouble(5)<0) {
+                //如果这个标签在labels中,就不插入labels而将数据合并
+                if(costlabels.contains(cursor.getString(8))){
+
+                }
+            }
+        }
+        cursor.close();
+        return result;
     }
 }
 
