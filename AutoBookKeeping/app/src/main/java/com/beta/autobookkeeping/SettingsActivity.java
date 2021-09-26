@@ -44,7 +44,7 @@ public class SettingsActivity extends AppCompatActivity {
         public void onClick(View view) {
             switch (view.getId()){
                 case R.id.llDeleteAllOrders:
-                    //Todo:弹出dialog对话框后,确实清除数据
+                    //弹出dialog对话框后,确实清除数据
                     AlertDialog.Builder builder = new AlertDialog.Builder(SettingsActivity.this);
                     //设置对话框的内容
                     builder.setTitle("清空账单记录").setMessage("您的所有账单记录将被清除,是否确认删除?");

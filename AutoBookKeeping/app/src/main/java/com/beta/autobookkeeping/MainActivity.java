@@ -1,14 +1,23 @@
 package com.beta.autobookkeeping;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
 
+import android.Manifest;
+import android.app.Dialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
@@ -24,8 +33,12 @@ import com.beta.autobookkeeping.SMStools.SMSDataBase;
 import com.beta.autobookkeeping.SMStools.SMSReader;
 import com.beta.autobookkeeping.SMStools.SMSService;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Properties;
 
 import Util.Util;
 
@@ -41,6 +54,8 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        //先检查短信等权限是否获取
+        ifGetPermission();
         setContentView(R.layout.activity_main);
         //开启读取短信线程
         startService(new Intent(MainActivity.this, SMSService.class));
@@ -170,5 +185,57 @@ public class MainActivity extends AppCompatActivity {
         tvAllMonthOrder.setText(String .format("%.2f",allMonthOrder));
         tvAllTodayOrder.setText(String .format("%.2f",allTodayOrder));
         cursor.close();
+    }
+
+    public void ifGetPermission(){
+        List<String> permissions = new ArrayList<>();
+        //获取短信权限
+        if(PackageManager.PERMISSION_GRANTED != ActivityCompat.checkSelfPermission(MainActivity.this, Manifest.permission.RECEIVE_SMS)){
+            permissions.add(Manifest.permission.RECEIVE_SMS);
+        }
+        if(PackageManager.PERMISSION_GRANTED != ActivityCompat.checkSelfPermission(MainActivity.this, Manifest.permission.READ_SMS)){
+            permissions.add(Manifest.permission.READ_SMS);
+//            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_SMS}, 1);
+
+        }
+        //获取后台弹出权限
+        if(PackageManager.PERMISSION_GRANTED != ActivityCompat.checkSelfPermission(MainActivity.this, Manifest.permission.SYSTEM_ALERT_WINDOW)){
+            permissions.add(Manifest.permission.SYSTEM_ALERT_WINDOW);
+        }
+        //一次性获取权限
+        if (permissions.size() != 0) {
+            //这里谷歌原生可以直接来实现,但是小米等不可以
+            ActivityCompat.requestPermissions(MainActivity.this,(String[]) permissions.toArray(new String[0]),667);
+        }
+    }
+
+    //获取权限是否成功的回调函数
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        switch (requestCode) {
+            case 667:
+                if (grantResults[0] == PackageManager.PERMISSION_GRANTED && grantResults[1] ==PackageManager.PERMISSION_GRANTED) {
+//                    Util.toastMsg(this,"获取权限成功");
+                } else {
+                    // Permission Denied 权限被拒绝
+                    AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+                    //设置对话框的内容
+                    builder.setTitle("权限申请").setMessage("请您前往设置-应用设置-授权管理(或在多任务栏里点击本应用的设置信息) 给予本应用读取短信以及后台弹窗的权限,否则将" +
+                            "无法实现自动读取短信记账的功能");
+                    //设置对话框的两个选项
+                    builder.setPositiveButton("确定", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialogInterface, int i) {
+
+                        }
+                    }).show();
+
+                }
+
+                break;
+            default:
+                break;
+        }
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
     }
 }
