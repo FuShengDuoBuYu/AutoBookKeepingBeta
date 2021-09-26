@@ -51,6 +51,7 @@ public class MonthReportActivity extends AppCompatActivity {
     //表格下方的月份文字
     public ArrayList<String> monthLabels = new ArrayList<String>();
     public ArrayList<String> costLabels = new ArrayList<>();
+    public ArrayList<Float> costMoney = new ArrayList<>();
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         db = smsDb.getWritableDatabase();
@@ -237,11 +238,16 @@ public class MonthReportActivity extends AppCompatActivity {
     //设置柱状图的数据
     public void setPieDataSetDataMoney(int recordMonth,int recordYear){
 
-
         //获取本月中有消费的类型
         costLabels = Util.getCostTypeAndMoney(recordMonth,recordYear,MonthReportActivity.this).get(0);
-        costEntry.add(new PieEntry(10,"测试1"));
-        costEntry.add(new PieEntry(20,"测试2"));
+        //获取本月中所有消费的具体值
+        costMoney = Util.getCostTypeAndMoney(recordMonth,recordYear,MonthReportActivity.this).get(1);
+        //创建Entry
+        for(int i = 0;i < costLabels.size();i++){
+            costEntry.add(new PieEntry(costMoney.get(i),costLabels.get(i)));
+            Log.d(costLabels.get(i),String.valueOf(costMoney.get(i)));
+        }
+
         costDataSet = new PieDataSet(costEntry,"");
     }
 }

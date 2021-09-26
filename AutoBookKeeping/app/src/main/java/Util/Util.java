@@ -129,6 +129,9 @@ public class Util {
         ArrayList<String> costlabels = new ArrayList<>();
         //金额
         ArrayList<Float> costMoney = new ArrayList<Float>();
+        result.add(costlabels);
+        result.add(costMoney);
+
         SMSDataBase smsDb = new SMSDataBase(context, "orderInfo", null, 1);
         SQLiteDatabase db = smsDb.getWritableDatabase();
         Cursor cursor = db.query("orderInfo", null, null, null, null, null, "id");
@@ -137,7 +140,15 @@ public class Util {
             if (cursor.getInt(1) == year && cursor.getInt(2) == month && cursor.getDouble(5)<0) {
                 //如果这个标签在labels中,就不插入labels而将数据合并
                 if(costlabels.contains(cursor.getString(8))){
-
+                    //当前这个标签的index
+                    int index = costlabels.indexOf(cursor.getString(8));
+                    //将这个数值加进去
+                    costMoney.set(index,costMoney.get(index)+(float)cursor.getDouble(5));
+                }
+                //不存在的话就添加这个label,并进行加入数据
+                else{
+                    costlabels.add(cursor.getString(8));
+                    costMoney.add((float)cursor.getDouble(5));
                 }
             }
         }
