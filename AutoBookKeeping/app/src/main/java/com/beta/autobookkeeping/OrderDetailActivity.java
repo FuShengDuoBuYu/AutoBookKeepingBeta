@@ -26,7 +26,7 @@ public class OrderDetailActivity extends AppCompatActivity {
     private EditText etOrderNumber,etOrderRemark;
     int costType,payWayType,orderTypeIndex;
     String[] msgContent;
-    final String[] costTypes = {"消费","饮食","交通","体育","聚会","娱乐","购物","通讯","红包","医疗","一卡通","其他"};
+    final String[] costTypes = {"消费","饮食","交通","体育","聚会","娱乐","购物","通讯","红包","医疗","一卡通","学习","其他"};
     final String[] payWays = {"银行卡","支付宝","微信","现金"};
     final String[] orderType = {"支出","收入"};
     @Override
@@ -231,28 +231,36 @@ public class OrderDetailActivity extends AppCompatActivity {
             if(btnOrderType.getText().toString().equals("收入")){
                 //收入记正数
                 values.put("money",Double.valueOf(etOrderNumber.getText().toString()));
+                //costType记收入
+                values.put("costType","收入");
             }
             else{
                 //支出记负数
                 values.put("money",0.0-(Double.parseDouble(etOrderNumber.getText().toString())));
+                //获取支出的类型
+                values.put("costType",btnCostType.getText().toString());
             }
             values.put("bankName",btnPayWay.getText().toString());
-            values.put("costType",btnCostType.getText().toString());
+
         }
         //短信自动读取的账单信息
         else{
             if(msgContent[1].equals("收入")){
                 //收入记正数
                 values.put("money",Double.parseDouble(msgContent[2]));
+                //costType记收入
+                values.put("costType","收入");
             }
             else{
                 //支出记负数
                 values.put("money",0.0-Double.parseDouble(msgContent[2]));
+                //costType获取用户支出类型
+                values.put("costType",btnCostType.getText().toString());
             }
             if(!msgContent[0].equals("")){
                 values.put("bankName",msgContent[0]);
             }
-            values.put("costType",msgContent[1]);
+
         }
         //写入账单备注
         values.put("orderRemark",etOrderRemark.getText().toString());
