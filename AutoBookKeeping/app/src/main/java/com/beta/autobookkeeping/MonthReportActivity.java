@@ -4,6 +4,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Color;
+import android.icu.text.Transliterator;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -15,6 +16,7 @@ import com.github.mikephil.charting.animation.Easing;
 import com.github.mikephil.charting.charts.BarChart;
 import com.github.mikephil.charting.charts.PieChart;
 import com.github.mikephil.charting.components.Description;
+import com.github.mikephil.charting.components.Legend;
 import com.github.mikephil.charting.components.XAxis;
 import com.github.mikephil.charting.components.YAxis;
 import com.github.mikephil.charting.data.BarData;
@@ -90,6 +92,7 @@ public class MonthReportActivity extends AppCompatActivity {
                     tv_month_report_time.setText(String.valueOf(recordYear) + "年" + String.valueOf(recordMonth) + "月");
                     //更新月份的总收支
                     tv_month_report_money.setText(String.format("%.1f", Util.getMonthMoney(recordYear, recordMonth, MonthReportActivity.this)));
+//                    showPieChart();
                 }
             }
         });
@@ -107,6 +110,7 @@ public class MonthReportActivity extends AppCompatActivity {
                 tv_month_report_time.setText(String.valueOf(recordYear)+"年"+String.valueOf(recordMonth)+"月");
                 //更新月份的总收支
                 tv_month_report_money.setText(String.format("%.1f",Util.getMonthMoney(recordYear,recordMonth,MonthReportActivity.this)));
+//                showPieChart();
             }
         });
     }
@@ -119,7 +123,7 @@ public class MonthReportActivity extends AppCompatActivity {
         //创建第一个变量总收支的图
         moneyDataSet = new BarDataSet(moneyEntry,"总收支");
         //设置这个变量柱子的基本参数
-        moneyDataSet.setColor(Color.rgb(187,255,255));
+        moneyDataSet.setColor(Color.parseColor("#5091F3"));
         moneyDataSet.setDrawValues(true);
 
         //创建变量组
@@ -134,7 +138,6 @@ public class MonthReportActivity extends AppCompatActivity {
 
     //显示饼状图的方法
     public void showPieChart(){
-
         setPieChart(monthMoneyPieChart);
     }
 
@@ -144,19 +147,34 @@ public class MonthReportActivity extends AppCompatActivity {
         Description description = new Description();
         description.setText("支出占比");
         pieChart.setDescription(description);
+//        pieChart.setDes
         //设置使用百分比
         pieChart.setUsePercentValues(true);
         setPieDataSetDataMoney(recordMonth,recordYear);
-        //设置中心无空圆
-        pieChart.setHoleRadius(0);
+        //设置中心有空圆
+        pieChart.setDrawHoleEnabled(true);
+        pieChart.setHoleRadius(60f);
+        //中心可以加字
+        pieChart.setDrawCenterText(true);
+        pieChart.setCenterText("总支出:\n"+String.format("%.1f",Util.getMonthCost(recordYear,recordMonth,MonthReportActivity.this)));
+        pieChart.setCenterTextSize(25f);
         //设置饼状图的颜色
         costDataSet.setColors(new int[]{Color.rgb(181, 194, 202), Color.rgb(129, 216, 200), Color.rgb(241, 214, 145),
-
                 Color.rgb(108, 176, 223), Color.rgb(195, 221, 155), Color.rgb(251, 215, 191),
-
                 Color.rgb(237, 189, 189), Color.rgb(172, 217, 243)});
-        //设置
+        //图例设置
+        Legend legend = pieChart.getLegend();
+        legend.setEnabled(true);//是否显示图例
+        legend.setHorizontalAlignment(Legend.LegendHorizontalAlignment.CENTER);//图例相对于图表横向的位置
+        legend.setVerticalAlignment(Legend.LegendVerticalAlignment.BOTTOM);//图例相对于图表纵向的位置
+        legend.setOrientation(Legend.LegendOrientation.HORIZONTAL);//图例显示的方向
+        legend.setDrawInside(false);
+        legend.setDirection(Legend.LegendDirection.LEFT_TO_RIGHT);
+
+        //设置数据
         PieData pieData = new PieData(costDataSet);
+        //可以旋转
+        pieChart.setRotationEnabled(true);
         pieChart.setData(pieData);
         monthMoneyPieChart.setData(pieData);
     }
@@ -189,14 +207,11 @@ public class MonthReportActivity extends AppCompatActivity {
         xAxis.setDrawGridLines(false);
         //X轴设置显示位置在底部
         xAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
-        // X轴显示Value值的精度，与自定义X轴返回的Value值精度一致
-//        xAxis.setGranularity(1f);
         //X轴横坐标显示的数量
         xAxis.setLabelCount(9,true);
         //X轴最大坐标
         xAxis.setAxisMaximum(7.5f);
-        //X轴最小坐标
-//        xAxis.setAxisMinimum(-0.5f);
+
         xAxis.setValueFormatter(new ValueFormatter() {
             @Override
             public String getFormattedValue(float value) {
@@ -237,17 +252,24 @@ public class MonthReportActivity extends AppCompatActivity {
 
     //设置柱状图的数据
     public void setPieDataSetDataMoney(int recordMonth,int recordYear){
-
         //获取本月中有消费的类型
         costLabels = Util.getCostTypeAndMoney(recordMonth,recordYear,MonthReportActivity.this).get(0);
         //获取本月中所有消费的具体值
         costMoney = Util.getCostTypeAndMoney(recordMonth,recordYear,MonthReportActivity.this).get(1);
         //创建Entry
         for(int i = 0;i < costLabels.size();i++){
-            costEntry.add(new PieEntry(costMoney.get(i),costLabels.get(i)));
-            Log.d(costLabels.get(i),String.valueOf(costMoney.get(i)));
+            costEntry.add(new PieEntry(0.0f-costMoney.get(i),costLabels.get(i)));
         }
-
+        //将获取到的数据写入DataSet
         costDataSet = new PieDataSet(costEntry,"");
+        //设置将百分比显示在外面
+        costDataSet.setValueLinePart1OffsetPercentage(80f);
+        costDataSet.setValueLinePart1Length(0.3f);
+        costDataSet.setValueLinePart2Length(0.5f);
+        costDataSet.setValueLineColor(Color.BLACK);//设置连接线的颜色
+        costDataSet.setValueTextSize(12);
+        costDataSet.setYValuePosition(PieDataSet.ValuePosition.OUTSIDE_SLICE);
+        //设置各个饼块的间隔
+        costDataSet.setSliceSpace(1f);
     }
 }

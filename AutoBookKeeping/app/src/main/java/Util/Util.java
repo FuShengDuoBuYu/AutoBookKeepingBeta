@@ -155,6 +155,21 @@ public class Util {
         cursor.close();
         return result;
     }
+
+    //获取查询月所有支出总和,返回值为负
+    public static double getMonthCost(int year,int month,Context context){
+        double appointMonthCost = 0.0;
+        SMSDataBase smsDb = new SMSDataBase(context, "orderInfo", null, 1);
+        SQLiteDatabase db = smsDb.getWritableDatabase();
+        Cursor cursor = db.query("orderInfo", null, null, null, null, null, "id");
+        while (cursor.moveToNext()) {
+            if (cursor.getInt(1) == year && cursor.getInt(2) == month && cursor.getDouble(5)<0) {
+                appointMonthCost += cursor.getDouble(5);
+            }
+        }
+        cursor.close();
+        return appointMonthCost;
+    }
 }
 
 
