@@ -26,8 +26,11 @@ import com.github.mikephil.charting.data.Entry;
 import com.github.mikephil.charting.data.PieData;
 import com.github.mikephil.charting.data.PieDataSet;
 import com.github.mikephil.charting.data.PieEntry;
+import com.github.mikephil.charting.formatter.PercentFormatter;
 import com.github.mikephil.charting.formatter.ValueFormatter;
+import com.github.mikephil.charting.highlight.Highlight;
 import com.github.mikephil.charting.interfaces.datasets.IBarDataSet;
+import com.github.mikephil.charting.listener.OnChartValueSelectedListener;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -46,7 +49,7 @@ public class MonthReportActivity extends AppCompatActivity {
     SQLiteDatabase db;
     //保存数据的实体
     private final List<BarEntry> moneyEntry = new ArrayList<BarEntry>();
-    private final ArrayList<PieEntry> costEntry = new ArrayList<>();
+    private  ArrayList<PieEntry> costEntry = new ArrayList<>();
     //数据的集合
     private BarDataSet moneyDataSet;
     private PieDataSet costDataSet;
@@ -92,7 +95,7 @@ public class MonthReportActivity extends AppCompatActivity {
                     tv_month_report_time.setText(String.valueOf(recordYear) + "年" + String.valueOf(recordMonth) + "月");
                     //更新月份的总收支
                     tv_month_report_money.setText(String.format("%.1f", Util.getMonthMoney(recordYear, recordMonth, MonthReportActivity.this)));
-//                    showPieChart();
+                    refreshPieChart();
                 }
             }
         });
@@ -110,7 +113,7 @@ public class MonthReportActivity extends AppCompatActivity {
                 tv_month_report_time.setText(String.valueOf(recordYear)+"年"+String.valueOf(recordMonth)+"月");
                 //更新月份的总收支
                 tv_month_report_money.setText(String.format("%.1f",Util.getMonthMoney(recordYear,recordMonth,MonthReportActivity.this)));
-//                showPieChart();
+                refreshPieChart();
             }
         });
     }
@@ -125,7 +128,6 @@ public class MonthReportActivity extends AppCompatActivity {
         //设置这个变量柱子的基本参数
         moneyDataSet.setColor(Color.parseColor("#5091F3"));
         moneyDataSet.setDrawValues(true);
-
         //创建变量组
         ArrayList<IBarDataSet> dataSets = new ArrayList<>();
         dataSets.add(moneyDataSet);
@@ -141,13 +143,12 @@ public class MonthReportActivity extends AppCompatActivity {
         setPieChart(monthMoneyPieChart);
     }
 
-    //饼状图格式的设置
+    //饼状图格式的设置和点击事件
     public void setPieChart(PieChart pieChart){
         //设置图表描述
         Description description = new Description();
-        description.setText("支出占比");
+        description.setText("单位:元");
         pieChart.setDescription(description);
-//        pieChart.setDes
         //设置使用百分比
         pieChart.setUsePercentValues(true);
         setPieDataSetDataMoney(recordMonth,recordYear);
@@ -170,11 +171,27 @@ public class MonthReportActivity extends AppCompatActivity {
         legend.setOrientation(Legend.LegendOrientation.HORIZONTAL);//图例显示的方向
         legend.setDrawInside(false);
         legend.setDirection(Legend.LegendDirection.LEFT_TO_RIGHT);
-
         //设置数据
         PieData pieData = new PieData(costDataSet);
         //可以旋转
         pieChart.setRotationEnabled(true);
+        //设置饼块的点击事件
+        pieChart.setOnChartValueSelectedListener(new OnChartValueSelectedListener() {
+            @Override
+            public void onValueSelected(Entry e, Highlight h) {
+                //点击时显示此时的具体金额
+                PieEntry pe= (PieEntry) e;
+                if(!pe.getLabel().contains(String.valueOf(e.getY())))
+                    pe.setLabel(pe.getLabel()+String.valueOf(e.getY()));
+            }
+
+            @Override
+            public void onNothingSelected() {
+                //取消点击时去除此时的具体金额
+                refreshPieChart();
+            }
+        });
+        //启动pieChart
         pieChart.setData(pieData);
         monthMoneyPieChart.setData(pieData);
     }
@@ -269,7 +286,17 @@ public class MonthReportActivity extends AppCompatActivity {
         costDataSet.setValueLineColor(Color.BLACK);//设置连接线的颜色
         costDataSet.setValueTextSize(12);
         costDataSet.setYValuePosition(PieDataSet.ValuePosition.OUTSIDE_SLICE);
+        costDataSet.setValueFormatter(new PercentFormatter(monthMoneyPieChart));
         //设置各个饼块的间隔
         costDataSet.setSliceSpace(1f);
+    }
+
+    ///刷新显示饼状图
+    public void refreshPieChart(){
+        costDataSet = null;
+        costLabels = null;
+        costEntry.clear();
+        costMoney = null;
+        showPieChart();
     }
 }
