@@ -121,6 +121,21 @@ public class Util {
         return appointMonthMoney;
     }
 
+    //获取指定日收支金额的方法
+    public static double getMonthMoney(int year,int month,int day,Context context){
+        double appointDayMoney = 0.0;
+        SMSDataBase smsDb = new SMSDataBase(context, "orderInfo", null, 1);
+        SQLiteDatabase db = smsDb.getWritableDatabase();
+        Cursor cursor = db.query("orderInfo", null, null, null, null, null, "id");
+        while (cursor.moveToNext()) {
+            if (cursor.getInt(1) == year && cursor.getInt(2) == month && cursor.getInt(3) == month){
+                appointDayMoney += cursor.getDouble(5);
+            }
+        }
+        cursor.close();
+        return appointDayMoney;
+    }
+
     //获取指定月份的支出类型和金额
     public static ArrayList<ArrayList> getCostTypeAndMoney(int month,int year,Context context){
         //包含金额和支付类型两个量的ArrayList
