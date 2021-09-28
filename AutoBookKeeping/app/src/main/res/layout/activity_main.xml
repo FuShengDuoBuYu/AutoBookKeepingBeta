@@ -136,11 +136,7 @@
     </View>
 
     <!--所有账单的详细信息-->
-    <ListView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:id="@+id/lvOrderDetail"
-        />
+
 
 
 </LinearLayout>
