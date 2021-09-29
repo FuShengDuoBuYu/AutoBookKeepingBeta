@@ -14,15 +14,21 @@ import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.util.Log;
+import android.view.Gravity;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.Button;
+import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -37,6 +43,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Properties;
 
@@ -46,6 +53,8 @@ public class MainActivity extends AppCompatActivity {
 
     private Button btnPlusNewOrder,btnSettings,btnSearchMonthlyReport;
     private TextView tvAllTodayOrder,tvAllMonthOrder;
+    private LinearLayout lvOrderDetail;
+    private ScrollView svOrderDetail;
     Bundle bundle;
     //数据库实例
     SQLiteDatabase db;
@@ -122,34 +131,18 @@ public class MainActivity extends AppCompatActivity {
             OrderInfo orderInfo = new OrderInfo(cursor.getString(4),cursor.getString(6),cursor.getString(7),cursor.getDouble(5),cursor.getString(8));
             orderInfos.add(orderInfo);
         }
-
-        //获取适配器
-        OrderInfoAdapter orderInfoAdapter = new OrderInfoAdapter(MainActivity.this,R.layout.lv_order_detail_item,orderInfos);
-        //将适配器的数据传给ListView
-        ListView listView = findViewById(R.id.lvOrderDetail);
-        listView.setAdapter(orderInfoAdapter);
-        // 为ListView注册一个监听器，当用户点击了ListView中的任何一个子项时，就会回调onItemClick()方法
-        // 在这个方法中可以通过position参数判断出用户点击的是那一个子项
-        listView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
-            @Override
-            public boolean onItemLongClick(AdapterView<?> adapterView, View view, int i, long l) {
-                //弹出提示是否删除该记录的对话框,并进行对应操作
-                confirmDeleteOrderInfo(cursor,i);
-                return true;
-            }
-        });
+        //显示数据
+        addViewsByData();
     }
 
     //长按进行是否删除订单的选择
-    public void confirmDeleteOrderInfo(Cursor cursor,int itemIndex){
+    public void confirmDeleteOrderInfo(Cursor cursor,int itemId){
         AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
         builder.setTitle("是否删除该记录?");
         builder.setPositiveButton("确定", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
-                //通过itemIndex来获取后台这条数据的id
-                cursor.moveToPosition(itemIndex);
-                String sql = "delete from orderInfo where id =" + String.valueOf(cursor.getInt(0));
+                String sql = "delete from orderInfo where id =" + String.valueOf(itemId);
                 db.execSQL(sql);
                 //重新获取数据库的数据来展示信息
                 showDayAndMonthMoney();
@@ -158,9 +151,7 @@ public class MainActivity extends AppCompatActivity {
         });
         builder.setNegativeButton("取消", new DialogInterface.OnClickListener() {
             @Override
-            public void onClick(DialogInterface dialogInterface, int i) {
-                Util.toastMsg(MainActivity.this,"取消删除");
-            }
+            public void onClick(DialogInterface dialogInterface, int i) {}
         });
         builder.show();
     }
@@ -195,8 +186,6 @@ public class MainActivity extends AppCompatActivity {
         }
         if(PackageManager.PERMISSION_GRANTED != ActivityCompat.checkSelfPermission(MainActivity.this, Manifest.permission.READ_SMS)){
             permissions.add(Manifest.permission.READ_SMS);
-//            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_SMS}, 1);
-
         }
         //获取后台弹出权限
         if(PackageManager.PERMISSION_GRANTED != ActivityCompat.checkSelfPermission(MainActivity.this, Manifest.permission.SYSTEM_ALERT_WINDOW)){
@@ -234,5 +223,122 @@ public class MainActivity extends AppCompatActivity {
                 break;
         }
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+    }
+
+    //在xml中动态添加控件
+    public void addViewsByData(){
+        //找到不同日期并显示
+        lvOrderDetail = findViewById(R.id.lvOrderDetail);
+        svOrderDetail = findViewById(R.id.svOrderDetail);
+        //先清除所有view,防止重复显示
+        lvOrderDetail.removeAllViews();
+        //先获取本月都有哪些天有数据
+        ArrayList<Integer> hasOrderDays = Util.getHasOrderDays(Util.getCurrentMonth(),MainActivity.this);
+        //依次查询这些天,并进行view的添加
+        for(int i = 0;i < hasOrderDays.size();i++){
+            //每天先加一个title
+            String date = String.valueOf(Util.getCurrentMonth())+"月"+String.valueOf(hasOrderDays.get(i))+"日";
+            String money = String.format("%.1f",Util.getDayMoney(Util.getCurrentYear(),Util.getCurrentMonth(),hasOrderDays.get(i),MainActivity.this))+"元";
+            lvOrderDetail.addView(setDayOrderTitle(date,money));
+            //再加入每天的账单
+            String sql = "select * from orderInfo where year = " + String.valueOf(Util.getCurrentYear()) +
+                    " and month = " + String.valueOf(Util.getCurrentMonth()) + " and day= " + String.valueOf(hasOrderDays.get(i));
+            Cursor cursor = db.rawQuery(sql,null);
+            while (cursor.moveToNext()) {
+                int itemIdInDatabase = cursor.getInt(0);
+                String category = cursor.getString(8) + " " + cursor.getString(7);
+                String payWay = cursor.getString(6);
+                String dayMoney = String.format("%.1f",cursor.getDouble(5))+"元";
+                String time = Util.getWeek(new Date(Util.getCurrentYear(),Util.getCurrentMonth(),hasOrderDays.get(i))) + " " +cursor.getString(4).substring(cursor.getString(4).length()-5,cursor.getString(4).length());
+                LinearLayout dayOrderItem = setDayOrderItem(category,payWay,dayMoney,time);
+                //TODO:为每个item设置长按事件
+                dayOrderItem.setOnLongClickListener(new View.OnLongClickListener() {
+                    @Override
+                    public boolean onLongClick(View view) {
+//                        Util.toastMsg(MainActivity.this,String.valueOf(cursor.getInt(1)));
+                        confirmDeleteOrderInfo(cursor,itemIdInDatabase);
+                        return true;
+                    }
+                });
+                lvOrderDetail.addView(dayOrderItem);
+            }
+            cursor.close();
+        }
+        //最后每天最后加一个分割线
+        View line = new View(this);
+        line.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT,2));
+        line.setPadding(0,10,0,0);
+        line.setBackgroundColor(Color.BLACK);
+        lvOrderDetail.addView(line);
+    }
+
+    //动态设置一个xmlTitle
+    public LinearLayout setDayOrderTitle(String date,String money){
+        LinearLayout linearLayoutTitle = new LinearLayout(this);
+        linearLayoutTitle.setOrientation(LinearLayout.HORIZONTAL);
+        //创建两个textview并赋值
+        TextView tvDate,tvMoney;
+        tvDate = new TextView(this);
+        tvMoney = new TextView(this);
+        tvDate.setText(date);
+        tvMoney.setText(money);
+        //设置两个textView的格式
+        tvDate.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT,LinearLayout.LayoutParams.WRAP_CONTENT,1.0f));
+        tvDate.setGravity(Gravity.LEFT);
+        tvDate.setPadding(40,40,40,40);
+        tvMoney.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT,LinearLayout.LayoutParams.WRAP_CONTENT,1.0f));
+        tvMoney.setGravity(Gravity.LEFT);
+        tvMoney.setTextColor(Color.BLACK);
+        tvMoney.setPadding(40,40,40,40);
+        //将两个textview放进去
+        linearLayoutTitle.addView(tvDate);
+        linearLayoutTitle.addView(tvMoney);
+        return linearLayoutTitle;
+    }
+
+    //添加一个数据账单项
+    public LinearLayout setDayOrderItem(String category,String payWay,String money,String time){
+        //最外层的总LinearLayout
+        LinearLayout linearLayoutItem = new LinearLayout(this);
+        linearLayoutItem.setOrientation(LinearLayout.HORIZONTAL);
+        linearLayoutItem.setPadding(0,20,0,20);
+        //再加两个子layout
+        LinearLayout linearLayoutLeftPart = new LinearLayout(this);
+        LinearLayout linearLayoutRightPart = new LinearLayout(this);
+        linearLayoutLeftPart.setOrientation(LinearLayout.VERTICAL);
+        linearLayoutRightPart.setOrientation(LinearLayout.VERTICAL);
+        //设置子布局格式
+        linearLayoutLeftPart.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT,1.0f));
+        linearLayoutRightPart.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT,1.0f));
+        linearLayoutLeftPart.setPadding(60,7,0,7);
+        linearLayoutRightPart.setPadding(60,7,0,7);
+        linearLayoutLeftPart.setGravity(Gravity.START);
+        linearLayoutRightPart.setGravity(Gravity.END);
+        //每个字layout里加两个textview
+        TextView tvCategory = new TextView(this);
+        TextView tvPayWay = new TextView(this);
+        TextView tvMoney = new TextView(this);
+        TextView tvTime = new TextView(this);
+        //设置每个textview
+        tvCategory.setText(category);
+        tvPayWay.setText(payWay);
+        tvMoney.setText(money);
+        tvTime.setText(time);
+        //设置textView格式
+        tvCategory.setTextColor(Color.BLACK);
+        tvCategory.setTextSize(18);
+        tvMoney.setGravity(Gravity.END);
+        tvTime.setGravity(Gravity.END);
+        tvMoney.setPadding(0,0,60,0);
+        tvTime.setPadding(0,0,60,0);
+        //将textView加入子布局
+        linearLayoutLeftPart.addView(tvCategory);
+        linearLayoutLeftPart.addView(tvPayWay);
+        linearLayoutRightPart.addView(tvMoney);
+        linearLayoutRightPart.addView(tvTime);
+        //将子布局加到总布局里
+        linearLayoutItem.addView(linearLayoutLeftPart);
+        linearLayoutItem.addView(linearLayoutRightPart);
+        return linearLayoutItem;
     }
 }

@@ -14,6 +14,7 @@ import com.beta.autobookkeeping.SMStools.SMSDataBase;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.Date;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -122,13 +123,13 @@ public class Util {
     }
 
     //获取指定日收支金额的方法
-    public static double getMonthMoney(int year,int month,int day,Context context){
+    public static double getDayMoney(int year,int month,int day,Context context){
         double appointDayMoney = 0.0;
         SMSDataBase smsDb = new SMSDataBase(context, "orderInfo", null, 1);
         SQLiteDatabase db = smsDb.getWritableDatabase();
         Cursor cursor = db.query("orderInfo", null, null, null, null, null, "id");
         while (cursor.moveToNext()) {
-            if (cursor.getInt(1) == year && cursor.getInt(2) == month && cursor.getInt(3) == month){
+            if (cursor.getInt(1) == year && cursor.getInt(2) == month && cursor.getInt(3) == day){
                 appointDayMoney += cursor.getDouble(5);
             }
         }
@@ -184,6 +185,39 @@ public class Util {
         }
         cursor.close();
         return appointMonthCost;
+    }
+
+    //获取某个月都有那几天有数据
+    public static ArrayList<Integer> getHasOrderDays(int month,Context context){
+        ArrayList<Integer> hasOrderDays = new ArrayList<>();
+        SMSDataBase smsDb = new SMSDataBase(context, "orderInfo", null, 1);
+        SQLiteDatabase db = smsDb.getWritableDatabase();
+        Cursor cursor = db.query("orderInfo", null, null, null, null, null, "id");
+        while (cursor.moveToNext()) {
+            //先找到当月
+            if (cursor.getInt(2) == month) {
+                //如果没由记录这个日期,就记录进去
+                if(!hasOrderDays.contains(cursor.getInt(3))){
+                    hasOrderDays.add(cursor.getInt(3));
+                }
+            }
+        }
+        cursor.close();
+        //将日期倒置排序
+        Collections.reverse(hasOrderDays);
+        return hasOrderDays;
+    }
+
+    //获取某日是周几
+    public static String getWeek(Date date) {
+        String[] weeks = {"周四","周五", "周六","周日", "周一", "周二", "周三"};
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(date);
+        int week_index = cal.get(Calendar.DAY_OF_WEEK) - 1;
+        if (week_index < 0) {
+            week_index = 0;
+        }
+        return weeks[week_index];
     }
 }
 
