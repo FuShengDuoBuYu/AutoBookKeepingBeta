@@ -103,7 +103,6 @@ public class MainActivity extends AppCompatActivity {
         db = smsDb.getWritableDatabase();
     }
 
-
     @Override
     protected void onStart() {
         //检测Application中是否有短信数据
@@ -178,6 +177,7 @@ public class MainActivity extends AppCompatActivity {
         cursor.close();
     }
 
+    //查看有没有获取到权限,没有就弹窗获取权限
     public void ifGetPermission(){
         List<String> permissions = new ArrayList<>();
         //获取短信权限
@@ -251,13 +251,19 @@ public class MainActivity extends AppCompatActivity {
                 String dayMoney = String.format("%.1f",cursor.getDouble(5))+"元";
                 String time = Util.getWeek(new Date(Util.getCurrentYear(),Util.getCurrentMonth(),hasOrderDays.get(i))) + " " +cursor.getString(4).substring(cursor.getString(4).length()-5,cursor.getString(4).length());
                 LinearLayout dayOrderItem = setDayOrderItem(category,payWay,dayMoney,time);
-                //为每个item设置长按事件
+                //为每个item设置长按选择删除事件
                 dayOrderItem.setOnLongClickListener(new View.OnLongClickListener() {
                     @Override
                     public boolean onLongClick(View view) {
-//                        Util.toastMsg(MainActivity.this,String.valueOf(cursor.getInt(1)));
                         confirmDeleteOrderInfo(cursor,itemIdInDatabase);
                         return true;
+                    }
+                });
+                //为每个item设置点击进行账单修改事件
+                dayOrderItem.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        modifyOrderInfo(itemIdInDatabase);
                     }
                 });
                 lvOrderDetail.addView(dayOrderItem);
@@ -270,6 +276,29 @@ public class MainActivity extends AppCompatActivity {
         line.setPadding(0,10,0,0);
         line.setBackgroundColor(Color.BLACK);
         lvOrderDetail.addView(line);
+    }
+
+    //设置点击后修改账单信息的事件
+    public void modifyOrderInfo(int itemIdInDatabase) {
+        //跳转到新增界面
+        Intent intent = new Intent(MainActivity.this,OrderDetailActivity.class);
+        //在数据库里找到这个数据
+        Cursor cursor = db.query("orderInfo",null,"id="+itemIdInDatabase,null,null,null,null);
+        //将已有的数据传过去
+        cursor.moveToNext();
+        Bundle bundle = new Bundle();
+        bundle.putInt("id",cursor.getInt(0));
+        bundle.putInt("year",cursor.getInt(1));
+        bundle.putInt("month",cursor.getInt(2));
+        bundle.putInt("day",cursor.getInt(3));
+        bundle.putString("clock",cursor.getString(4));
+        bundle.putFloat("money",cursor.getFloat(5));
+        bundle.putString("bankName",cursor.getString(6));
+        bundle.putString("orderRemark",cursor.getString(7));
+        bundle.putString("costType",cursor.getString(8));
+        intent.putExtras(bundle);
+
+        startActivity(intent);
     }
 
     //动态设置一个xmlTitle

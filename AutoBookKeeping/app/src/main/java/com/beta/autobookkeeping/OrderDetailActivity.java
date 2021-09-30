@@ -1,5 +1,6 @@
 package com.beta.autobookkeeping;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -15,6 +16,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.TimePicker;
 import android.widget.Toast;
 
@@ -33,6 +35,7 @@ public class OrderDetailActivity extends AppCompatActivity {
     private EditText etOrderNumber,etOrderRemark;
     int costType,payWayType,orderTypeIndex;
     String[] msgContent;
+    Bundle bundle;
     final String[] costTypes = {"消费","饮食","交通","体育","聚会","娱乐","购物","通讯","红包","医疗","一卡通","学习","其他"};
     final String[] payWays = {"银行卡","支付宝","微信","现金"};
     final String[] orderType = {"支出","收入"};
@@ -42,19 +45,18 @@ public class OrderDetailActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_order_detail);
+        findViews();
         //页面进来的时候就查看是否有短信信息在这里,若有,则处理信息自动匹配
-        Bundle bundle = getIntent().getExtras();
+        bundle = getIntent().getExtras();
         if(bundle!=null){
-            handleMsg();
+            handleMsg(bundle);
         }
         //开启读取短信线程
         startService(new Intent(OrderDetailActivity.this, SMSService.class));
         //页面一进来就执行获取当前时间的操作,不能放在最前面
-        btnGetCurrentTime = findViewById(R.id.btnGetCurrentTime);
         String currentTime = Util.getCurrentTime();
         btnGetCurrentTime.setText(currentTime);
         //保存账单信息的按钮
-        btnSaveChanges = findViewById(R.id.btnSaveChanges);
         btnSaveChanges.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -65,7 +67,6 @@ public class OrderDetailActivity extends AppCompatActivity {
         });
 
         //选择消费类型的按钮
-        btnCostType = findViewById(R.id.btnCostType);
         btnCostType.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -74,7 +75,6 @@ public class OrderDetailActivity extends AppCompatActivity {
             }
         });
         //选择账单是支出还是收入的按钮
-        btnOrderType = findViewById(R.id.btnOrderType);
         btnOrderType.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -82,50 +82,34 @@ public class OrderDetailActivity extends AppCompatActivity {
             }
         });
         //获取当前时间的按钮
-        btnGetCurrentTime = findViewById(R.id.btnGetCurrentTime);
         btnGetCurrentTime.setOnClickListener(new View.OnClickListener() {
             //点击后用户进行时间的选择
             @Override
             public void onClick(View view) {
-                //弹出日期选择器
-                Calendar calendar=Calendar.getInstance();
-                new DatePickerDialog( OrderDetailActivity.this, new DatePickerDialog.OnDateSetListener() {
-                    @Override
-                    public void onDateSet(DatePicker view, int year, int month, int dayOfMonth) {
-                        orderYear = year;
-                        orderMonth = month+1;
-                        orderDay = dayOfMonth;
-                    }
-                },calendar.get(Calendar.YEAR),calendar.get(Calendar.MONTH),calendar.get(Calendar.DAY_OF_MONTH)).show();
-                //弹出小时选择器
-                new TimePickerDialog( OrderDetailActivity.this, new TimePickerDialog.OnTimeSetListener() {
-                    @Override
-                    public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
-                        orderMin = minute;
-                        orderHour = hourOfDay;
-                    }
-                },calendar.get(Calendar.HOUR_OF_DAY),calendar.get(Calendar.MINUTE),true).show();
-                //选择好以后将ordertime修改
-                orderTime = orderMonth+"月"+orderDay+"日"+" "+orderHour+ ":"+orderMin;
-                btnGetCurrentTime.setText(orderTime);
+                selectOrderTime();
             }
         });
-        //金额
-        etOrderNumber = findViewById(R.id.etOrderNumber);
-        //订单备注
-        etOrderRemark = findViewById(R.id.etOrderRemark);
         //选择消费方式的方法
-        btnPayWay = findViewById(R.id.btnPayWay);
         btnPayWay.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 showPayWay();
             }
-
         });
-
     }
 
+    //找到各个组件
+    public void findViews(){
+        btnGetCurrentTime = findViewById(R.id.btnGetCurrentTime);
+        btnPayWay = findViewById(R.id.btnPayWay);
+        etOrderRemark = findViewById(R.id.etOrderRemark);
+        etOrderNumber = findViewById(R.id.etOrderNumber);
+        btnGetCurrentTime = findViewById(R.id.btnGetCurrentTime);
+        btnOrderType = findViewById(R.id.btnOrderType);
+        btnCostType = findViewById(R.id.btnCostType);
+        btnSaveChanges = findViewById(R.id.btnSaveChanges);
+
+    }
     @Override
     protected void onDestroy() {
         SMSApplication smsApplication = new SMSApplication();
@@ -213,12 +197,19 @@ public class OrderDetailActivity extends AppCompatActivity {
     }
 
     //获取短信内容并处理的方法
-    public String[] handleMsg(){
+    public String[] handleMsg(Bundle bundle){
         SMSApplication smsApplication = new SMSApplication();;
         smsApplication = (SMSApplication) getApplication();
         String msg = smsApplication.getSMSMsg();
         smsApplication.setSMSMsg(null);
-        return (msg==null)?null:Util.getBankOrderInfo(msg);
+        //代表用户点击item进来修改
+        if(msg==null){
+            changeOrderInfo(bundle);
+            return null;
+        }else{
+            return Util.getBankOrderInfo(msg);
+        }
+
     }
 
     @Override
@@ -235,7 +226,7 @@ public class OrderDetailActivity extends AppCompatActivity {
     @Override
     protected void onStart() {
         //先尝试查找Application中是否有信息
-        msgContent = handleMsg();
+        msgContent = handleMsg(bundle);
         if(msgContent != null){
             etOrderNumber.setText(msgContent[2]);
             btnOrderType.setText(msgContent[1]);
@@ -290,12 +281,70 @@ public class OrderDetailActivity extends AppCompatActivity {
             if(!msgContent[0].equals("")){
                 values.put("bankName",msgContent[0]);
             }
-
         }
         //写入账单备注
         values.put("orderRemark",etOrderRemark.getText().toString());
-
         db.insert("orderInfo",null,values);
+    }
+
+    //todo:修改数据库中的数据
+    public void changeOrderInfo(Bundle bundle){
+        Util.toastMsg(OrderDetailActivity.this,String.valueOf(bundle.size()));
+        //将数据传过来
+//        etOrderNumber.setText(String.valueOf((bundle.getFloat("money"))));
+//        btnCostType.setText(bundle.getString(""));
+//        btnOrderType.setText(bundle.getString("costType"));
+        etOrderRemark.setText(bundle.getString("orderRemark"));
+//        Util.toastMsg(OrderDetailActivity.this,bundle.getString("orderRemark"));
+    }
+
+
+    //点击时间按钮后进行时间的选择
+    public void selectOrderTime(){
+        //显示日期选择器
+        DatePickerDialog datePicker = new DatePickerDialog(OrderDetailActivity.this,DatePickerDialog.THEME_HOLO_LIGHT, new DatePickerDialog.OnDateSetListener() {
+            @Override
+            public void onDateSet(DatePicker datePicker, int year, int monthOfYear, int dayOfMonth) {
+                //获取用户输入的日期
+                orderYear = year;
+                orderMonth = monthOfYear+1;
+                orderDay = dayOfMonth;
+            }
+
+        }, Util.getCurrentYear(), Util.getCurrentMonth(), Util.getCurrentDay()){
+            //不允许选择今天以后的时间
+            @Override
+            public void onDateChanged(@NonNull DatePicker view, int year, int month, int dayOfMonth) {
+                if (year > Util.getCurrentYear())
+                    view.updateDate(Util.getCurrentYear(),Util.getCurrentMonth(), Util.getCurrentDay());
+
+                if (month > Util.getCurrentMonth() && year == Util.getCurrentYear())
+                    view.updateDate(Util.getCurrentYear(), Util.getCurrentMonth(),  Util.getCurrentDay());
+
+                if (dayOfMonth > Util.getCurrentDay() && year == Util.getCurrentYear() && month == Util.getCurrentMonth())
+                    view.updateDate(Util.getCurrentYear(), Util.getCurrentMonth(),  Util.getCurrentDay());
+            }
+
+            //当该dialog被删除的时候,就把值赋值过去,这里要注意要查到dialog的生命周期十分重要
+            @Override
+            public void dismiss() {
+                orderTime = ((orderMonth>0&&orderMonth<10)?("0"+orderMonth):orderMonth)+"月"+orderDay+"日"+" "+orderHour+ ":"+((orderMin>0&&orderMin<10)?("0"+orderMin):orderMin);
+                btnGetCurrentTime.setText(orderTime);
+                super.dismiss();
+            }
+        };
+        datePicker.show();
+        //显示时间选择器
+        TimePickerDialog timePicker = new TimePickerDialog(OrderDetailActivity.this, TimePickerDialog.THEME_HOLO_LIGHT, new TimePickerDialog.OnTimeSetListener() {
+            @Override
+            public void onTimeSet(TimePicker timePicker, int i, int i1) {
+                orderHour = i;
+                orderMin = i1;
+            }
+        },Util.getCurrentHour(),Util.getCurrentMinute(),true);
+        timePicker.show();
+        //选择好以后将ordertime修改
+        orderTime = ((orderMonth>0&&orderMonth<10)?("0"+orderMonth):orderMonth)+"月"+orderDay+"日"+" "+orderHour+ ":"+((orderMin>0&&orderMin<10)?("0"+orderMin):orderMin);
     }
 }
 
