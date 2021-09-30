@@ -19,9 +19,6 @@
             android:exported="true"
             android:theme="@style/Theme.AppCompat.Light.NoActionBar"/>
         <activity
-            android:name=".TestActivity"
-            android:exported="true" />
-        <activity
             android:name=".OrderDetailActivity"
             android:exported="true"
             android:theme="@style/Theme.AppCompat.Light.NoActionBar" />

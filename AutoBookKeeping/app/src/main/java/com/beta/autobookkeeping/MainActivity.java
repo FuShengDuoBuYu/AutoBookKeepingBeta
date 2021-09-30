@@ -238,7 +238,7 @@ public class MainActivity extends AppCompatActivity {
         for(int i = 0;i < hasOrderDays.size();i++){
             //每天先加一个title
             String date = String.valueOf(Util.getCurrentMonth())+"月"+String.valueOf(hasOrderDays.get(i))+"日";
-            String money = String.format("%.1f",Util.getDayMoney(Util.getCurrentYear(),Util.getCurrentMonth(),hasOrderDays.get(i),MainActivity.this))+"元";
+            String money ="本日总计: "+ String.format("%.1f",Util.getDayMoney(Util.getCurrentYear(),Util.getCurrentMonth(),hasOrderDays.get(i),MainActivity.this))+"元";
             lvOrderDetail.addView(setDayOrderTitle(date,money));
             //再加入每天的账单
             String sql = "select * from orderInfo where year = " + String.valueOf(Util.getCurrentYear()) +
@@ -251,7 +251,7 @@ public class MainActivity extends AppCompatActivity {
                 String dayMoney = String.format("%.1f",cursor.getDouble(5))+"元";
                 String time = Util.getWeek(new Date(Util.getCurrentYear(),Util.getCurrentMonth(),hasOrderDays.get(i))) + " " +cursor.getString(4).substring(cursor.getString(4).length()-5,cursor.getString(4).length());
                 LinearLayout dayOrderItem = setDayOrderItem(category,payWay,dayMoney,time);
-                //TODO:为每个item设置长按事件
+                //为每个item设置长按事件
                 dayOrderItem.setOnLongClickListener(new View.OnLongClickListener() {
                     @Override
                     public boolean onLongClick(View view) {

@@ -3,6 +3,8 @@ package com.beta.autobookkeeping;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.app.DatePickerDialog;
+import android.app.TimePickerDialog;
 import android.content.ContentValues;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -11,12 +13,17 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.DatePicker;
 import android.widget.EditText;
+import android.widget.TimePicker;
+import android.widget.Toast;
 
 import com.beta.autobookkeeping.SMStools.SMSApplication;
 import com.beta.autobookkeeping.SMStools.SMSDataBase;
 import com.beta.autobookkeeping.SMStools.SMSReader;
 import com.beta.autobookkeeping.SMStools.SMSService;
+
+import java.util.Calendar;
 
 import Util.Util;
 
@@ -29,6 +36,8 @@ public class OrderDetailActivity extends AppCompatActivity {
     final String[] costTypes = {"消费","饮食","交通","体育","聚会","娱乐","购物","通讯","红包","医疗","一卡通","学习","其他"};
     final String[] payWays = {"银行卡","支付宝","微信","现金"};
     final String[] orderType = {"支出","收入"};
+    private int orderYear = Util.getCurrentYear(),orderMonth = Util.getCurrentMonth(),orderDay = Util.getCurrentDay(),orderHour = Util.getCurrentHour(),orderMin = Util.getCurrentMinute();
+    private String orderTime = orderMonth+"月"+orderDay+"日"+" "+orderHour+ ":"+orderMin;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -75,11 +84,30 @@ public class OrderDetailActivity extends AppCompatActivity {
         //获取当前时间的按钮
         btnGetCurrentTime = findViewById(R.id.btnGetCurrentTime);
         btnGetCurrentTime.setOnClickListener(new View.OnClickListener() {
+            //点击后用户进行时间的选择
             @Override
             public void onClick(View view) {
-                //获取当前时间并显示
-                String currentTime = Util.getCurrentTime();
-                btnGetCurrentTime.setText(currentTime);
+                //弹出日期选择器
+                Calendar calendar=Calendar.getInstance();
+                new DatePickerDialog( OrderDetailActivity.this, new DatePickerDialog.OnDateSetListener() {
+                    @Override
+                    public void onDateSet(DatePicker view, int year, int month, int dayOfMonth) {
+                        orderYear = year;
+                        orderMonth = month+1;
+                        orderDay = dayOfMonth;
+                    }
+                },calendar.get(Calendar.YEAR),calendar.get(Calendar.MONTH),calendar.get(Calendar.DAY_OF_MONTH)).show();
+                //弹出小时选择器
+                new TimePickerDialog( OrderDetailActivity.this, new TimePickerDialog.OnTimeSetListener() {
+                    @Override
+                    public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
+                        orderMin = minute;
+                        orderHour = hourOfDay;
+                    }
+                },calendar.get(Calendar.HOUR_OF_DAY),calendar.get(Calendar.MINUTE),true).show();
+                //选择好以后将ordertime修改
+                orderTime = orderMonth+"月"+orderDay+"日"+" "+orderHour+ ":"+orderMin;
+                btnGetCurrentTime.setText(orderTime);
             }
         });
         //金额
@@ -93,7 +121,9 @@ public class OrderDetailActivity extends AppCompatActivity {
             public void onClick(View view) {
                 showPayWay();
             }
+
         });
+
     }
 
     @Override
@@ -220,9 +250,9 @@ public class OrderDetailActivity extends AppCompatActivity {
         SMSDataBase smsDb = new SMSDataBase(OrderDetailActivity.this,"orderInfo",null,1);
         SQLiteDatabase db = smsDb.getWritableDatabase();
         ContentValues values = new ContentValues();
-        values.put("year",Util.getCurrentYear());
-        values.put("month",Util.getCurrentMonth());
-        values.put("day",Util.getCurrentDay());
+        values.put("year",orderYear);
+        values.put("month",orderMonth);
+        values.put("day",orderDay);
         values.put("clock",btnGetCurrentTime.getText().toString());
         //根据内容确定写入数组的金额还是用户的金额,根据支出还是收入记录正负号
         //根据内容确定写入数组还是用户默认

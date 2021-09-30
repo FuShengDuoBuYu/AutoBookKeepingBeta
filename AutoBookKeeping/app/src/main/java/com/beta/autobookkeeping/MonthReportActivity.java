@@ -2,16 +2,26 @@ package com.beta.autobookkeeping;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.content.Intent;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Color;
+import android.graphics.drawable.ClipDrawable;
+import android.graphics.drawable.Drawable;
+import android.graphics.drawable.GradientDrawable;
+import android.graphics.drawable.LayerDrawable;
 import android.icu.text.Transliterator;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.beta.autobookkeeping.SMStools.SMSDataBase;
+import com.beta.autobookkeeping.SMStools.SMSService;
 import com.github.mikephil.charting.animation.Easing;
 import com.github.mikephil.charting.charts.BarChart;
 import com.github.mikephil.charting.charts.PieChart;
@@ -42,6 +52,8 @@ public class MonthReportActivity extends AppCompatActivity {
     private BarChart monthMoneyBarChart;
     private PieChart monthMoneyPieChart;
     private TextView tv_month_report_money,tv_month_report_time;
+    private LinearLayout costRankingProcessBar;
+    private final int[] dataColor = Util.colors;
     //当前页面查看的月份
     int recordYear = Util.getCurrentYear();
     int recordMonth = Util.getCurrentMonth();
@@ -59,6 +71,8 @@ public class MonthReportActivity extends AppCompatActivity {
     public ArrayList<Float> costMoney = new ArrayList<>();
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        //开启读取短信线程
+        startService(new Intent(MonthReportActivity.this, SMSService.class));
         db = smsDb.getWritableDatabase();
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_month_report);
@@ -68,6 +82,7 @@ public class MonthReportActivity extends AppCompatActivity {
         tv_month_report_money.setText(String.format("%.1f",Util.getMonthMoney(recordYear,recordMonth,MonthReportActivity.this)));
         showBarChart();
         showPieChart();
+        showMonthlyCostRanking();
     }
 
     //获取views的控件
@@ -78,6 +93,7 @@ public class MonthReportActivity extends AppCompatActivity {
         monthMoneyPieChart = findViewById(R.id.pie_chart_month_money);
         tv_month_report_money = findViewById(R.id.tv_month_report_money);
         tv_month_report_time = findViewById(R.id.tv_month_report_time);
+        costRankingProcessBar = findViewById(R.id.costRankingProcessBar);
         btn_right_choose.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -95,7 +111,7 @@ public class MonthReportActivity extends AppCompatActivity {
                     tv_month_report_time.setText(String.valueOf(recordYear) + "年" + String.valueOf(recordMonth) + "月");
                     //更新月份的总收支
                     tv_month_report_money.setText(String.format("%.1f", Util.getMonthMoney(recordYear, recordMonth, MonthReportActivity.this)));
-                    refreshPieChart();
+                    refreshPieChartAndRanking();
                 }
             }
         });
@@ -113,7 +129,7 @@ public class MonthReportActivity extends AppCompatActivity {
                 tv_month_report_time.setText(String.valueOf(recordYear)+"年"+String.valueOf(recordMonth)+"月");
                 //更新月份的总收支
                 tv_month_report_money.setText(String.format("%.1f",Util.getMonthMoney(recordYear,recordMonth,MonthReportActivity.this)));
-                refreshPieChart();
+                refreshPieChartAndRanking();
             }
         });
     }
@@ -157,12 +173,17 @@ public class MonthReportActivity extends AppCompatActivity {
         pieChart.setHoleRadius(60f);
         //中心可以加字
         pieChart.setDrawCenterText(true);
-        pieChart.setCenterText("总支出:\n"+String.format("%.1f",Util.getMonthCost(recordYear,recordMonth,MonthReportActivity.this)));
-        pieChart.setCenterTextSize(25f);
+        //设置中心的文字
+        if(Util.getMonthCost(recordYear,recordMonth,MonthReportActivity.this)==0.0){
+            pieChart.setCenterText("暂无数据");
+        }else{
+            pieChart.setCenterText("总支出:\n"+String.format("%.1f",Util.getMonthCost(recordYear,recordMonth,MonthReportActivity.this)));
+        }
+        pieChart.setCenterTextSize(23f);
+        //设置中心背景颜色为透明
+        pieChart.setHoleColor(0);
         //设置饼状图的颜色
-        costDataSet.setColors(new int[]{Color.rgb(181, 194, 202), Color.rgb(129, 216, 200), Color.rgb(241, 214, 145),
-                Color.rgb(108, 176, 223), Color.rgb(195, 221, 155), Color.rgb(251, 215, 191),
-                Color.rgb(237, 189, 189), Color.rgb(172, 217, 243)});
+        costDataSet.setColors(dataColor);
         //图例设置
         Legend legend = pieChart.getLegend();
         legend.setEnabled(true);//是否显示图例
@@ -188,7 +209,7 @@ public class MonthReportActivity extends AppCompatActivity {
             @Override
             public void onNothingSelected() {
                 //取消点击时去除此时的具体金额
-                refreshPieChart();
+                refreshPieChartAndRanking();
             }
         });
         //启动pieChart
@@ -292,11 +313,77 @@ public class MonthReportActivity extends AppCompatActivity {
     }
 
     ///刷新显示饼状图
-    public void refreshPieChart(){
+    public void refreshPieChartAndRanking(){
         costDataSet = null;
         costLabels = null;
         costEntry.clear();
         costMoney = null;
+        monthMoneyPieChart.removeAllViews();
+        costRankingProcessBar.removeAllViews();
         showPieChart();
+        showMonthlyCostRanking();
+    }
+
+    //动态显示月度消费排行榜
+    public void showMonthlyCostRanking(){
+        for(int i = 0;i < costLabels.size();i++){
+            costRankingProcessBar.addView(setCostProcessBar(costLabels.get(i),costMoney.get(i),Util.getMonthCost(recordYear,recordMonth,MonthReportActivity.this),i));
+        }
+    }
+
+    //创建一个processBar对象,显示某一个类别的消费支出
+    public LinearLayout setCostProcessBar(String category,float cost,double sumCost,int colorIndex){
+        LinearLayout rankingItem = new LinearLayout(this);
+        rankingItem.setOrientation(LinearLayout.VERTICAL);
+        //先把该item的信息加上的子布局
+        LinearLayout itemInfo = new LinearLayout(this);
+        //排行进度条
+        ProgressBar progressBar = new ProgressBar(this,null,android.R.attr.progressBarStyleHorizontal);
+        //item信息子布局的两个小布局
+        TextView tvCategory = new TextView(this);
+        TextView tvCost = new TextView(this);
+        //设置两个小布局
+        tvCategory.setText(category);
+        tvCost.setText(cost+"元");
+        tvCategory.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT,LinearLayout.LayoutParams.WRAP_CONTENT,1));
+        tvCost.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT,LinearLayout.LayoutParams.WRAP_CONTENT,1));
+        tvCategory.setPadding(40,10,10,30);
+        tvCost.setPadding(10,10,40,30);
+        tvCategory.setGravity(Gravity.START);
+        tvCost.setGravity(Gravity.END);
+        //将小布局加入子布局
+        itemInfo.addView(tvCategory);
+        itemInfo.addView(tvCost);
+        //设置进度条
+        progressBar.setProgress((int)(((0-cost)*100)/(0-sumCost)));
+        progressBar.setPadding(40,10,40,50);
+        //准备progressBar带圆角的背景Drawable
+        GradientDrawable progressBg = new GradientDrawable();
+        //设置圆角弧度
+        progressBg.setCornerRadius(30);
+        //设置绘制颜色
+        progressBg.setColor(Color.rgb(217,208,208));
+        //准备progressBar带圆角的进度条Drawable
+        GradientDrawable progressContent = new GradientDrawable();
+        progressContent.setCornerRadius(30);
+        //设置绘制颜色，此处可以自己获取不同的颜色
+        progressContent.setColor(dataColor[colorIndex]);
+
+        //ClipDrawable是对一个Drawable进行剪切操作，可以控制这个drawable的剪切区域，以及相相对于容器的对齐方式
+        ClipDrawable progressClip = new ClipDrawable(progressContent, Gravity.LEFT, ClipDrawable.HORIZONTAL);
+        //Setup LayerDrawable and assign to progressBar
+        //待设置的Drawable数组
+        Drawable[] progressDrawables = {progressBg, progressClip};
+        LayerDrawable progressLayerDrawable = new LayerDrawable(progressDrawables);
+        //根据ID设置progressBar对应内容的Drawable
+        progressLayerDrawable.setId(0, android.R.id.background);
+        progressLayerDrawable.setId(1, android.R.id.progress);
+        //设置progressBarDrawable
+        progressBar.setProgressDrawable(progressLayerDrawable);
+
+        //将各个组件加入总布局
+        rankingItem.addView(itemInfo);
+        rankingItem.addView(progressBar);
+        return rankingItem;
     }
 }

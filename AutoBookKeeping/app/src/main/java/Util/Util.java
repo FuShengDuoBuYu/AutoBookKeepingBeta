@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.graphics.Color;
 import android.widget.Button;
 import android.widget.Toast;
 
@@ -20,6 +21,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class Util {
+    public final static int[] colors = new int[]{Color.rgb(92,172,238), Color.rgb(112,128,144), Color.rgb(60,179,113),
+            Color.rgb(123,104,238), Color.rgb(210,105,30), Color.rgb(218,112,214),
+            Color.rgb(237, 189, 189), Color.rgb(172, 217, 243)};
     //匹配银行账单信息的正则表达式
     private final static String regExBank = "[农业银行|建设银行|郑州银行|工商银行|招商银行]";
     private final static String regExMoneyType = "[-|出|入|代]";
@@ -44,6 +48,14 @@ public class Util {
     public static int getCurrentDay(){
         Calendar cal = Calendar.getInstance();
         return cal.get(Calendar.DATE);
+    }
+    public static int getCurrentHour(){
+        Calendar cal = Calendar.getInstance();
+        return cal.get(Calendar.HOUR_OF_DAY);
+    }
+    public static int getCurrentMinute(){
+        Calendar cal = Calendar.getInstance();
+        return cal.get(Calendar.MINUTE);
     }
     //获取字符串中的银行账单数据的方法
     public static String[] getBankOrderInfo(String bankOrder){
