@@ -47,7 +47,6 @@
             android:layout_weight="0.4"
             android:layout_height="wrap_content"
             android:hint="@string/hint_input_cost_number"
-            android:inputType="numberDecimal"
             android:background="@null"
             >
         </EditText>

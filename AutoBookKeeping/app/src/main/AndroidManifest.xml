@@ -15,9 +15,12 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.AutoBookKeeping">
         <activity
+            android:name=".OrderItemSearchActivity"
+            android:exported="true" />
+        <activity
             android:name=".MonthReportActivity"
             android:exported="true"
-            android:theme="@style/Theme.AppCompat.Light.NoActionBar"/>
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
         <activity
             android:name=".OrderDetailActivity"
             android:exported="true"
@@ -39,12 +42,15 @@
 
         <service android:name=".SMStools.SMSService" />
 
-        <receiver android:name=".OrderWidget" android:exported="false">
+        <receiver
+            android:name=".OrderWidget"
+            android:exported="false">
             <intent-filter>
-                <action android:name="android.appwidget.action.APPWIDGET_UPDATE"/><!--必须添加的action，否则不会出现在小部件的列表中-->
-                <action android:name="com.beta.autobookkeeping.onClickToday"/><!--自定义的action，用于在点击小部件上时发送的广播Action-->
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" /> <!-- 必须添加的action，否则不会出现在小部件的列表中 -->
+                <action android:name="com.beta.autobookkeeping.onClickToday" /> <!-- 自定义的action，用于在点击小部件上时发送的广播Action -->
 
             </intent-filter>
+
             <meta-data
                 android:name="android.appwidget.provider"
                 android:resource="@xml/order_widget_info" />

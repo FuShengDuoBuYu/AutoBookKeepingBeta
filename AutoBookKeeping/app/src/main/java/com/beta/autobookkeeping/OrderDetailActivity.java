@@ -30,11 +30,14 @@ import java.util.Calendar;
 import Util.Util;
 
 public class OrderDetailActivity extends AppCompatActivity {
-
+    //点击item修改的标志
+    boolean isChangeOrderInfo = false;
     private Button btnSaveChanges,btnCostType,btnGetCurrentTime,btnPayWay,btnOrderType;
     private EditText etOrderNumber,etOrderRemark;
     int costType,payWayType,orderTypeIndex;
+    //如果读取短信内容,短信的实质信息
     String[] msgContent;
+    //如果是点击修改,则bundle不为null
     Bundle bundle;
     final String[] costTypes = {"消费","饮食","交通","体育","聚会","娱乐","购物","通讯","红包","医疗","一卡通","学习","其他"};
     final String[] payWays = {"银行卡","支付宝","微信","现金"};
@@ -46,11 +49,9 @@ public class OrderDetailActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_order_detail);
         findViews();
-        //页面进来的时候就查看是否有短信信息在这里,若有,则处理信息自动匹配
+        //页面进来的时候就查看是否有短信信息或者数据信息在这里,若有,则处理信息自动匹配
         bundle = getIntent().getExtras();
-        if(bundle!=null){
-            handleMsg(bundle);
-        }
+        handleMsg(bundle);
         //开启读取短信线程
         startService(new Intent(OrderDetailActivity.this, SMSService.class));
         //页面一进来就执行获取当前时间的操作,不能放在最前面
@@ -110,6 +111,7 @@ public class OrderDetailActivity extends AppCompatActivity {
         btnSaveChanges = findViewById(R.id.btnSaveChanges);
 
     }
+
     @Override
     protected void onDestroy() {
         SMSApplication smsApplication = new SMSApplication();
@@ -197,19 +199,23 @@ public class OrderDetailActivity extends AppCompatActivity {
     }
 
     //获取短信内容并处理的方法
-    public String[] handleMsg(Bundle bundle){
-        SMSApplication smsApplication = new SMSApplication();;
-        smsApplication = (SMSApplication) getApplication();
-        String msg = smsApplication.getSMSMsg();
-        smsApplication.setSMSMsg(null);
+    public void handleMsg(Bundle bundle){
+        //如果bundle是空,代表用户不是点击修改的
+        if(bundle!=null)
+            isChangeOrderInfo = true;
         //代表用户点击item进来修改
-        if(msg==null){
+        if(isChangeOrderInfo){
             changeOrderInfo(bundle);
-            return null;
-        }else{
-            return Util.getBankOrderInfo(msg);
         }
-
+        //代表用户读取短信获取
+        else{
+            SMSApplication smsApplication = new SMSApplication();;
+            smsApplication = (SMSApplication) getApplication();
+            String msg = smsApplication.getSMSMsg();
+            smsApplication.setSMSMsg(null);
+            if(msg!=null)
+            msgContent = Util.getBankOrderInfo(msg);
+        }
     }
 
     @Override
@@ -226,7 +232,6 @@ public class OrderDetailActivity extends AppCompatActivity {
     @Override
     protected void onStart() {
         //先尝试查找Application中是否有信息
-        msgContent = handleMsg(bundle);
         if(msgContent != null){
             etOrderNumber.setText(msgContent[2]);
             btnOrderType.setText(msgContent[1]);
@@ -237,65 +242,81 @@ public class OrderDetailActivity extends AppCompatActivity {
 
     //写入数据库数据
     public void setDataBaseData(){
-        //设置数据库数据
-        SMSDataBase smsDb = new SMSDataBase(OrderDetailActivity.this,"orderInfo",null,1);
+        SMSDataBase smsDb = new SMSDataBase(OrderDetailActivity.this, "orderInfo", null, 1);
         SQLiteDatabase db = smsDb.getWritableDatabase();
-        ContentValues values = new ContentValues();
-        values.put("year",orderYear);
-        values.put("month",orderMonth);
-        values.put("day",orderDay);
-        values.put("clock",btnGetCurrentTime.getText().toString());
-        //根据内容确定写入数组的金额还是用户的金额,根据支出还是收入记录正负号
-        //根据内容确定写入数组还是用户默认
-        //用户手动添加的账单信息
-        if(msgContent == null){
-            if(btnOrderType.getText().toString().equals("收入")){
-                //收入记正数
-                values.put("money",Double.valueOf(etOrderNumber.getText().toString()));
-                //costType记收入
-                values.put("costType","收入");
-            }
-            else{
-                //支出记负数
-                values.put("money",0.0-(Double.parseDouble(etOrderNumber.getText().toString())));
-                //获取支出的类型
-                values.put("costType",btnCostType.getText().toString());
-            }
-            values.put("bankName",btnPayWay.getText().toString());
+        //执行更新数据库操作
+        if(isChangeOrderInfo){
+            String sql = "update orderInfo set day="+orderDay+",month="+orderMonth+",clock='"+orderTime+
+                    "',money="+Double.valueOf(etOrderNumber.getText().toString())+",bankName='"+btnPayWay.getText()+
+                    "',orderRemark='"+etOrderRemark.getText()+"',costType='"+btnCostType.getText()+"' where id="+
+                    bundle.getInt("id");
+            db.execSQL(sql);
+        }else{
+            //设置数据库数据
+            ContentValues values = new ContentValues();
+            values.put("year",orderYear);
+            values.put("month",orderMonth);
+            values.put("day",orderDay);
+            values.put("clock",btnGetCurrentTime.getText().toString());
+            //根据内容确定写入数组的金额还是用户的金额,根据支出还是收入记录正负号
+            //根据内容确定写入数组还是用户默认
+            //用户手动添加的账单信息
+            if(msgContent == null){
+                if(btnOrderType.getText().toString().equals("收入")){
+                    //收入记正数
+                    values.put("money",Double.valueOf(etOrderNumber.getText().toString()));
+                    //costType记收入
+                    values.put("costType","收入");
+                }
+                else{
+                    //支出记负数
+                    values.put("money",0.0-(Double.parseDouble(etOrderNumber.getText().toString())));
+                    //获取支出的类型
+                    values.put("costType",btnCostType.getText().toString());
+                }
+                values.put("bankName",btnPayWay.getText().toString());
 
-        }
-        //短信自动读取的账单信息
-        else{
-            if(msgContent[1].equals("收入")){
-                //收入记正数
-                values.put("money",Double.parseDouble(msgContent[2]));
-                //costType记收入
-                values.put("costType","收入");
             }
+            //短信自动读取的账单信息
             else{
-                //支出记负数
-                values.put("money",0.0-Double.parseDouble(msgContent[2]));
-                //costType获取用户支出类型
-                values.put("costType",btnCostType.getText().toString());
+                if(msgContent[1].equals("收入")){
+                    //收入记正数
+                    values.put("money",Double.parseDouble(msgContent[2]));
+                    //costType记收入
+                    values.put("costType","收入");
+                }
+                else{
+                    //支出记负数
+                    values.put("money",0.0-Double.parseDouble(msgContent[2]));
+                    //costType获取用户支出类型
+                    values.put("costType",btnCostType.getText().toString());
+                }
+                if(!msgContent[0].equals("")){
+                    values.put("bankName",msgContent[0]);
+                }
             }
-            if(!msgContent[0].equals("")){
-                values.put("bankName",msgContent[0]);
-            }
+            //写入账单备注
+            values.put("orderRemark",etOrderRemark.getText().toString());
+            db.insert("orderInfo",null,values);
         }
-        //写入账单备注
-        values.put("orderRemark",etOrderRemark.getText().toString());
-        db.insert("orderInfo",null,values);
     }
 
-    //todo:修改数据库中的数据
+    //修改数据库中的数据
     public void changeOrderInfo(Bundle bundle){
-        Util.toastMsg(OrderDetailActivity.this,String.valueOf(bundle.size()));
-        //将数据传过来
-//        etOrderNumber.setText(String.valueOf((bundle.getFloat("money"))));
-//        btnCostType.setText(bundle.getString(""));
-//        btnOrderType.setText(bundle.getString("costType"));
-        etOrderRemark.setText(bundle.getString("orderRemark"));
-//        Util.toastMsg(OrderDetailActivity.this,bundle.getString("orderRemark"));
+        if(isChangeOrderInfo==true){
+            //将数据传过来
+            etOrderNumber.setText(String.valueOf((Math.abs(bundle.getFloat("money")))));
+            orderYear = bundle.getInt("year");
+            orderMonth = bundle.getInt("month");
+            orderDay = bundle.getInt("day");
+            orderTime = bundle.getString("clock");
+            btnGetCurrentTime.setText(orderTime);
+            etOrderRemark.setText(bundle.getString("orderRemark"));
+            btnOrderType.setText(bundle.getFloat("money")>0?"收入":"支出");
+            btnPayWay.setText(bundle.getString("bankName"));
+            btnCostType.setText(bundle.getFloat("money")>0?"其他":bundle.getString("costType"));
+            isChangeOrderInfo = true;
+        }
     }
 
 
