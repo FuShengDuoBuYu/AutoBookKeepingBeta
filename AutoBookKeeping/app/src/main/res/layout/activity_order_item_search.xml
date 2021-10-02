@@ -41,23 +41,55 @@
             android:layout_width="0dp"
             android:layout_weight="1"
             android:layout_height="wrap_content"
-            android:id="@+id/tv_searchLimit">
+            android:id="@+id/tv_searchLimit"
+            android:gravity="center"
+            android:layout_gravity="center"
+            android:textColor="@color/black"
+            android:textSize="18sp">
         </TextView>
+        <!--竖向分割线-->
+        <View
+            android:layout_width="1px"
+            android:layout_height="match_parent"
+            android:background="@color/black"
+            android:layout_margin="10dp">
+        </View>
         <!--总收支-->
         <TextView
             android:layout_width="0dp"
             android:layout_weight="1"
             android:layout_height="wrap_content"
-            android:id="@+id/tv_allOrderMoney">
+            android:id="@+id/tv_allOrderMoney"
+            android:gravity="center"
+            android:textColor="@color/black"
+            android:textSize="18sp">
         </TextView>
+        <!--竖向分割线-->
+        <View
+            android:layout_width="1px"
+            android:layout_height="match_parent"
+            android:background="@color/black"
+            android:layout_margin="10dp">
+        </View>
         <!--总支出-->
         <TextView
             android:layout_width="0dp"
             android:layout_weight="1"
             android:layout_height="wrap_content"
-            android:id="@+id/tv_allCost">
+            android:id="@+id/tv_allCost"
+            android:gravity="center"
+            android:textColor="@color/black"
+            android:textSize="18sp">
         </TextView>
     </LinearLayout>
+
+    <!-- 灰色分割线-->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1px"
+        android:background="@color/black"
+        android:layout_marginTop="5dp">
+    </View>
     <!--第三行,包括所有的账单信息-->
     <ScrollView
         android:layout_width="match_parent"

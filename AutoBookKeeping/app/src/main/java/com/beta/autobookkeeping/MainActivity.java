@@ -1,5 +1,10 @@
 package com.beta.autobookkeeping;
 
+import static Util.Util.getCurrentMonth;
+import static Util.Util.getCurrentYear;
+import static Util.Util.setDayOrderItem;
+import static Util.Util.setDayOrderTitle;
+
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
@@ -163,7 +168,7 @@ public class MainActivity extends AppCompatActivity {
         Cursor cursor = db.query ("orderInfo",null,null,null,null,null,"id");
         while(cursor.moveToNext()){
             //本月数值
-            if(cursor.getInt(1)==Util.getCurrentYear() && cursor.getInt(2)==Util.getCurrentMonth()){
+            if(cursor.getInt(1)== getCurrentYear() && cursor.getInt(2)== getCurrentMonth()){
                 allMonthOrder +=cursor.getDouble(5);
                 //本日数值
                 if (cursor.getInt(3)==Util.getCurrentDay()){
@@ -233,24 +238,24 @@ public class MainActivity extends AppCompatActivity {
         //先清除所有view,防止重复显示
         lvOrderDetail.removeAllViews();
         //先获取本月都有哪些天有数据
-        ArrayList<Integer> hasOrderDays = Util.getHasOrderDays(Util.getCurrentMonth(),MainActivity.this);
+        ArrayList<Integer> hasOrderDays = Util.getHasOrderDays(getCurrentMonth(),MainActivity.this);
         //依次查询这些天,并进行view的添加
         for(int i = 0;i < hasOrderDays.size();i++){
             //每天先加一个title
-            String date = String.valueOf(Util.getCurrentMonth())+"月"+String.valueOf(hasOrderDays.get(i))+"日";
-            String money ="本日总计: "+ String.format("%.1f",Util.getDayMoney(Util.getCurrentYear(),Util.getCurrentMonth(),hasOrderDays.get(i),MainActivity.this))+"元";
-            lvOrderDetail.addView(setDayOrderTitle(date,money));
+            String date = String.valueOf(getCurrentMonth())+"月"+String.valueOf(hasOrderDays.get(i))+"日";
+            String money ="本日总计: "+ String.format("%.1f",Util.getDayMoney(getCurrentYear(), getCurrentMonth(),hasOrderDays.get(i),MainActivity.this))+"元";
+            lvOrderDetail.addView(setDayOrderTitle(date,money,MainActivity.this));
             //再加入每天的账单
-            String sql = "select * from orderInfo where year = " + String.valueOf(Util.getCurrentYear()) +
-                    " and month = " + String.valueOf(Util.getCurrentMonth()) + " and day= " + String.valueOf(hasOrderDays.get(i));
+            String sql = "select * from orderInfo where year = " + String.valueOf(getCurrentYear()) +
+                    " and month = " + String.valueOf(getCurrentMonth()) + " and day= " + String.valueOf(hasOrderDays.get(i));
             Cursor cursor = db.rawQuery(sql,null);
             while (cursor.moveToNext()) {
                 int itemIdInDatabase = cursor.getInt(0);
                 String category = cursor.getString(8) + " " + cursor.getString(7);
                 String payWay = cursor.getString(6);
                 String dayMoney = String.format("%.1f",cursor.getDouble(5))+"元";
-                String time = Util.getWeek(new Date(Util.getCurrentYear(),Util.getCurrentMonth(),hasOrderDays.get(i))) + " " +cursor.getString(4).substring(cursor.getString(4).length()-5,cursor.getString(4).length());
-                LinearLayout dayOrderItem = setDayOrderItem(category,payWay,dayMoney,time);
+                String time = Util.getWeek(new Date(getCurrentYear(),getCurrentMonth(),hasOrderDays.get(i))) + " " +cursor.getString(4).substring(cursor.getString(4).length()-5,cursor.getString(4).length());
+                LinearLayout dayOrderItem = setDayOrderItem(category,payWay,dayMoney,time,MainActivity.this);
                 //为每个item设置长按选择删除事件
                 dayOrderItem.setOnLongClickListener(new View.OnLongClickListener() {
                     @Override
@@ -301,73 +306,7 @@ public class MainActivity extends AppCompatActivity {
         startActivity(intent);
     }
 
-    //动态设置一个xmlTitle
-    public LinearLayout setDayOrderTitle(String date,String money){
-        LinearLayout linearLayoutTitle = new LinearLayout(this);
-        linearLayoutTitle.setOrientation(LinearLayout.HORIZONTAL);
-        //创建两个textview并赋值
-        TextView tvDate,tvMoney;
-        tvDate = new TextView(this);
-        tvMoney = new TextView(this);
-        tvDate.setText(date);
-        tvMoney.setText(money);
-        //设置两个textView的格式
-        tvDate.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT,LinearLayout.LayoutParams.WRAP_CONTENT,1.0f));
-        tvDate.setGravity(Gravity.LEFT);
-        tvDate.setPadding(40,40,40,40);
-        tvMoney.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT,LinearLayout.LayoutParams.WRAP_CONTENT,1.0f));
-        tvMoney.setGravity(Gravity.LEFT);
-        tvMoney.setTextColor(Color.BLACK);
-        tvMoney.setPadding(40,40,40,40);
-        //将两个textview放进去
-        linearLayoutTitle.addView(tvDate);
-        linearLayoutTitle.addView(tvMoney);
-        return linearLayoutTitle;
-    }
 
-    //添加一个数据账单项
-    public LinearLayout setDayOrderItem(String category,String payWay,String money,String time){
-        //最外层的总LinearLayout
-        LinearLayout linearLayoutItem = new LinearLayout(this);
-        linearLayoutItem.setOrientation(LinearLayout.HORIZONTAL);
-        linearLayoutItem.setPadding(0,20,0,20);
-        //再加两个子layout
-        LinearLayout linearLayoutLeftPart = new LinearLayout(this);
-        LinearLayout linearLayoutRightPart = new LinearLayout(this);
-        linearLayoutLeftPart.setOrientation(LinearLayout.VERTICAL);
-        linearLayoutRightPart.setOrientation(LinearLayout.VERTICAL);
-        //设置子布局格式
-        linearLayoutLeftPart.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT,1.0f));
-        linearLayoutRightPart.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT,1.0f));
-        linearLayoutLeftPart.setPadding(60,7,0,7);
-        linearLayoutRightPart.setPadding(60,7,0,7);
-        linearLayoutLeftPart.setGravity(Gravity.START);
-        linearLayoutRightPart.setGravity(Gravity.END);
-        //每个字layout里加两个textview
-        TextView tvCategory = new TextView(this);
-        TextView tvPayWay = new TextView(this);
-        TextView tvMoney = new TextView(this);
-        TextView tvTime = new TextView(this);
-        //设置每个textview
-        tvCategory.setText(category);
-        tvPayWay.setText(payWay);
-        tvMoney.setText(money);
-        tvTime.setText(time);
-        //设置textView格式
-        tvCategory.setTextColor(Color.BLACK);
-        tvCategory.setTextSize(18);
-        tvMoney.setGravity(Gravity.END);
-        tvTime.setGravity(Gravity.END);
-        tvMoney.setPadding(0,0,60,0);
-        tvTime.setPadding(0,0,60,0);
-        //将textView加入子布局
-        linearLayoutLeftPart.addView(tvCategory);
-        linearLayoutLeftPart.addView(tvPayWay);
-        linearLayoutRightPart.addView(tvMoney);
-        linearLayoutRightPart.addView(tvTime);
-        //将子布局加到总布局里
-        linearLayoutItem.addView(linearLayoutLeftPart);
-        linearLayoutItem.addView(linearLayoutRightPart);
-        return linearLayoutItem;
-    }
+
+
 }

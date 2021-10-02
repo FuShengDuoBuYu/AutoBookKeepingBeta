@@ -106,7 +106,10 @@ public class SettingsActivity extends AppCompatActivity {
                     public void onDateSet(DatePicker datePicker, int i, int i1, int i2) {
                         bundle.putInt("year",i);
                         bundle.putInt("month",i1);
-                                                Util.toastMsg(SettingsActivity.this,String.valueOf(bundle.size()));
+                        //跳转到查询账单详情页
+                        Intent intent = new Intent(SettingsActivity.this,OrderItemSearchActivity.class);
+                        intent.putExtras(bundle);
+                        startActivity(intent);
                     }
                 }, Util.getCurrentYear(), Util.getCurrentMonth() - 1, Util.getCurrentDay()){
                     @Override
@@ -131,16 +134,6 @@ public class SettingsActivity extends AppCompatActivity {
                         }
                     }
                 };
-                datePickerDialog.setButton("确定", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialogInterface, int i) {
-                        //跳转到查询账单详情页
-                        Intent intent = new Intent(SettingsActivity.this,OrderItemSearchActivity.class);
-                        intent.putExtras(bundle);
-//                        Util.toastMsg(SettingsActivity.this,String.valueOf(bundle.size()));
-                        startActivity(intent);
-                    }
-                });
                 datePickerDialog.show();
             }
         }).setNegativeButton("按日查找", new DialogInterface.OnClickListener() {
@@ -154,19 +147,13 @@ public class SettingsActivity extends AppCompatActivity {
                         bundle.putInt("year",year);
                         bundle.putInt("month",monthOfYear);
                         bundle.putInt("day",dayOfMonth);
-                    }
-
-                }, Util.getCurrentYear(), Util.getCurrentMonth()-1, Util.getCurrentDay()){};
-                datePicker.setButton("确定", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialogInterface, int i) {
                         //跳转到查询账单详情页
                         Intent intent = new Intent(SettingsActivity.this,OrderItemSearchActivity.class);
                         intent.putExtras(bundle);
                         startActivity(intent);
-
                     }
-                });
+
+                }, Util.getCurrentYear(), Util.getCurrentMonth()-1, Util.getCurrentDay()){};
                 datePicker.show();
             }
         }).show();

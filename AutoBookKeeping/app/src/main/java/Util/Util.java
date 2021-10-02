@@ -5,7 +5,10 @@ import android.content.DialogInterface;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Color;
+import android.view.Gravity;
 import android.widget.Button;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AlertDialog;
@@ -200,6 +203,21 @@ public class Util {
         return appointMonthCost;
     }
 
+    //获取查询月所有支出总和,返回值为负
+    public static double getDayCost(int year,int month,int day,Context context){
+        double appointDayCost = 0.0;
+        SMSDataBase smsDb = new SMSDataBase(context, "orderInfo", null, 1);
+        SQLiteDatabase db = smsDb.getWritableDatabase();
+        Cursor cursor = db.query("orderInfo", null, null, null, null, null, "id");
+        while (cursor.moveToNext()) {
+            if (cursor.getInt(1) == year && cursor.getInt(2) == month && cursor.getInt(3) == day && cursor.getDouble(5)<0) {
+                appointDayCost += cursor.getDouble(5);
+            }
+        }
+        cursor.close();
+        return appointDayCost;
+    }
+
     //获取某个月都有那几天有数据
     public static ArrayList<Integer> getHasOrderDays(int month,Context context){
         ArrayList<Integer> hasOrderDays = new ArrayList<>();
@@ -231,6 +249,76 @@ public class Util {
             week_index = 0;
         }
         return weeks[week_index];
+    }
+
+    //添加一个数据账单项
+    public static LinearLayout setDayOrderItem(String category, String payWay, String money, String time, Context context){
+        //最外层的总LinearLayout
+        LinearLayout linearLayoutItem = new LinearLayout(context);
+        linearLayoutItem.setOrientation(LinearLayout.HORIZONTAL);
+        linearLayoutItem.setPadding(0,20,0,20);
+        //再加两个子layout
+        LinearLayout linearLayoutLeftPart = new LinearLayout(context);
+        LinearLayout linearLayoutRightPart = new LinearLayout(context);
+        linearLayoutLeftPart.setOrientation(LinearLayout.VERTICAL);
+        linearLayoutRightPart.setOrientation(LinearLayout.VERTICAL);
+        //设置子布局格式
+        linearLayoutLeftPart.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT,1.0f));
+        linearLayoutRightPart.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT,1.0f));
+        linearLayoutLeftPart.setPadding(60,7,0,7);
+        linearLayoutRightPart.setPadding(60,7,0,7);
+        linearLayoutLeftPart.setGravity(Gravity.START);
+        linearLayoutRightPart.setGravity(Gravity.END);
+        //每个字layout里加两个textview
+        TextView tvCategory = new TextView(context);
+        TextView tvPayWay = new TextView(context);
+        TextView tvMoney = new TextView(context);
+        TextView tvTime = new TextView(context);
+        //设置每个textview
+        tvCategory.setText(category);
+        tvPayWay.setText(payWay);
+        tvMoney.setText(money);
+        tvTime.setText(time);
+        //设置textView格式
+        tvCategory.setTextColor(Color.BLACK);
+        tvCategory.setTextSize(18);
+        tvMoney.setGravity(Gravity.END);
+        tvTime.setGravity(Gravity.END);
+        tvMoney.setPadding(0,0,60,0);
+        tvTime.setPadding(0,0,60,0);
+        //将textView加入子布局
+        linearLayoutLeftPart.addView(tvCategory);
+        linearLayoutLeftPart.addView(tvPayWay);
+        linearLayoutRightPart.addView(tvMoney);
+        linearLayoutRightPart.addView(tvTime);
+        //将子布局加到总布局里
+        linearLayoutItem.addView(linearLayoutLeftPart);
+        linearLayoutItem.addView(linearLayoutRightPart);
+        return linearLayoutItem;
+    }
+
+    //动态设置一个xmlTitle
+    public static LinearLayout setDayOrderTitle(String date,String money,Context context){
+        LinearLayout linearLayoutTitle = new LinearLayout(context);
+        linearLayoutTitle.setOrientation(LinearLayout.HORIZONTAL);
+        //创建两个textview并赋值
+        TextView tvDate,tvMoney;
+        tvDate = new TextView(context);
+        tvMoney = new TextView(context);
+        tvDate.setText(date);
+        tvMoney.setText(money);
+        //设置两个textView的格式
+        tvDate.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT,LinearLayout.LayoutParams.WRAP_CONTENT,1.0f));
+        tvDate.setGravity(Gravity.LEFT);
+        tvDate.setPadding(40,40,40,40);
+        tvMoney.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT,LinearLayout.LayoutParams.WRAP_CONTENT,1.0f));
+        tvMoney.setGravity(Gravity.LEFT);
+        tvMoney.setTextColor(Color.BLACK);
+        tvMoney.setPadding(40,40,40,40);
+        //将两个textview放进去
+        linearLayoutTitle.addView(tvDate);
+        linearLayoutTitle.addView(tvMoney);
+        return linearLayoutTitle;
     }
 }
 
