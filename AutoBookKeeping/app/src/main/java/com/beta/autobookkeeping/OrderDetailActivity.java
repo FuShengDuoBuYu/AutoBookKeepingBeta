@@ -247,8 +247,8 @@ public class OrderDetailActivity extends AppCompatActivity {
         //执行更新数据库操作
         if(isChangeOrderInfo){
             String sql = "update orderInfo set day="+orderDay+",month="+orderMonth+",clock='"+orderTime+
-                    "',money="+Double.valueOf(etOrderNumber.getText().toString())+",bankName='"+btnPayWay.getText()+
-                    "',orderRemark='"+etOrderRemark.getText()+"',costType='"+btnCostType.getText()+"' where id="+
+                    "',money="+(btnOrderType.getText().toString().equals("收入")?"":"-")+Double.valueOf(etOrderNumber.getText().toString())+",bankName='"+btnPayWay.getText()+
+                    "',orderRemark='"+etOrderRemark.getText()+"',costType='"+(btnOrderType.getText().toString().equals("收入")?"收入":btnCostType.getText().toString())+"' where id="+
                     bundle.getInt("id");
             db.execSQL(sql);
         }else{
@@ -303,7 +303,7 @@ public class OrderDetailActivity extends AppCompatActivity {
 
     //修改数据库中的数据
     public void changeOrderInfo(Bundle bundle){
-        if(isChangeOrderInfo==true){
+        if(isChangeOrderInfo){
             //将数据传过来
             etOrderNumber.setText(String.valueOf((Math.abs(bundle.getFloat("money")))));
             orderYear = bundle.getInt("year");
@@ -332,7 +332,7 @@ public class OrderDetailActivity extends AppCompatActivity {
                 orderDay = dayOfMonth;
             }
 
-        }, Util.getCurrentYear(), Util.getCurrentMonth(), Util.getCurrentDay()){
+        }, Util.getCurrentYear(), Util.getCurrentMonth()-1, Util.getCurrentDay()){
             //不允许选择今天以后的时间
             @Override
             public void onDateChanged(@NonNull DatePicker view, int year, int month, int dayOfMonth) {

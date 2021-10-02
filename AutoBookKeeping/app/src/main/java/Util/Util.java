@@ -39,11 +39,12 @@ public class Util {
     }
     public static int getCurrentYear(){
         Calendar cal = Calendar.getInstance();
+
         return cal.get(Calendar.YEAR);
     }
     public static int getCurrentMonth(){
         Calendar cal = Calendar.getInstance();
-        return cal.get(Calendar.MONTH) + 1;
+        return cal.get(Calendar.MONTH)+1;
     }
     public static int getCurrentDay(){
         Calendar cal = Calendar.getInstance();
@@ -81,9 +82,9 @@ public class Util {
 
         }
         String result = sb.toString();
-        if(result.equals("出")||result.equals("-")||result.equals("代")){
+        if(result.equals("出")||result.equals("-")){
             return "支出";
-        }else if(result.equals("入")){
+        }else if(result.equals("入")||result.equals("代")){
             return "收入";
         }
         return result;

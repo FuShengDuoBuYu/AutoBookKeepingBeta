@@ -80,6 +80,7 @@ public class MonthReportActivity extends AppCompatActivity {
         getViews();
         //先更新总收支数据
         tv_month_report_money.setText(String.format("%.1f",Util.getMonthMoney(recordYear,recordMonth,MonthReportActivity.this)));
+        tv_month_report_time.setText(Util.getCurrentYear()+"年"+Util.getCurrentMonth()+"月");
         showBarChart();
         showPieChart();
         showMonthlyCostRanking();

@@ -16,7 +16,8 @@
         android:theme="@style/Theme.AutoBookKeeping">
         <activity
             android:name=".OrderItemSearchActivity"
-            android:exported="true" />
+            android:exported="true"
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
         <activity
             android:name=".MonthReportActivity"
             android:exported="true"

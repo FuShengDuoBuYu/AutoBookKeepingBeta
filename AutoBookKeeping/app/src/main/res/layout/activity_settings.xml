@@ -43,13 +43,88 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:padding="5dp"
+            android:padding="20dp"
             android:id="@+id/llDeleteAllOrders">
             <TextView
                 android:layout_width="0dp"
                 android:layout_weight="1"
                 android:layout_height="wrap_content"
                 android:text="@string/deleteAllOrders"
+                android:layout_marginStart="10dp"
+                android:gravity="start"
+                android:textSize="20sp"
+                android:textColor="@color/black">
+            </TextView>
+            <ImageView
+                android:layout_width="30dp"
+                android:layout_height="match_parent"
+                android:background="@drawable/choose_arrow"
+                android:gravity="end"
+                android:layout_marginEnd="10dp">
+            </ImageView>
+        </LinearLayout>
+        <!--查询特定时期订单-->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:padding="20dp"
+            android:id="@+id/ll_searchLimitTimeOrders">
+            <TextView
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:text="查询特定时间账单"
+                android:layout_marginStart="10dp"
+                android:gravity="start"
+                android:textSize="20sp"
+                android:textColor="@color/black">
+            </TextView>
+            <ImageView
+                android:layout_width="30dp"
+                android:layout_height="match_parent"
+                android:background="@drawable/choose_arrow"
+                android:gravity="end"
+                android:layout_marginEnd="10dp">
+            </ImageView>
+        </LinearLayout>
+        <!--上传账单信息-->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:padding="20dp"
+            android:id="@+id/ll_uploadAllOrders">
+            <TextView
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:text="上传账单信息到云"
+                android:layout_marginStart="10dp"
+                android:gravity="start"
+                android:textSize="20sp"
+                android:textColor="@color/black">
+            </TextView>
+            <ImageView
+                android:layout_width="30dp"
+                android:layout_height="match_parent"
+                android:background="@drawable/choose_arrow"
+                android:gravity="end"
+                android:layout_marginEnd="10dp">
+            </ImageView>
+        </LinearLayout>
+        <!--同步账单信息-->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:padding="20dp"
+            android:id="@+id/ll_downloadAllOrders">
+            <TextView
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:text="从云同步账单信息"
                 android:layout_marginStart="10dp"
                 android:gravity="start"
                 android:textSize="20sp"

@@ -2,7 +2,9 @@ package com.beta.autobookkeeping;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.widget.ScrollerCompat;
 
+import android.app.DatePickerDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.sqlite.SQLiteDatabase;
@@ -10,33 +12,44 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.DatePicker;
 import android.widget.LinearLayout;
 
 import com.beta.autobookkeeping.SMStools.SMSDataBase;
 import com.beta.autobookkeeping.SMStools.SMSReader;
 import com.beta.autobookkeeping.SMStools.SMSService;
 
+import java.util.ArrayList;
+
 import Util.Util;
 
 public class SettingsActivity extends AppCompatActivity {
 
-    private LinearLayout llDeleteAllOrders;
+    private LinearLayout llDeleteAllOrders,ll_searchLimitTimeOrders,ll_downloadAllOrders,ll_uploadAllOrders;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_settings);
         //开启读取短信线程
         startService(new Intent(SettingsActivity.this, SMSService.class));
+        findViewsAndSetClick();
+    }
+
+    //找到各个按钮,并设置自己的点击事件
+    public void findViewsAndSetClick(){
         OnClick onClick = new OnClick();
         //找到各个设置的按钮
         llDeleteAllOrders = findViewById(R.id.llDeleteAllOrders);
+        ll_searchLimitTimeOrders = findViewById(R.id.ll_searchLimitTimeOrders);
+        ll_downloadAllOrders = findViewById(R.id.ll_downloadAllOrders);
+        ll_uploadAllOrders = findViewById(R.id.ll_uploadAllOrders);
         //设置点击事件
         llDeleteAllOrders.setOnClickListener(onClick);
-
-//        //设置自动读取短信弹窗
-//        SMSReader smsReader = new SMSReader(SettingsActivity.this);
-//        smsReader.readSMS();
+        ll_searchLimitTimeOrders.setOnClickListener(onClick);
+        ll_downloadAllOrders.setOnClickListener(onClick);
+        ll_uploadAllOrders.setOnClickListener(onClick);
     }
+
     //自己写的一个实现的OnClick类
     class OnClick implements View.OnClickListener {
 
@@ -60,14 +73,59 @@ public class SettingsActivity extends AppCompatActivity {
                     });
                     builder.setNegativeButton("取消", new DialogInterface.OnClickListener() {
                         @Override
-                        public void onClick(DialogInterface dialogInterface, int i) {
-                            Util.toastMsg(SettingsActivity.this,"取消清除数据");
-                        }
+                        public void onClick(DialogInterface dialogInterface, int i) {}
                         //不要忘记最后要show()
                     }).show();
                     break;
+                case R.id.ll_searchLimitTimeOrders:
+                    //获取查询的限制条件
+                    getSearchDate();
+                    break;
+                case R.id.ll_downloadAllOrders:
+                    Util.toastMsg(SettingsActivity.this,"待开发");
+                case R.id.ll_uploadAllOrders:
+                    Util.toastMsg(SettingsActivity.this,"待开发");
             }
         }
+    }
+
+    //获取用户要读取的指定日期
+    public Bundle getSearchDate(){
+        Bundle bundle = new Bundle();
+        //设置一个弹窗让用户选择是按日还是按月查找
+        AlertDialog.Builder builder = new AlertDialog.Builder(SettingsActivity.this);
+        builder.setTitle("请选择查询方式").setCancelable(true).setPositiveButton("按月查找", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                //按月查找只显示月份的选择
+
+            }
+        }).setNegativeButton("按日查找", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                //按日查找显示日的选择
+                DatePickerDialog datePicker = new DatePickerDialog(SettingsActivity.this,DatePickerDialog.THEME_HOLO_LIGHT, new DatePickerDialog.OnDateSetListener() {
+                    @Override
+                    public void onDateSet(DatePicker datePicker, int year, int monthOfYear, int dayOfMonth) {
+                        //获取用户输入的日期
+                        bundle.putInt("year",year);
+                        bundle.putInt("month",monthOfYear);
+                        bundle.putInt("day",dayOfMonth);
+                    }
+
+                }, Util.getCurrentYear(), Util.getCurrentMonth()-1, Util.getCurrentDay()){
+                    @Override
+                    public void dismiss() {
+                        //跳转到查询账单详情页
+                        Intent intent = new Intent(SettingsActivity.this,OrderItemSearchActivity.class);
+                        startActivity(intent);
+                        super.dismiss();
+                    }
+                };
+                datePicker.show();
+            }
+        }).show();
+        return bundle;
     }
 }
 
