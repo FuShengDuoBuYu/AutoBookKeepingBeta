@@ -10,10 +10,12 @@ import android.content.Intent;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.ContextThemeWrapper;
 import android.view.View;
 import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.LinearLayout;
+import android.widget.NumberPicker;
 
 import com.beta.autobookkeeping.SMStools.SMSDataBase;
 import com.beta.autobookkeeping.SMStools.SMSReader;
@@ -90,7 +92,7 @@ public class SettingsActivity extends AppCompatActivity {
     }
 
     //获取用户要读取的指定日期
-    public Bundle getSearchDate(){
+    public void getSearchDate(){
         Bundle bundle = new Bundle();
         //设置一个弹窗让用户选择是按日还是按月查找
         AlertDialog.Builder builder = new AlertDialog.Builder(SettingsActivity.this);
@@ -98,7 +100,48 @@ public class SettingsActivity extends AppCompatActivity {
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
                 //按月查找只显示月份的选择
-
+                DatePickerDialog datePickerDialog = new DatePickerDialog(new ContextThemeWrapper(SettingsActivity.this,
+                        android.R.style.Theme_Holo_Light_Dialog_NoActionBar), new DatePickerDialog.OnDateSetListener() {
+                    @Override
+                    public void onDateSet(DatePicker datePicker, int i, int i1, int i2) {
+                        bundle.putInt("year",i);
+                        bundle.putInt("month",i1);
+                                                Util.toastMsg(SettingsActivity.this,String.valueOf(bundle.size()));
+                    }
+                }, Util.getCurrentYear(), Util.getCurrentMonth() - 1, Util.getCurrentDay()){
+                    @Override
+                    //只显示年和月,不显示日
+                    protected void onCreate(Bundle savedInstanceState) {
+                        super.onCreate(savedInstanceState);
+                        LinearLayout mSpinners = (LinearLayout) findViewById(getContext().getResources().getIdentifier("android:id/pickers", null, null));
+                        if (mSpinners != null) {
+                            NumberPicker mMonthSpinner = (NumberPicker) findViewById(getContext().getResources().getIdentifier("android:id/month", null, null));
+                            NumberPicker mYearSpinner = (NumberPicker) findViewById(getContext().getResources().getIdentifier("android:id/year", null, null));
+                            mSpinners.removeAllViews();
+                            if (mMonthSpinner != null) {
+                                mSpinners.addView(mMonthSpinner);
+                            }
+                            if (mYearSpinner != null) {
+                                mSpinners.addView(mYearSpinner);
+                            }
+                        }
+                        View dayPickerView = findViewById(getContext().getResources().getIdentifier("android:id/day", null, null));
+                        if(dayPickerView != null){
+                            dayPickerView.setVisibility(View.GONE);
+                        }
+                    }
+                };
+                datePickerDialog.setButton("确定", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        //跳转到查询账单详情页
+                        Intent intent = new Intent(SettingsActivity.this,OrderItemSearchActivity.class);
+                        intent.putExtras(bundle);
+//                        Util.toastMsg(SettingsActivity.this,String.valueOf(bundle.size()));
+                        startActivity(intent);
+                    }
+                });
+                datePickerDialog.show();
             }
         }).setNegativeButton("按日查找", new DialogInterface.OnClickListener() {
             @Override
@@ -113,19 +156,20 @@ public class SettingsActivity extends AppCompatActivity {
                         bundle.putInt("day",dayOfMonth);
                     }
 
-                }, Util.getCurrentYear(), Util.getCurrentMonth()-1, Util.getCurrentDay()){
+                }, Util.getCurrentYear(), Util.getCurrentMonth()-1, Util.getCurrentDay()){};
+                datePicker.setButton("确定", new DialogInterface.OnClickListener() {
                     @Override
-                    public void dismiss() {
+                    public void onClick(DialogInterface dialogInterface, int i) {
                         //跳转到查询账单详情页
                         Intent intent = new Intent(SettingsActivity.this,OrderItemSearchActivity.class);
+                        intent.putExtras(bundle);
                         startActivity(intent);
-                        super.dismiss();
+
                     }
-                };
+                });
                 datePicker.show();
             }
         }).show();
-        return bundle;
     }
 }
 
