@@ -67,6 +67,12 @@ public class Util {
         //获取银行名称
         Matcher matchBank = Pattern.compile(regExBank).matcher(bankOrder);
         result[0] = getString(matchBank,false);
+        //对工商银行进行单独适配
+        if("工商银行".equals(result[0])){
+            result[1] = getICBCInfo(bankOrder)[0];
+            result[2] = getICBCInfo(bankOrder)[1];
+            return result;
+        }
         //获取支付类型
         Matcher matchMoneyType = Pattern.compile(regExMoneyType).matcher(bankOrder);
         result[1] = getString(matchMoneyType,false);
@@ -90,6 +96,23 @@ public class Util {
         }else if(result.equals("入")||result.equals("代")){
             return "收入";
         }
+        return result;
+    }
+
+    //获取工商银行短信中的数据的方法
+    public static String[] getICBCInfo(String msg){
+        String[] result = new String[2];
+        //判断支出还是收入
+        if(msg.contains("支出")){
+            result[0] = "支出";
+        }else{
+            result[0] = "收入";
+        }
+        //获取收支金额
+        int startIndex,endIndex;
+        startIndex = msg.indexOf(")");
+        endIndex = msg.indexOf("元");
+        result[1] = msg.substring(startIndex+1,endIndex);
         return result;
     }
     //获取当日收支金额的方法
@@ -301,6 +324,7 @@ public class Util {
     public static LinearLayout setDayOrderTitle(String date,String money,Context context){
         LinearLayout linearLayoutTitle = new LinearLayout(context);
         linearLayoutTitle.setOrientation(LinearLayout.HORIZONTAL);
+        linearLayoutTitle.setBackgroundColor(Color.rgb(235,235,235));
         //创建两个textview并赋值
         TextView tvDate,tvMoney;
         tvDate = new TextView(context);
@@ -310,16 +334,27 @@ public class Util {
         //设置两个textView的格式
         tvDate.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT,LinearLayout.LayoutParams.WRAP_CONTENT,1.0f));
         tvDate.setGravity(Gravity.LEFT);
-        tvDate.setPadding(40,40,40,40);
+        tvDate.setPadding(40,0,40,0);
         tvMoney.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT,LinearLayout.LayoutParams.WRAP_CONTENT,1.0f));
-        tvMoney.setGravity(Gravity.LEFT);
-        tvMoney.setTextColor(Color.BLACK);
-        tvMoney.setPadding(40,40,40,40);
+        tvMoney.setGravity(Gravity.RIGHT);
+//        tvMoney.setTextColor(Color.BLACK);
+        tvMoney.setPadding(40,0,40,0);
         //将两个textview放进去
         linearLayoutTitle.addView(tvDate);
         linearLayoutTitle.addView(tvMoney);
         return linearLayoutTitle;
     }
+
+    //获取某个日期是今天还是昨天,否则返回该日
+    public static String getDayRelation(int targetDay){
+        if(targetDay==getCurrentDay())
+            return "今日";
+        else if(targetDay+1 == getCurrentDay())
+            return "昨日";
+        else
+            return "本日";
+    }
+
 }
 
 

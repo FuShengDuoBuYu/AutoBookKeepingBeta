@@ -1,5 +1,7 @@
 package com.beta.autobookkeeping;
 
+import static Util.Util.toastMsg;
+
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.widget.ScrollerCompat;
@@ -21,6 +23,11 @@ import com.beta.autobookkeeping.SMStools.SMSDataBase;
 import com.beta.autobookkeeping.SMStools.SMSReader;
 import com.beta.autobookkeeping.SMStools.SMSService;
 
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 
 import Util.Util;
@@ -84,9 +91,9 @@ public class SettingsActivity extends AppCompatActivity {
                     getSearchDate();
                     break;
                 case R.id.ll_downloadAllOrders:
-                    Util.toastMsg(SettingsActivity.this,"待开发");
+                    downloadAllOrdersFromCloud();
                 case R.id.ll_uploadAllOrders:
-                    Util.toastMsg(SettingsActivity.this,"待开发");
+                    toastMsg(SettingsActivity.this,"待开发");
             }
         }
     }
@@ -157,6 +164,73 @@ public class SettingsActivity extends AppCompatActivity {
                 datePicker.show();
             }
         }).show();
+    }
+
+    //从云下载数据
+    private void downloadAllOrdersFromCloud(){
+        final Connection[] connection = new Connection[1];
+        try {
+            Class.forName("com.mysql.jdbc.Driver");
+        } catch (ClassNotFoundException e) {
+            toastMsg(SettingsActivity.this,"加载JDBC驱动失败");
+            return;
+        }
+        //连接数据库（开辟一个新线程）
+        final Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                // 反复尝试连接，直到连接成功后退出循环
+                while (!Thread.interrupted()) {
+                    try {
+                        Thread.sleep(100);  // 每隔0.1秒尝试连接
+                    } catch (InterruptedException e) {
+                        Log.e("MainActivity", e.toString());
+                    }
+                    // 2.设置好IP/端口/数据库名/用户名/密码等必要的连接信息
+                    String ip = "sh-cynosdbmysql-grp-h8u7vdmk.sql.tencentcdb.com";                 //本机IP
+                    int port = 26934;                              //mysql默认端口
+                    String dbName = "book_data";             //自己的数据库名
+                    String url = "jdbc:mysql://" + ip + ":" + port
+                            + "/" + dbName; // 构建连接mysql的字符串
+                    String user = "root";                //自己的用户名
+                    String password = "20011024Yangshuo!";           //自己的密码
+
+                    // 3.连接JDBC
+                    try {
+                        connection[0] = DriverManager.getConnection(url, user, password);
+//                        Log.d("MainActivity", "连接数据库成功!");
+//
+//                        //查询学生表
+                        String sql = "insert into test(test)values(1)";
+                        try {
+//                            // 创建用来执行sql语句的对象
+                            java.sql.Statement statement = connection[0].createStatement();
+//                            // 执行sql查询语句并获取查询信息
+                            statement.execute(sql);
+//                            // 迭代打印出查询信息
+//                            Log.d("MainActivity", "学生列表");
+//                            Log.d("MainActivity", "id\t\t\tname\tage\tsex\t");
+//                            while (rSet.next()) {
+//                                Log.d("MainActivity", rSet.getString("id") + "\t" + rSet.getString("name")+"\t"
+//                                        + rSet.getString("age") + "\t" + rSet.getString("sex") + "\t");
+//                            }
+                        } catch (SQLException e) {
+                            Log.d("MainActivity", e.toString());
+                        }
+                        //关闭数据库
+                        try {
+//                            statement.close();
+                            connection[0].close();
+                        } catch (SQLException e) {
+                            toastMsg(SettingsActivity.this,"关闭云数据库失败");                        }
+                        return;
+                    } catch (SQLException e) {
+//                        toastMsg(SettingsActivity.this,"连接云数据库失败");
+                    }
+                }
+            }
+        });
+        thread.start();
     }
 }
 
