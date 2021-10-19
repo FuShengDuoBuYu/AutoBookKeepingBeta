@@ -106,11 +106,12 @@ public class SettingsActivity extends AppCompatActivity {
                     downloadInputBuilder.setPositiveButton("确定", new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int which) {
                             downLoadTableName[0] =  downloadInputServer.getText().toString();
-                            //执行上传操作
+                            //执行下载操作
                             downloadAllOrdersFromCloud(downLoadTableName[0]);
                         }
                     });
                     downloadInputBuilder.show();
+                    break;
                 case R.id.ll_uploadAllOrders:
                     //输入要操作的账本的信息
                     final String[] uploadTableName = {null};
@@ -126,6 +127,7 @@ public class SettingsActivity extends AppCompatActivity {
                         }
                     });
                     uploadInputBuilder.show();
+                    break;
             }
         }
     }
@@ -235,12 +237,41 @@ public class SettingsActivity extends AppCompatActivity {
                         DatabaseMetaData dbMetaData = connection[0].getMetaData();
                         ResultSet rs = dbMetaData.getTables(null, null, null,new String[] { "TABLE" });
                         List<String> tableNames = new ArrayList<>();
+                        Statement statement = connection[0].createStatement();
                         while(rs.next()) {
                             tableNames.add(rs.getString("TABLE_NAME"));
                         }
                         //如果有这个表,就进行表的下载
                         if(tableNames.contains(tableName)){
-                            //todo:下载
+                            //获取本地的总数据
+                            Cursor localData = getLocalOrderInfo(SettingsActivity.this);
+                            //获取数据库里的数据
+                            String getCloudData = "select * from "+tableName;
+                            ResultSet cloudDataResult  = statement.executeQuery(getCloudData);
+//                            ArrayList<Integer> idArray = new ArrayList<>();
+//                            while(idResult.next()){
+//                                idArray.add(idResult.getInt("id"));
+//                            }
+                            SMSDataBase smsDb = new SMSDataBase(SettingsActivity.this, "orderInfo", null, 1);
+                            SQLiteDatabase db = smsDb.getWritableDatabase();
+                            db.execSQL("delete from orderInfo");
+//
+                            db.execSQL("UPDATE sqlite_sequence SET seq = 0 WHERE name= 'orderInfo'");
+//                            Looper.prepare();
+//                            toastMsg(SettingsActivity.this,"下载成功");
+//                            Looper.loop();
+                            //如果云没有本地的某条记录,就将其传上去
+                            while (cloudDataResult.next()) {
+                                    String sql = "insert into orderInfo" +"(id,year,month,day,clock,money,bankName,orderRemark,costType) "
+                                            + "values (" + cloudDataResult.getInt("id") + "," + cloudDataResult.getInt("year") + "," + cloudDataResult.getInt("month") + "," + cloudDataResult.getInt("day") + ","
+                                            + "'" + cloudDataResult.getString("clock") + "'" + "," + cloudDataResult.getDouble("money") + "," + "'" + cloudDataResult.getString("bankName") + "'" + "," + "'" +
+                                            cloudDataResult.getString("orderRemark") + "'" + "," + "'" + cloudDataResult.getString("costType") + "'" + ");";
+                                    Log.d("sql", sql);
+                                    db.execSQL(sql);
+                            }
+                            Looper.prepare();
+                            toastMsg(SettingsActivity.this,"下载成功");
+                            Looper.loop();
                         }
                         //如果没有,就先提示用户是否创建这个表
                         else{
