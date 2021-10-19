@@ -248,18 +248,10 @@ public class SettingsActivity extends AppCompatActivity {
                             //获取数据库里的数据
                             String getCloudData = "select * from "+tableName;
                             ResultSet cloudDataResult  = statement.executeQuery(getCloudData);
-//                            ArrayList<Integer> idArray = new ArrayList<>();
-//                            while(idResult.next()){
-//                                idArray.add(idResult.getInt("id"));
-//                            }
                             SMSDataBase smsDb = new SMSDataBase(SettingsActivity.this, "orderInfo", null, 1);
                             SQLiteDatabase db = smsDb.getWritableDatabase();
                             db.execSQL("delete from orderInfo");
-//
                             db.execSQL("UPDATE sqlite_sequence SET seq = 0 WHERE name= 'orderInfo'");
-//                            Looper.prepare();
-//                            toastMsg(SettingsActivity.this,"下载成功");
-//                            Looper.loop();
                             //如果云没有本地的某条记录,就将其传上去
                             while (cloudDataResult.next()) {
                                     String sql = "insert into orderInfo" +"(id,year,month,day,clock,money,bankName,orderRemark,costType) "
@@ -349,24 +341,18 @@ public class SettingsActivity extends AppCompatActivity {
                         //如果有这个表,就进行上传
                         java.sql.Statement statement = connection[0].createStatement();
                         if(tableNames.contains(tableName)){
+
                             //获取本地的总数据
                             Cursor localData = getLocalOrderInfo(SettingsActivity.this);
-                            //获取数据库里的数据id
-                            String getCloudDataId = "select id from "+tableName;
-                            ResultSet idResult  = statement.executeQuery(getCloudDataId);
-                            ArrayList<Integer> idArray = new ArrayList<>();
-                            while(idResult.next()){
-                                idArray.add(idResult.getInt("id"));
-                            }
-                            //如果云没有本地的某条记录,就将其传上去
+                            //删除云端的数据
+                            String deleteCloudData = "delete from "+tableName + ";";
+                            statement.executeUpdate(deleteCloudData);
+                            //将其传上去
                             while (localData.moveToNext()) {
-                                if(!idArray.contains(localData.getInt(0))) {
-                                    String sql = "insert into " + tableName + " (id,year,month,day,clock,money,bankName,orderRemark,costType) "
-                                            + "values (" + localData.getInt(0) + "," + localData.getInt(1) + "," + localData.getInt(2) + "," + localData.getInt(3) + ","
-                                            + "'" + localData.getString(4) + "'" + "," + localData.getDouble(5) + "," + "'" + localData.getString(6) + "'" + "," + "'" + localData.getString(7) + "'" + "," + "'" + localData.getString(8) + "'" + ");";
-                                    Log.d("sql", sql);
-                                    statement.execute(sql);
-                                }
+                                String sql = "insert into " + tableName + " (id,year,month,day,clock,money,bankName,orderRemark,costType) "
+                                        + "values (" + localData.getInt(0) + "," + localData.getInt(1) + "," + localData.getInt(2) + "," + localData.getInt(3) + ","
+                                        + "'" + localData.getString(4) + "'" + "," + localData.getDouble(5) + "," + "'" + localData.getString(6) + "'" + "," + "'" + localData.getString(7) + "'" + "," + "'" + localData.getString(8) + "'" + ");";
+                                statement.execute(sql);
                             }
                             Looper.prepare();
                             toastMsg(SettingsActivity.this,"推送成功");
