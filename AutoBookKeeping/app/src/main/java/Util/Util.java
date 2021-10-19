@@ -24,9 +24,19 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class Util {
-    public final static int[] colors = new int[]{Color.rgb(92, 172, 238), Color.rgb(112, 128, 144), Color.rgb(60, 179, 113),
-            Color.rgb(123, 104, 238), Color.rgb(210, 105, 30), Color.rgb(218, 112, 214),
-            Color.rgb(237, 189, 189), Color.rgb(172, 217, 243)};
+    public final static int[] colors = new int[]{
+            Color.rgb(92, 172, 238),
+            Color.rgb(112, 128, 144),
+            Color.rgb(60, 179, 113),
+            Color.rgb(123, 104, 238),
+            Color.rgb(210, 105, 30),
+            Color.rgb(218, 112, 214),
+            Color.rgb(237, 189, 189),
+            Color.rgb(172, 217, 243),
+            Color.rgb(34,139,34),
+            Color.rgb(95,158,160),
+            Color.rgb(138,43,226),
+            Color.rgb(233,150,122)};
     //匹配银行账单信息的正则表达式
     private final static String regExBank = "[农业银行|建设银行|郑州银行|工商银行|招商银行]";
     private final static String regExMoneyType = "[-|出|入|代]";
