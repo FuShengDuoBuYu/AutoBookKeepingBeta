@@ -1,5 +1,6 @@
 package com.beta.autobookkeeping;
 
+import static Util.Util.getLocalOrderInfo;
 import static Util.Util.toastMsg;
 
 import androidx.appcompat.app.AlertDialog;
@@ -9,13 +10,16 @@ import androidx.core.widget.ScrollerCompat;
 import android.app.DatePickerDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
+import android.os.Looper;
 import android.util.Log;
 import android.view.ContextThemeWrapper;
 import android.view.View;
 import android.widget.Button;
 import android.widget.DatePicker;
+import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.NumberPicker;
 
@@ -24,11 +28,13 @@ import com.beta.autobookkeeping.SMStools.SMSReader;
 import com.beta.autobookkeeping.SMStools.SMSService;
 
 import java.sql.Connection;
+import java.sql.DatabaseMetaData;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.List;
 
 import Util.Util;
 
@@ -91,9 +97,35 @@ public class SettingsActivity extends AppCompatActivity {
                     getSearchDate();
                     break;
                 case R.id.ll_downloadAllOrders:
-                    downloadAllOrdersFromCloud();
+                    //输入要操作的账本的信息
+                    final String[] downLoadTableName = {null};
+                    final EditText downloadInputServer = new EditText(SettingsActivity.this);
+                    AlertDialog.Builder downloadInputBuilder = new AlertDialog.Builder(SettingsActivity.this);
+                    downloadInputBuilder.setTitle("请输入您账单本的名称").setIcon(android.R.drawable.ic_dialog_info).setView(downloadInputServer)
+                            .setNegativeButton("取消", null);
+                    downloadInputBuilder.setPositiveButton("确定", new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int which) {
+                            downLoadTableName[0] =  downloadInputServer.getText().toString();
+                            //执行上传操作
+                            downloadAllOrdersFromCloud(downLoadTableName[0]);
+                        }
+                    });
+                    downloadInputBuilder.show();
                 case R.id.ll_uploadAllOrders:
-                    toastMsg(SettingsActivity.this,"待开发");
+                    //输入要操作的账本的信息
+                    final String[] uploadTableName = {null};
+                    final EditText uploadInputServer = new EditText(SettingsActivity.this);
+                    AlertDialog.Builder uploadInputBuilder = new AlertDialog.Builder(SettingsActivity.this);
+                    uploadInputBuilder.setTitle("请输入您账单本的名称").setIcon(android.R.drawable.ic_dialog_info).setView(uploadInputServer)
+                            .setNegativeButton("取消", null);
+                    uploadInputBuilder.setPositiveButton("确定", new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int which) {
+                            uploadTableName[0] =  uploadInputServer.getText().toString();
+                            //执行上传操作
+                            uploadAllOrdersToCloud(uploadTableName[0]);
+                        }
+                    });
+                    uploadInputBuilder.show();
             }
         }
     }
@@ -167,7 +199,7 @@ public class SettingsActivity extends AppCompatActivity {
     }
 
     //从云下载数据
-    private void downloadAllOrdersFromCloud(){
+    private void downloadAllOrdersFromCloud(String tableName){
         final Connection[] connection = new Connection[1];
         try {
             Class.forName("com.mysql.jdbc.Driver");
@@ -191,48 +223,158 @@ public class SettingsActivity extends AppCompatActivity {
                     int port = 26934;                              //mysql默认端口
                     String dbName = "book_data";             //自己的数据库名
                     String url = "jdbc:mysql://" + ip + ":" + port
-                            + "/" + dbName; // 构建连接mysql的字符串
+                            + "/" + dbName+"?useUnicode=true&characterEncoding=UTF-8"; // 构建连接mysql的字符串
+                    String user = "root";                //自己的用户名
+                    String password = "20011024Yangshuo!";           //自己的密码
+//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++=
+//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+                    // 3.连接JDBC
+                    try {
+                        connection[0] = DriverManager.getConnection(url, user, password);
+                        /*先找到表名是否存在*/
+                        DatabaseMetaData dbMetaData = connection[0].getMetaData();
+                        ResultSet rs = dbMetaData.getTables(null, null, null,new String[] { "TABLE" });
+                        List<String> tableNames = new ArrayList<>();
+                        while(rs.next()) {
+                            tableNames.add(rs.getString("TABLE_NAME"));
+                        }
+                        //如果有这个表,就进行表的下载
+                        if(tableNames.contains(tableName)){
+                            //todo:下载
+                        }
+                        //如果没有,就先提示用户是否创建这个表
+                        else{
+                            Looper.prepare();
+                            AlertDialog.Builder builder = new AlertDialog.Builder(SettingsActivity.this);
+                            builder.setTitle("目前没有该账单本,确定要创建吗?").setNegativeButton("取消",null);
+                            builder.setPositiveButton("确定", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialogInterface, int i) {
+                                    String sql = "create table "+tableName + "(id integer(10),year int(4),month int(2),day int(2),clock varchar(20),money numeric(10,2),bankName varchar(255),orderRemark varchar(255),costType varchar(255));";
+                                    try {
+                                        java.sql.Statement statement = connection[0].createStatement();
+                                        statement.executeUpdate(sql);
+                                        toastMsg(SettingsActivity.this,"创建成功");
+                                    } catch (SQLException e) {}
+                                }
+                            }).show();
+                            Looper.loop();
+                        }
+//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++=
+//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+                        //关闭数据库
+                        try {
+                            connection[0].close();
+                        } catch (SQLException e) {
+                            toastMsg(SettingsActivity.this,"关闭云数据库失败");
+                        }
+                        return;
+                    } catch (SQLException e) {}
+                }
+            }
+        });
+        thread.start();
+    }
+
+    //推送数据到云
+    private void uploadAllOrdersToCloud(String tableName){
+        final Connection[] connection = new Connection[1];
+        try {
+            Class.forName("com.mysql.jdbc.Driver");
+        } catch (ClassNotFoundException e) {
+            toastMsg(SettingsActivity.this,"加载JDBC驱动失败");
+            return;
+        }
+        //连接数据库（开辟一个新线程）
+        final Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                // 反复尝试连接，直到连接成功后退出循环
+                while (!Thread.interrupted()) {
+                    try {
+                        Thread.sleep(100);  // 每隔0.1秒尝试连接
+                    } catch (InterruptedException e) {}
+                    // 2.设置好IP/端口/数据库名/用户名/密码等必要的连接信息
+                    String ip = "sh-cynosdbmysql-grp-h8u7vdmk.sql.tencentcdb.com";                 //本机IP
+                    int port = 26934;                              //mysql默认端口
+                    String dbName = "book_data";             //自己的数据库名
+                    String url = "jdbc:mysql://" + ip + ":" + port
+                            + "/" + dbName+"?useUnicode=true&characterEncoding=UTF-8"; // 构建连接mysql的字符串
                     String user = "root";                //自己的用户名
                     String password = "20011024Yangshuo!";           //自己的密码
 
                     // 3.连接JDBC
                     try {
                         connection[0] = DriverManager.getConnection(url, user, password);
-//                        Log.d("MainActivity", "连接数据库成功!");
-//
-//                        //查询学生表
-                        String sql = "insert into test(test)values(1)";
-                        try {
-//                            // 创建用来执行sql语句的对象
-                            java.sql.Statement statement = connection[0].createStatement();
-//                            // 执行sql查询语句并获取查询信息
-                            statement.execute(sql);
-//                            // 迭代打印出查询信息
-//                            Log.d("MainActivity", "学生列表");
-//                            Log.d("MainActivity", "id\t\t\tname\tage\tsex\t");
-//                            while (rSet.next()) {
-//                                Log.d("MainActivity", rSet.getString("id") + "\t" + rSet.getString("name")+"\t"
-//                                        + rSet.getString("age") + "\t" + rSet.getString("sex") + "\t");
-//                            }
-                        } catch (SQLException e) {
-                            Log.d("MainActivity", e.toString());
+//+++++++++++++++++++++++++++++以下为sql内容,并执行++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+                        /*先找到表名是否存在*/
+                        DatabaseMetaData dbMetaData = connection[0].getMetaData();
+                        ResultSet rs = dbMetaData.getTables(null, null, null,new String[] { "TABLE" });
+                        List<String> tableNames = new ArrayList<>();
+                        while(rs.next()) {
+                            tableNames.add(rs.getString("TABLE_NAME"));
                         }
+                        //如果有这个表,就进行上传
+                        java.sql.Statement statement = connection[0].createStatement();
+                        if(tableNames.contains(tableName)){
+                            //获取本地的总数据
+                            Cursor localData = getLocalOrderInfo(SettingsActivity.this);
+                            //获取数据库里的数据id
+                            String getCloudDataId = "select id from "+tableName;
+                            ResultSet idResult  = statement.executeQuery(getCloudDataId);
+                            ArrayList<Integer> idArray = new ArrayList<>();
+                            while(idResult.next()){
+                                idArray.add(idResult.getInt("id"));
+                            }
+                            //如果云没有本地的某条记录,就将其传上去
+                            while (localData.moveToNext()) {
+                                if(!idArray.contains(localData.getInt(0))) {
+                                    String sql = "insert into " + tableName + " (id,year,month,day,clock,money,bankName,orderRemark,costType) "
+                                            + "values (" + localData.getInt(0) + "," + localData.getInt(1) + "," + localData.getInt(2) + "," + localData.getInt(3) + ","
+                                            + "'" + localData.getString(4) + "'" + "," + localData.getDouble(5) + "," + "'" + localData.getString(6) + "'" + "," + "'" + localData.getString(7) + "'" + "," + "'" + localData.getString(8) + "'" + ");";
+                                    Log.d("sql", sql);
+                                    statement.execute(sql);
+                                }
+                            }
+                            Looper.prepare();
+                            toastMsg(SettingsActivity.this,"推送成功");
+                            Looper.loop();
+                        }
+                        //如果没有这个表,就提示用户是否创建
+                        else{
+                            Looper.prepare();
+                            AlertDialog.Builder builder = new AlertDialog.Builder(SettingsActivity.this);
+                            builder.setTitle("目前没有该账单本,确定要创建吗?").setNegativeButton("取消",null);
+                            builder.setPositiveButton("确定", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialogInterface, int i) {
+                                    String sql = "create table "+tableName + "(id integer(10),year int(4),month int(2),day int(2),clock varchar(20),money numeric(10,2),bankName varchar(255),orderRemark varchar(255),costType varchar(255));";
+                                    try {
+                                        statement.executeUpdate(sql);
+                                        toastMsg(SettingsActivity.this,"创建成功");
+                                    } catch (SQLException e) {}
+                                }
+                            }).show();
+                            Looper.loop();
+                        }
+//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
                         //关闭数据库
                         try {
-//                            statement.close();
                             connection[0].close();
                         } catch (SQLException e) {
-                            toastMsg(SettingsActivity.this,"关闭云数据库失败");                        }
+                            toastMsg(SettingsActivity.this,"关闭云数据库失败");
+                        }
                         return;
-                    } catch (SQLException e) {
-//                        toastMsg(SettingsActivity.this,"连接云数据库失败");
-                    }
+                    } catch (SQLException e) {}
                 }
             }
         });
         thread.start();
     }
 }
+
 
 
 
