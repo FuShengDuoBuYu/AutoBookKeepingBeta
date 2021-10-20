@@ -98,19 +98,26 @@ public class SettingsActivity extends AppCompatActivity {
                     break;
                 case R.id.ll_downloadAllOrders:
                     //输入要操作的账本的信息
-                    final String[] downLoadTableName = {null};
-                    final EditText downloadInputServer = new EditText(SettingsActivity.this);
-                    AlertDialog.Builder downloadInputBuilder = new AlertDialog.Builder(SettingsActivity.this);
-                    downloadInputBuilder.setTitle("请输入您账单本的名称").setIcon(android.R.drawable.ic_dialog_info).setView(downloadInputServer)
-                            .setNegativeButton("取消", null);
-                    downloadInputBuilder.setPositiveButton("确定", new DialogInterface.OnClickListener() {
-                        public void onClick(DialogInterface dialog, int which) {
-                            downLoadTableName[0] =  downloadInputServer.getText().toString();
-                            //执行下载操作
-                            downloadAllOrdersFromCloud(downLoadTableName[0]);
+                    AlertDialog.Builder warning = new AlertDialog.Builder(SettingsActivity.this);
+                    warning.setTitle("请务必确认已完成上传个人账单到个人云\n 否则会丢失数据").setPositiveButton("确定", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialogInterface, int i) {
+                            final String[] downLoadTableName = {null};
+                            final EditText downloadInputServer = new EditText(SettingsActivity.this);
+                            AlertDialog.Builder downloadInputBuilder = new AlertDialog.Builder(SettingsActivity.this);
+                            downloadInputBuilder.setTitle("请输入您账单本的名称").setIcon(android.R.drawable.ic_dialog_info).setView(downloadInputServer)
+                                    .setNegativeButton("取消", null);
+                            downloadInputBuilder.setPositiveButton("确定", new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int which) {
+                                    downLoadTableName[0] =  downloadInputServer.getText().toString();
+                                    //执行下载操作
+                                    downloadAllOrdersFromCloud(downLoadTableName[0]);
+                                }
+                            });
+                            downloadInputBuilder.show();
                         }
-                    });
-                    downloadInputBuilder.show();
+                    }).setNegativeButton("取消",null).show();
+
                     break;
                 case R.id.ll_uploadAllOrders:
                     //输入要操作的账本的信息
