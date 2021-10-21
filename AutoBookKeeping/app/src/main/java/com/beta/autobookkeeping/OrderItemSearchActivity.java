@@ -107,7 +107,7 @@ public class OrderItemSearchActivity extends AppCompatActivity {
             Cursor cursor = db.rawQuery(sql,null);
             while (cursor.moveToNext()) {
                 int itemIdInDatabase = cursor.getInt(0);
-                String category = cursor.getString(8) + " " + cursor.getString(7);
+                String category = cursor.getString(8)  + (cursor.getString(7).equals("")?"":"-"+cursor.getString(7));
                 String payWay = cursor.getString(6);
                 String dayMoney = String.format("%.1f",cursor.getDouble(5))+"元";
                 String time = Util.getWeek(new Date(searchYear,searchMonth,hasOrderDays.get(i))) + " " +cursor.getString(4).substring(cursor.getString(4).length()-5,cursor.getString(4).length());
@@ -124,7 +124,7 @@ public class OrderItemSearchActivity extends AppCompatActivity {
         //将这些信息显示出来
         while(cursor.moveToNext()){
             int itemIdInDatabase = cursor.getInt(0);
-            String category = cursor.getString(8) + " " + cursor.getString(7);
+            String category = cursor.getString(8)  + (cursor.getString(7).equals("")?"":"-"+cursor.getString(7));
             String payWay = cursor.getString(6);
             String dayMoney = String.format("%.1f",cursor.getDouble(5))+"元";
             String time = cursor.getString(4).substring(cursor.getString(4).length()-5,cursor.getString(4).length());

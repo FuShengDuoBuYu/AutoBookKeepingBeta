@@ -1,18 +1,18 @@
 package Util;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Color;
+import android.graphics.drawable.Drawable;
 import android.view.Gravity;
-import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.appcompat.app.AlertDialog;
-
+import com.beta.autobookkeeping.R;
 import com.beta.autobookkeeping.SMStools.SMSDataBase;
 
 import java.text.SimpleDateFormat;
@@ -294,26 +294,79 @@ public class Util {
         return weeks[week_index];
     }
 
+    @SuppressLint("UseCompatLoadingForDrawables")
+    public static Drawable getIconByCategory(String category, Context context){
+        String categoryName = null;
+        if(category.contains("-")){
+            categoryName = category.substring(0,category.indexOf("-"));
+        }
+        else{
+            categoryName = category;
+        }
+        switch (categoryName){
+            case("收入"):
+                return context.getDrawable(R.drawable.part_time_job);
+            case("消费"):
+                return context.getDrawable(R.drawable.normal);
+            case("饮食"):
+                return context.getDrawable(R.drawable.food);
+            case("交通"):
+                return context.getDrawable(R.drawable.traffic);
+            case("体育"):
+                return context.getDrawable(R.drawable.sport);
+            case("聚会"):
+                return context.getDrawable(R.drawable.party);
+            case("娱乐"):
+                return context.getDrawable(R.drawable.entertain);
+            case("购物"):
+                return context.getDrawable(R.drawable.shopping);
+            case("通讯"):
+                return context.getDrawable(R.drawable.communication);
+            case("红包"):
+                return context.getDrawable(R.drawable.red_money);
+            case("医疗"):
+                return context.getDrawable(R.drawable.hospital);
+            case("一卡通"):
+                return context.getDrawable(R.drawable.ecard);
+            case("学习"):
+                return context.getDrawable(R.drawable.study);
+            case("其他"):
+                return context.getDrawable(R.drawable.others);
+        }
+        return null;
+    }
     //添加一个数据账单项
+    @SuppressLint("UseCompatLoadingForDrawables")
     public static LinearLayout setDayOrderItem(String category, String payWay, String money, String time, Context context) {
         //最外层的总LinearLayout
         LinearLayout linearLayoutItem = new LinearLayout(context);
         linearLayoutItem.setOrientation(LinearLayout.HORIZONTAL);
         linearLayoutItem.setPadding(0, 20, 0, 20);
-        //再加两个子layout
+        //再加三个子layout
         LinearLayout linearLayoutLeftPart = new LinearLayout(context);
+        LinearLayout linearLayoutImagePart = new LinearLayout(context);
         LinearLayout linearLayoutRightPart = new LinearLayout(context);
         linearLayoutLeftPart.setOrientation(LinearLayout.VERTICAL);
+        linearLayoutImagePart.setOrientation(LinearLayout.VERTICAL);
         linearLayoutRightPart.setOrientation(LinearLayout.VERTICAL);
+        //再设置一个图片
+        ImageView categoryImage = new ImageView(context);
+        Drawable image = getIconByCategory(category, context);
+        categoryImage.setImageDrawable(image);
         //设置子布局格式
         linearLayoutLeftPart.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT, 1.0f));
         linearLayoutRightPart.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT, 1.0f));
+        linearLayoutImagePart.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT,LinearLayout.LayoutParams.WRAP_CONTENT));
         linearLayoutLeftPart.setPadding(60, 7, 0, 7);
         linearLayoutRightPart.setPadding(60, 7, 0, 7);
+        linearLayoutImagePart.setPadding(60, 7, 0, 7);
         linearLayoutLeftPart.setGravity(Gravity.START);
+        linearLayoutImagePart.setHorizontalGravity(1);
+        linearLayoutImagePart.setVerticalGravity(16);
         linearLayoutRightPart.setGravity(Gravity.END);
         //每个字layout里加两个textview
         TextView tvCategory = new TextView(context);
+        tvCategory.setMaxEms(10);
         TextView tvPayWay = new TextView(context);
         TextView tvMoney = new TextView(context);
         TextView tvTime = new TextView(context);
@@ -334,7 +387,9 @@ public class Util {
         linearLayoutLeftPart.addView(tvPayWay);
         linearLayoutRightPart.addView(tvMoney);
         linearLayoutRightPart.addView(tvTime);
+        linearLayoutImagePart.addView(categoryImage);
         //将子布局加到总布局里
+        linearLayoutItem.addView(linearLayoutImagePart);
         linearLayoutItem.addView(linearLayoutLeftPart);
         linearLayoutItem.addView(linearLayoutRightPart);
         return linearLayoutItem;
@@ -357,7 +412,6 @@ public class Util {
         tvDate.setPadding(40, 0, 40, 0);
         tvMoney.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT, 1.0f));
         tvMoney.setGravity(Gravity.RIGHT);
-//        tvMoney.setTextColor(Color.BLACK);
         tvMoney.setPadding(40, 0, 40, 0);
         //将两个textview放进去
         linearLayoutTitle.addView(tvDate);

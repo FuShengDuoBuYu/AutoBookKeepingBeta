@@ -75,7 +75,7 @@ public class SettingsActivity extends AppCompatActivity {
                     //弹出dialog对话框后,确实清除数据
                     AlertDialog.Builder builder = new AlertDialog.Builder(SettingsActivity.this);
                     //设置对话框的内容
-                    builder.setTitle("清空账单记录").setMessage("您的所有账单记录将被清除,是否确认删除?");
+                    builder.setTitle("清空账单记录").setMessage("您的所有本地账单记录将被清除,是否确认删除?");
                     //设置对话框的两个选项
                     builder.setPositiveButton("确定", new DialogInterface.OnClickListener() {
                         @Override
