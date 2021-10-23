@@ -37,6 +37,8 @@ public class Util {
             Color.rgb(95,158,160),
             Color.rgb(138,43,226),
             Color.rgb(233,150,122)};
+    public final static int BLUE = Color.parseColor("#5091F3");
+    public final static int Gray = Color.rgb(235, 235, 235);
     //匹配银行账单信息的正则表达式
     private final static String regExBank = "[农业银行|建设银行|郑州银行|工商银行|招商银行]";
     private final static String regExMoneyType = "[-|出|入|代]";
@@ -399,7 +401,7 @@ public class Util {
     public static LinearLayout setDayOrderTitle(String date, String money, Context context) {
         LinearLayout linearLayoutTitle = new LinearLayout(context);
         linearLayoutTitle.setOrientation(LinearLayout.HORIZONTAL);
-        linearLayoutTitle.setBackgroundColor(Color.rgb(235, 235, 235));
+        linearLayoutTitle.setBackgroundColor(Gray);
         //创建两个textview并赋值
         TextView tvDate, tvMoney;
         tvDate = new TextView(context);

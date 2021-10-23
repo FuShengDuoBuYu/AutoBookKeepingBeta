@@ -4,8 +4,9 @@
     android:layout_height="match_parent"
     android:orientation="vertical">
     <LinearLayout
+        android:background="@drawable/blue_background"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="55dp"
         android:layout_marginTop="10dp"
         android:orientation="horizontal">
         <!-- 月度报告-->
@@ -15,7 +16,7 @@
             android:layout_weight="1"
             android:layout_height="50dp"
             android:text="@string/month_report_page_title"
-            android:textColor="@color/black"
+            android:textColor="@color/white"
             android:textSize="20sp"
             android:gravity="center">
         </TextView>

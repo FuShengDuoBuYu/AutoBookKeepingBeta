@@ -1,19 +1,27 @@
 package com.beta.autobookkeeping;
 
+import static Util.Util.BLUE;
 import static Util.Util.getLocalOrderInfo;
 import static Util.Util.toastMsg;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.widget.ScrollerCompat;
 
+import android.annotation.SuppressLint;
 import android.app.DatePickerDialog;
+import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.graphics.Color;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.Looper;
+import android.os.Message;
+import android.util.AttributeSet;
 import android.util.Log;
 import android.view.ContextThemeWrapper;
 import android.view.View;
@@ -22,6 +30,7 @@ import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.NumberPicker;
+import android.widget.ProgressBar;
 
 import com.beta.autobookkeeping.SMStools.SMSDataBase;
 import com.beta.autobookkeeping.SMStools.SMSReader;
@@ -35,12 +44,49 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.LogRecord;
 
 import Util.Util;
 
 public class SettingsActivity extends AppCompatActivity {
-
+    private static final int pbDownloadFamilyOrderCOMPLETED = 1;
+    private static final int pbDownloadPersonalOrderCOMPLETED = 2;
+    private static final int pbUploadFamilyOrderCOMPLETED = 3;
+    private static final int pbUploadPersonalOrderCOMPLETED = 4;
+    private static final int pbDownloadFamilyOrderNOTCOMPLETED = 5;
+    private static final int pbDownloadPersonalOrderNOTCOMPLETED = 6;
+    private static final int pbUploadFamilyOrderNOTCOMPLETED = 7;
+    private static final int pbUploadPersonalOrderNOTCOMPLETED = 8;
     private LinearLayout llDeleteAllOrders,ll_searchLimitTimeOrders,ll_downloadAllOrders,ll_uploadAllOrders;
+    private ProgressBar pbUploadPersonalOrder,pbDownloadPersonalOrder,pbUploadFamilyOrder,pbDownloadFamilyOrder;
+    //用来上传下载完成后取消显示进度条的handler
+    private Handler handler = new Handler(){
+        @Override
+        public void handleMessage(@NonNull Message msg) {
+            switch (msg.what){
+                case(pbDownloadFamilyOrderNOTCOMPLETED):
+                    break;
+                case(pbDownloadPersonalOrderNOTCOMPLETED):
+                    pbDownloadPersonalOrder.setVisibility(View.VISIBLE);
+                    break;
+                case(pbUploadFamilyOrderNOTCOMPLETED):
+                    break;
+                case(pbUploadPersonalOrderNOTCOMPLETED):
+                    pbUploadPersonalOrder.setVisibility(View.VISIBLE);
+                    break;
+                case(pbDownloadFamilyOrderCOMPLETED):
+                    break;
+                case(pbDownloadPersonalOrderCOMPLETED):
+                    pbDownloadPersonalOrder.setVisibility(View.INVISIBLE);
+                    break;
+                case(pbUploadFamilyOrderCOMPLETED):
+                    break;
+                case(pbUploadPersonalOrderCOMPLETED):
+                    pbUploadPersonalOrder.setVisibility(View.INVISIBLE);
+                    break;
+            }
+        }
+    };
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -58,6 +104,18 @@ public class SettingsActivity extends AppCompatActivity {
         ll_searchLimitTimeOrders = findViewById(R.id.ll_searchLimitTimeOrders);
         ll_downloadAllOrders = findViewById(R.id.ll_downloadAllOrders);
         ll_uploadAllOrders = findViewById(R.id.ll_uploadAllOrders);
+        pbDownloadFamilyOrder = findViewById(R.id.pbDownloadFamilyOrder);
+        pbDownloadPersonalOrder = findViewById(R.id.pbDownloadPersonalOrder);
+        pbUploadFamilyOrder = findViewById(R.id.pbUploadFamilyOrder);
+        pbUploadPersonalOrder = findViewById(R.id.pbUploadPersonalOrder);
+        pbDownloadFamilyOrder.setVisibility(View.INVISIBLE);
+        pbDownloadPersonalOrder.setVisibility(View.INVISIBLE);
+        pbUploadFamilyOrder.setVisibility(View.INVISIBLE);
+        pbUploadPersonalOrder.setVisibility(View.INVISIBLE);
+//        pbDownloadPersonalOrder.setIndeterminateDrawable(BLUE);
+//        pbDownloadFamilyOrder.setBackgroundColor(BLUE);
+//        pbUploadFamilyOrder.setBackgroundColor(BLUE);
+//        pbUploadPersonalOrder.setBackgroundColor(BLUE);
         //设置点击事件
         llDeleteAllOrders.setOnClickListener(onClick);
         ll_searchLimitTimeOrders.setOnClickListener(onClick);
@@ -67,7 +125,7 @@ public class SettingsActivity extends AppCompatActivity {
 
     //自己写的一个实现的OnClick类
     class OnClick implements View.OnClickListener {
-
+        @SuppressLint({"UseCompatLoadingForDrawables", "NonConstantResourceId"})
         @Override
         public void onClick(View view) {
             switch (view.getId()){
@@ -75,7 +133,7 @@ public class SettingsActivity extends AppCompatActivity {
                     //弹出dialog对话框后,确实清除数据
                     AlertDialog.Builder builder = new AlertDialog.Builder(SettingsActivity.this);
                     //设置对话框的内容
-                    builder.setTitle("清空账单记录").setMessage("您的所有本地账单记录将被清除,是否确认删除?");
+                    builder.setTitle("清空账单记录").setMessage("您的所有本地账单记录将被清除,是否确认删除?").setIcon(SettingsActivity.this.getDrawable(R.drawable.warning));
                     //设置对话框的两个选项
                     builder.setPositiveButton("确定", new DialogInterface.OnClickListener() {
                         @Override
@@ -90,7 +148,11 @@ public class SettingsActivity extends AppCompatActivity {
                         @Override
                         public void onClick(DialogInterface dialogInterface, int i) {}
                         //不要忘记最后要show()
-                    }).show();
+                    });
+                    AlertDialog dialog = builder.create();
+                    dialog.show();
+                    dialog.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(Color.BLACK);
+                    dialog.getButton(AlertDialog.BUTTON_NEGATIVE).setTextColor(BLUE);
                     break;
                 case R.id.ll_searchLimitTimeOrders:
                     //获取查询的限制条件
@@ -99,13 +161,13 @@ public class SettingsActivity extends AppCompatActivity {
                 case R.id.ll_downloadAllOrders:
                     //输入要操作的账本的信息
                     AlertDialog.Builder warning = new AlertDialog.Builder(SettingsActivity.this);
-                    warning.setTitle("请务必确认已完成上传个人账单到个人云\n 否则会丢失数据").setPositiveButton("确定", new DialogInterface.OnClickListener() {
+                    warning.setTitle("可能丢失数据!").setIcon(SettingsActivity.this.getDrawable(R.drawable.warning)).setMessage("请务必保证已经上传个人账单到个人云").setPositiveButton("确定", new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialogInterface, int i) {
                             final String[] downLoadTableName = {null};
                             final EditText downloadInputServer = new EditText(SettingsActivity.this);
                             AlertDialog.Builder downloadInputBuilder = new AlertDialog.Builder(SettingsActivity.this);
-                            downloadInputBuilder.setTitle("请输入您账单本的名称").setIcon(android.R.drawable.ic_dialog_info).setView(downloadInputServer)
+                            downloadInputBuilder.setTitle("请输入您账单本的名称").setMessage("注:账单本名称需由小写字母开头,且由小写字母和数字构成\n如:test123order").setIcon(SettingsActivity.this.getDrawable(R.drawable.download)).setView(downloadInputServer)
                                     .setNegativeButton("取消", null);
                             downloadInputBuilder.setPositiveButton("确定", new DialogInterface.OnClickListener() {
                                 public void onClick(DialogInterface dialog, int which) {
@@ -114,9 +176,16 @@ public class SettingsActivity extends AppCompatActivity {
                                     downloadAllOrdersFromCloud(downLoadTableName[0]);
                                 }
                             });
-                            downloadInputBuilder.show();
+                            AlertDialog dialog = downloadInputBuilder.create();
+                            dialog.show();
+                            dialog.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(BLUE);
+                            dialog.getButton(AlertDialog.BUTTON_NEGATIVE).setTextColor(Color.BLACK);
                         }
-                    }).setNegativeButton("取消",null).show();
+                    }).setNegativeButton("取消",null);
+                    AlertDialog downloadDialog = warning.create();
+                    downloadDialog.show();
+                    downloadDialog.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(BLUE);
+                    downloadDialog.getButton(AlertDialog.BUTTON_NEGATIVE).setTextColor(Color.BLACK);
 
                     break;
                 case R.id.ll_uploadAllOrders:
@@ -124,8 +193,8 @@ public class SettingsActivity extends AppCompatActivity {
                     final String[] uploadTableName = {null};
                     final EditText uploadInputServer = new EditText(SettingsActivity.this);
                     AlertDialog.Builder uploadInputBuilder = new AlertDialog.Builder(SettingsActivity.this);
-                    uploadInputBuilder.setTitle("请输入您账单本的名称").setIcon(android.R.drawable.ic_dialog_info).setView(uploadInputServer)
-                            .setNegativeButton("取消", null);
+                    uploadInputBuilder.setTitle("请输入您账单本的名称").setMessage("注:账单本名称需由小写字母开头,且由小写字母和数字构成\n如:test123order").setIcon(SettingsActivity.this.getDrawable(R.drawable.upload))
+                            .setView(uploadInputServer).setNegativeButton("取消", null);
                     uploadInputBuilder.setPositiveButton("确定", new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int which) {
                             uploadTableName[0] =  uploadInputServer.getText().toString();
@@ -133,7 +202,10 @@ public class SettingsActivity extends AppCompatActivity {
                             uploadAllOrdersToCloud(uploadTableName[0]);
                         }
                     });
-                    uploadInputBuilder.show();
+                    AlertDialog uploadDialog = uploadInputBuilder.create();
+                    uploadDialog.show();
+                    uploadDialog.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(BLUE);
+                    uploadDialog.getButton(AlertDialog.BUTTON_NEGATIVE).setTextColor(Color.BLACK);
                     break;
             }
         }
@@ -144,7 +216,7 @@ public class SettingsActivity extends AppCompatActivity {
         Bundle bundle = new Bundle();
         //设置一个弹窗让用户选择是按日还是按月查找
         AlertDialog.Builder builder = new AlertDialog.Builder(SettingsActivity.this);
-        builder.setTitle("请选择查询方式").setCancelable(true).setPositiveButton("按月查找", new DialogInterface.OnClickListener() {
+        builder.setTitle("请选择查询方式").setCancelable(true).setIcon(SettingsActivity.this.getDrawable(R.drawable.search)).setPositiveButton("按月查找", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
                 //按月查找只显示月份的选择
@@ -204,7 +276,11 @@ public class SettingsActivity extends AppCompatActivity {
                 }, Util.getCurrentYear(), Util.getCurrentMonth()-1, Util.getCurrentDay()){};
                 datePicker.show();
             }
-        }).show();
+        });
+        AlertDialog dialog = builder.create();
+        dialog.show();
+        dialog.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(BLUE);
+        dialog.getButton(AlertDialog.BUTTON_NEGATIVE).setTextColor(BLUE);
     }
 
     //从云下载数据
@@ -250,6 +326,10 @@ public class SettingsActivity extends AppCompatActivity {
                         }
                         //如果有这个表,就进行表的下载
                         if(tableNames.contains(tableName)){
+                            //设置进度条显示
+                            Message msgNotComplete = new Message();
+                            msgNotComplete.what = pbDownloadPersonalOrderNOTCOMPLETED;
+                            handler.sendMessage(msgNotComplete);
                             //获取本地的总数据
                             Cursor localData = getLocalOrderInfo(SettingsActivity.this);
                             //获取数据库里的数据
@@ -268,6 +348,10 @@ public class SettingsActivity extends AppCompatActivity {
                                     Log.d("sql", sql);
                                     db.execSQL(sql);
                             }
+                            //设置进度条不显示
+                            Message msgComplete = new Message();
+                            msgComplete.what = pbDownloadPersonalOrderCOMPLETED;
+                            handler.sendMessage(msgComplete);
                             Looper.prepare();
                             toastMsg(SettingsActivity.this,"下载成功");
                             Looper.loop();
@@ -348,7 +432,10 @@ public class SettingsActivity extends AppCompatActivity {
                         //如果有这个表,就进行上传
                         java.sql.Statement statement = connection[0].createStatement();
                         if(tableNames.contains(tableName)){
-
+                            //显示进度条
+                            Message msgNotComplete = new Message();
+                            msgNotComplete.what = pbUploadPersonalOrderNOTCOMPLETED;
+                            handler.sendMessage(msgNotComplete);
                             //获取本地的总数据
                             Cursor localData = getLocalOrderInfo(SettingsActivity.this);
                             //删除云端的数据
@@ -361,6 +448,10 @@ public class SettingsActivity extends AppCompatActivity {
                                         + "'" + localData.getString(4) + "'" + "," + localData.getDouble(5) + "," + "'" + localData.getString(6) + "'" + "," + "'" + localData.getString(7) + "'" + "," + "'" + localData.getString(8) + "'" + ");";
                                 statement.execute(sql);
                             }
+                            //不显示进度条
+                            Message msgComplete = new Message();
+                            msgComplete.what = pbUploadPersonalOrderCOMPLETED;
+                            handler.sendMessage(msgComplete);
                             Looper.prepare();
                             toastMsg(SettingsActivity.this,"推送成功");
                             Looper.loop();

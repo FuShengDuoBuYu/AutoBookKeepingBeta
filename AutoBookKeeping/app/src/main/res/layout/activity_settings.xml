@@ -14,12 +14,13 @@
         android:orientation="horizontal">
         <!-- 我的收支-->
         <TextView
+            android:background="@drawable/blue_background"
             android:id="@+id/tv_title"
             android:layout_width="0dp"
             android:layout_weight="1"
-            android:layout_height="50dp"
-            android:text="@string/main_page_title"
-            android:textColor="@color/black"
+            android:layout_height="55dp"
+            android:text="设置"
+            android:textColor="@color/white"
             android:textSize="20sp"
             android:gravity="center">
         </TextView>
@@ -38,6 +39,19 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical">
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:background="@color/gray">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="账单管理"
+                android:textColor="@color/black"
+                android:paddingStart="10dp">
+            </TextView>
+        </LinearLayout>
         <!--清空账单记录-->
         <LinearLayout
             android:layout_width="match_parent"
@@ -45,6 +59,13 @@
             android:orientation="horizontal"
             android:padding="20dp"
             android:id="@+id/llDeleteAllOrders">
+            <ImageView
+                android:layout_width="32dp"
+                android:layout_height="wrap_content"
+                android:background="@drawable/delete"
+                android:gravity="end"
+                android:layout_marginEnd="10dp">
+            </ImageView>
             <TextView
                 android:layout_width="0dp"
                 android:layout_weight="1"
@@ -70,6 +91,14 @@
             android:orientation="horizontal"
             android:padding="20dp"
             android:id="@+id/ll_searchLimitTimeOrders">
+
+            <ImageView
+                android:layout_width="32dp"
+                android:layout_height="wrap_content"
+                android:background="@drawable/search"
+                android:gravity="end"
+                android:layout_marginEnd="10dp">
+            </ImageView>
             <TextView
                 android:layout_width="0dp"
                 android:layout_weight="1"
@@ -88,6 +117,19 @@
                 android:layout_marginEnd="10dp">
             </ImageView>
         </LinearLayout>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:background="@color/gray">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="个人账单上传/下载"
+                android:textColor="@color/black"
+                android:paddingStart="10dp">
+            </TextView>
+        </LinearLayout>
         <!--上传账单信息-->
         <LinearLayout
             android:layout_width="match_parent"
@@ -95,16 +137,29 @@
             android:orientation="horizontal"
             android:padding="20dp"
             android:id="@+id/ll_uploadAllOrders">
+            <ImageView
+                android:layout_width="32dp"
+                android:layout_height="wrap_content"
+                android:background="@drawable/upload"
+                android:gravity="end"
+                android:layout_marginEnd="10dp">
+            </ImageView>
             <TextView
                 android:layout_width="0dp"
                 android:layout_weight="1"
                 android:layout_height="wrap_content"
-                android:text="上传个人账单信息到个人云"
+                android:text="上传个人账单到个人云"
                 android:layout_marginStart="10dp"
                 android:gravity="start"
                 android:textSize="20sp"
                 android:textColor="@color/black">
             </TextView>
+            <ProgressBar
+                android:layout_width="wrap_content"
+                android:layout_height="30dp"
+                android:id="@+id/pbUploadPersonalOrder"
+                android:indeterminateTint="@color/blue">
+            </ProgressBar>
             <ImageView
                 android:layout_width="30dp"
                 android:layout_height="match_parent"
@@ -120,16 +175,29 @@
             android:orientation="horizontal"
             android:padding="20dp"
             android:id="@+id/ll_downloadAllOrders">
+            <ImageView
+                android:layout_width="30dp"
+                android:layout_height="wrap_content"
+                android:background="@drawable/download"
+                android:gravity="end"
+                android:layout_marginEnd="10dp">
+            </ImageView>
             <TextView
                 android:layout_width="0dp"
                 android:layout_weight="1"
                 android:layout_height="wrap_content"
-                android:text="从个人云下载个人账单信息"
+                android:text="从个人云下载账单信息"
                 android:layout_marginStart="10dp"
                 android:gravity="start"
                 android:textSize="20sp"
                 android:textColor="@color/black">
             </TextView>
+            <ProgressBar
+                android:layout_width="wrap_content"
+                android:layout_height="30dp"
+                android:id="@+id/pbDownloadPersonalOrder"
+                android:indeterminateTint="@color/blue">
+            </ProgressBar>
             <ImageView
                 android:layout_width="30dp"
                 android:layout_height="match_parent"
@@ -140,4 +208,93 @@
         </LinearLayout>
     </LinearLayout>
 
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:background="@color/gray">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="家庭账单上传/下载"
+            android:textColor="@color/black"
+            android:paddingStart="10dp">
+        </TextView>
+    </LinearLayout>
+    <!--家庭账单的下载和上传-->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="20dp"
+        android:id="@+id/ll_uploadFamilyOrder">
+        <ImageView
+            android:layout_width="32dp"
+            android:layout_height="wrap_content"
+            android:background="@drawable/upload"
+            android:gravity="end"
+            android:layout_marginEnd="10dp">
+        </ImageView>
+        <TextView
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:text="上传个人账单到家庭云"
+            android:layout_marginStart="10dp"
+            android:gravity="start"
+            android:textSize="20sp"
+            android:textColor="@color/black">
+        </TextView>
+        <ProgressBar
+            android:layout_width="wrap_content"
+            android:layout_height="30dp"
+            android:id="@+id/pbUploadFamilyOrder"
+            android:indeterminateTint="@color/blue">
+        </ProgressBar>
+        <ImageView
+            android:layout_width="30dp"
+            android:layout_height="match_parent"
+            android:background="@drawable/choose_arrow"
+            android:gravity="end"
+            android:layout_marginEnd="10dp">
+        </ImageView>
+    </LinearLayout>
+    <!--同步账单信息-->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="20dp"
+        android:id="@+id/ll_downloadFamilyOrder">
+        <ImageView
+            android:layout_width="30dp"
+            android:layout_height="wrap_content"
+            android:background="@drawable/download"
+            android:gravity="end"
+            android:layout_marginEnd="10dp">
+        </ImageView>
+        <TextView
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:text="从家庭云下载家庭账单"
+            android:layout_marginStart="10dp"
+            android:gravity="start"
+            android:textSize="20sp"
+            android:textColor="@color/black">
+        </TextView>
+        <ProgressBar
+            android:layout_width="wrap_content"
+            android:layout_height="30dp"
+            android:id="@+id/pbDownloadFamilyOrder"
+            android:indeterminateTint="@color/blue">
+        </ProgressBar>
+        <ImageView
+            android:layout_width="30dp"
+            android:layout_height="match_parent"
+            android:background="@drawable/choose_arrow"
+            android:gravity="end"
+            android:layout_marginEnd="10dp">
+        </ImageView>
+    </LinearLayout>
 </LinearLayout>

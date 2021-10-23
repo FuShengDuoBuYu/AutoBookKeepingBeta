@@ -1,5 +1,7 @@
 package com.beta.autobookkeeping;
 
+import static Util.Util.BLUE;
+import static Util.Util.Gray;
 import static Util.Util.getCurrentMonth;
 import static Util.Util.getCurrentYear;
 import static Util.Util.getDayMoney;
@@ -13,6 +15,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -142,9 +145,10 @@ public class MainActivity extends AppCompatActivity {
     }
 
     //长按进行是否删除订单的选择
-    public void confirmDeleteOrderInfo(Cursor cursor,int itemId){
+    @SuppressLint("UseCompatLoadingForDrawables")
+    public void confirmDeleteOrderInfo(Cursor cursor, int itemId){
         AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
-        builder.setTitle("是否删除该记录?");
+        builder.setTitle("是否删除该记录?").setIcon(MainActivity.this.getDrawable(R.drawable.warning));
         builder.setPositiveButton("确定", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
@@ -159,7 +163,10 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {}
         });
-        builder.show();
+        AlertDialog dialog = builder.create();
+        dialog.show();
+        dialog.getButton(DialogInterface.BUTTON_POSITIVE).setTextColor(Color.BLACK);
+        dialog.getButton(DialogInterface.BUTTON_NEGATIVE).setTextColor(BLUE);
     }
 
     public void showDayAndMonthMoney(){
