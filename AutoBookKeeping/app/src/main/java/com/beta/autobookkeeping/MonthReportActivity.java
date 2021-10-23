@@ -276,7 +276,6 @@ public class MonthReportActivity extends AppCompatActivity {
             //否则将收支总和写入记录的list
             else{
                 moneyEntry.add(new BarEntry(index++,(float)monthCost));
-
                 monthLabels.add(String.valueOf(recordYear2)+"/"+String.valueOf(recordMonth2)+"");
             }
             //更新要查询的月份

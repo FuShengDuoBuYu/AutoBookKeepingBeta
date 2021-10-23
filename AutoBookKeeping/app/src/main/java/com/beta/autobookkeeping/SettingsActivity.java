@@ -112,10 +112,6 @@ public class SettingsActivity extends AppCompatActivity {
         pbDownloadPersonalOrder.setVisibility(View.INVISIBLE);
         pbUploadFamilyOrder.setVisibility(View.INVISIBLE);
         pbUploadPersonalOrder.setVisibility(View.INVISIBLE);
-//        pbDownloadPersonalOrder.setIndeterminateDrawable(BLUE);
-//        pbDownloadFamilyOrder.setBackgroundColor(BLUE);
-//        pbUploadFamilyOrder.setBackgroundColor(BLUE);
-//        pbUploadPersonalOrder.setBackgroundColor(BLUE);
         //设置点击事件
         llDeleteAllOrders.setOnClickListener(onClick);
         ll_searchLimitTimeOrders.setOnClickListener(onClick);

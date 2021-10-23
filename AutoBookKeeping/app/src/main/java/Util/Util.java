@@ -6,6 +6,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
+import android.util.Log;
 import android.view.Gravity;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -15,6 +16,7 @@ import android.widget.Toast;
 import com.beta.autobookkeeping.R;
 import com.beta.autobookkeeping.SMStools.SMSDataBase;
 
+import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -230,6 +232,33 @@ public class Util {
             }
         }
         cursor.close();
+        //将两个list按照金额大小排序,手动写一个冒泡排序
+        for(int i = 0;i < costMoney.size();i++){
+            for(int j = i+1;j < costMoney.size();j++){
+                if(costMoney.get(i)<=costMoney.get(j)){
+                    float tempMoney = costMoney.get(i);
+                    costMoney.set(i,costMoney.get(j));
+                    costMoney.set(j,tempMoney);
+                    String tempLabel = costlabels.get(i);
+                    costlabels.set(i,costlabels.get(j));
+                    costlabels.set(j,tempLabel);
+                }
+            }
+        }
+        Collections.reverse(costlabels);
+        Collections.reverse(costMoney);
+        //去掉小于2%项目的显示
+        for(int i = 0;i < costMoney.size();i++){
+            if((costMoney.get(i)/(float)getMonthCost(year,month,context))-0.02f<0){
+                costMoney.remove(i);
+                costlabels.remove(i);
+            }
+        }
+        //将金额只保留两位小数
+        for(int i = 0;i < costMoney.size();i++){
+            BigDecimal b = new BigDecimal(costMoney.get(i));
+            costMoney.set(i,b.setScale(1, BigDecimal.ROUND_HALF_UP).floatValue());
+        }
         return result;
     }
 
@@ -248,7 +277,7 @@ public class Util {
         return appointMonthCost;
     }
 
-    //获取查询月所有支出总和,返回值为负
+    //获取查询日所有支出总和,返回值为负
     public static double getDayCost(int year, int month, int day, Context context) {
         double appointDayCost = 0.0;
         SMSDataBase smsDb = new SMSDataBase(context, "orderInfo", null, 1);
@@ -361,7 +390,7 @@ public class Util {
         linearLayoutImagePart.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT,LinearLayout.LayoutParams.WRAP_CONTENT));
         linearLayoutLeftPart.setPadding(60, 7, 0, 7);
         linearLayoutRightPart.setPadding(60, 7, 0, 7);
-        linearLayoutImagePart.setPadding(60, 7, 0, 7);
+        linearLayoutImagePart.setPadding(60, 16, 0, 7);
         linearLayoutLeftPart.setGravity(Gravity.START);
         linearLayoutImagePart.setHorizontalGravity(1);
         linearLayoutImagePart.setVerticalGravity(16);
