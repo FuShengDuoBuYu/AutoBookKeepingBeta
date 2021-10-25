@@ -58,11 +58,12 @@ import java.util.List;
 import java.util.Properties;
 
 import Util.Util;
+import Util.SpUtils;
 
 public class MainActivity extends AppCompatActivity {
 
     private Button btnPlusNewOrder,btnSettings,btnSearchMonthlyReport;
-    private TextView tvAllTodayOrder,tvAllMonthOrder;
+    private TextView tvAllTodayOrder,tvAllMonthOrder,tv_title;
     private LinearLayout lvOrderDetail;
     private ScrollView svOrderDetail;
     Bundle bundle;
@@ -111,10 +112,15 @@ public class MainActivity extends AppCompatActivity {
         //设置数据库
         SMSDataBase smsDb = new SMSDataBase(this,"orderInfo",null,1);
         db = smsDb.getWritableDatabase();
+        //设置初始偏好数据
+        initSpData();
     }
 
     @Override
     protected void onStart() {
+        //显示账单状态
+        tv_title = findViewById(R.id.tv_title);
+        tv_title.setText("我的收支:"+SpUtils.get(this,"OrderStatus",""));
         //检测Application中是否有短信数据
         SMSApplication smsApplication = new SMSApplication();
         smsApplication = (SMSApplication)getApplication();
@@ -313,6 +319,13 @@ public class MainActivity extends AppCompatActivity {
         intent.putExtras(bundle);
 
         startActivity(intent);
+    }
+
+    //初始化Sp中的数据
+    private void initSpData(){
+        if(!SpUtils.contains(this,"OrderStatus")){
+            SpUtils.put(this,"OrderStatus","个人版");
+        }
     }
 
 
