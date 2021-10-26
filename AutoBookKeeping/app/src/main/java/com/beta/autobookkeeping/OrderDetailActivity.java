@@ -28,12 +28,14 @@ import com.beta.autobookkeeping.SMStools.SMSService;
 import java.util.Calendar;
 
 import Util.Util;
+import Util.SpUtils;
 
 public class OrderDetailActivity extends AppCompatActivity {
     //点击item修改的标志
     boolean isChangeOrderInfo = false;
     private Button btnSaveChanges,btnCostType,btnGetCurrentTime,btnPayWay,btnOrderType;
     private EditText etOrderNumber,etOrderRemark;
+    private TextView tv_order_status;
     int costType,payWayType,orderTypeIndex;
     //如果读取短信内容,短信的实质信息
     String[] msgContent;
@@ -61,7 +63,6 @@ public class OrderDetailActivity extends AppCompatActivity {
         btnSaveChanges.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Util.toastMsg(OrderDetailActivity.this,"保存成功");
                 setDataBaseData();
                 finish();
             }
@@ -97,6 +98,8 @@ public class OrderDetailActivity extends AppCompatActivity {
                 showPayWay();
             }
         });
+        //显示当前的账单状态
+        tv_order_status.setText("当前版本:"+SpUtils.get(OrderDetailActivity.this,"OrderStatus","").toString());
     }
 
     //找到各个组件
@@ -109,7 +112,7 @@ public class OrderDetailActivity extends AppCompatActivity {
         btnOrderType = findViewById(R.id.btnOrderType);
         btnCostType = findViewById(R.id.btnCostType);
         btnSaveChanges = findViewById(R.id.btnSaveChanges);
-
+        tv_order_status = findViewById(R.id.tv_order_status);
     }
 
     @Override
@@ -242,6 +245,11 @@ public class OrderDetailActivity extends AppCompatActivity {
 
     //写入数据库数据
     public void setDataBaseData(){
+        //家庭版下不允许修改账单信息
+        if(SpUtils.get(OrderDetailActivity.this,"OrderStatus","").toString().equals("家庭版")){
+            Util.toastMsg(OrderDetailActivity.this,"家庭版下不允许修改账单信息,请前往设置切换个人版");
+            return;
+        }
         SMSDataBase smsDb = new SMSDataBase(OrderDetailActivity.this, "orderInfo", null, 1);
         SQLiteDatabase db = smsDb.getWritableDatabase();
         //执行更新数据库操作
@@ -298,6 +306,7 @@ public class OrderDetailActivity extends AppCompatActivity {
             //写入账单备注
             values.put("orderRemark",etOrderRemark.getText().toString());
             db.insert("orderInfo",null,values);
+            Util.toastMsg(OrderDetailActivity.this,"保存成功");
         }
     }
 

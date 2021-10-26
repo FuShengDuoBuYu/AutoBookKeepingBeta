@@ -736,7 +736,6 @@ public class SettingsActivity extends AppCompatActivity {
         try {
             Class.forName("com.mysql.jdbc.Driver");
         } catch (ClassNotFoundException e) {
-//            toastMsg(SettingsActivity.this,"加载JDBC驱动失败");
             return;
         }
         //连接数据库（开辟一个新线程）
@@ -778,8 +777,26 @@ public class SettingsActivity extends AppCompatActivity {
                             Message msgNotComplete = new Message();
                             msgNotComplete.what = pbDownloadFamilyOrderNOTCOMPLETED;
                             handler.sendMessage(msgNotComplete);
+                            //将本人的数据传到云端
+                            if(SpUtils.contains(SettingsActivity.this,"personalBookName")){
+                                //删除云端的数据
+                                statement.executeUpdate("delete from "+ SpUtils.get(SettingsActivity.this,"personalBookName","").toString() + ";");
+                                //将其传上去
+                                //获取本地的总数据
+                                Cursor localData = getLocalOrderInfo(SettingsActivity.this);
+                                while (localData.moveToNext()) {
+                                    String sql = "insert into " + SpUtils.get(SettingsActivity.this,"personalBookName","").toString()
+                                    + " (id,year,month,day,clock,money,bankName,orderRemark,costType) "
+                                            + "values (" + localData.getInt(0) + "," + localData.getInt(1) + "," + localData.getInt(2) + "," + localData.getInt(3) + ","
+                                            + "'" + localData.getString(4) + "'" + "," + localData.getDouble(5) + "," + "'" + localData.getString(6) + "'" + "," + "'" + localData.getString(7) + "'" + "," + "'" + localData.getString(8) + "'" + ");";
+                                    statement.execute(sql);
+                                }
+                            }else{
+                                toastMsg(SettingsActivity.this,"请先上传个人账单");
+                                return;
+                            }
                             //获取本地的总数据
-                            Cursor localData = getLocalOrderInfo(SettingsActivity.this);
+//                            Cursor localData = getLocalOrderInfo(SettingsActivity.this);
                             //获取数据库里的数据
                             String getCloudData = "select * from "+familyTableName+" order by year, month, day;";
                             ResultSet cloudDataResult  = statement.executeQuery(getCloudData);
@@ -831,7 +848,31 @@ public class SettingsActivity extends AppCompatActivity {
 
     //切换当前账单状态
     private void changeOrderStatus(){
-        toastMsg(SettingsActivity.this,"明天写");
+        //家庭版切换为个人版
+        if(SpUtils.get(SettingsActivity.this,"OrderStatus","").toString().equals("家庭版")){
+            //如果有本地个人版偏好,就直接切换
+            if(SpUtils.contains(SettingsActivity.this,"personalBookName")){
+                downloadAllOrdersFromCloud(SpUtils.get(SettingsActivity.this,"personalBookName","").toString());
+//                toastMsg(SettingsActivity.this,"切换个人版成功");
+            }else{
+                toastMsg(SettingsActivity.this,"请先在个人云上传/下载一次个人账单");
+                return;
+            }
+        }
+        //个人版切换为家庭版
+        else{
+            //如果有本地家庭版偏好,就直接切换
+            if(SpUtils.contains(SettingsActivity.this,"familyTableName")&&SpUtils.contains(SettingsActivity.this,"familyPersonTableName1")&&SpUtils.contains(SettingsActivity.this,"familyPersonTableName2")&&SpUtils.contains(SettingsActivity.this,"personalBookName")){
+//                //先将个人账单信息传到云端
+//                uploadAllOrdersToCloud(SpUtils.get(SettingsActivity.this,"personalBookName","").toString());
+                //将家庭云下载到本地
+                downloadFamilyOrdersFromCloud(SpUtils.get(SettingsActivity.this,"familyTableName","").toString());
+//                toastMsg(SettingsActivity.this,"切换家庭版成功");
+            }else{
+                toastMsg(SettingsActivity.this,"请先在家庭与个人云上传/下载一次个人账单");
+                return;
+            }
+        }
     }
 }
 

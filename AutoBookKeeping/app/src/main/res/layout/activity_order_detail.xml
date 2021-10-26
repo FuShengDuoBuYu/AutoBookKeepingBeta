@@ -173,4 +173,20 @@
         android:background="@drawable/corner_btn"
         >
     </Button>
+    <!--当前账单状态-->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="5dp"
+        android:orientation="vertical">
+        <TextView
+            android:layout_marginTop="40dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="18sp"
+            android:layout_gravity="center_horizontal"
+            android:text=""
+            android:id="@+id/tv_order_status">
+        </TextView>
+    </LinearLayout>
 </LinearLayout>
