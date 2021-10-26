@@ -795,8 +795,6 @@ public class SettingsActivity extends AppCompatActivity {
                                 toastMsg(SettingsActivity.this,"请先上传个人账单");
                                 return;
                             }
-                            //获取本地的总数据
-//                            Cursor localData = getLocalOrderInfo(SettingsActivity.this);
                             //获取数据库里的数据
                             String getCloudData = "select * from "+familyTableName+" order by year, month, day;";
                             ResultSet cloudDataResult  = statement.executeQuery(getCloudData);
@@ -810,7 +808,6 @@ public class SettingsActivity extends AppCompatActivity {
                                         + "values ("+cloudDataResult.getInt("year") + "," + cloudDataResult.getInt("month") + "," + cloudDataResult.getInt("day") + ","
                                         + "'" + cloudDataResult.getString("clock") + "'" + "," + cloudDataResult.getDouble("money") + "," + "'" + cloudDataResult.getString("bankName") + "'" + "," + "'" +
                                         cloudDataResult.getString("orderRemark") + "'" + "," + "'" + cloudDataResult.getString("costType") + "'" + ");";
-                                Log.d("sql", sql);
                                 db.execSQL(sql);
                             }
                             //设置进度条不显示
@@ -819,7 +816,6 @@ public class SettingsActivity extends AppCompatActivity {
                             handler.sendMessage(msgComplete);
                             Looper.prepare();
                             SpUtils.put(SettingsActivity.this,"OrderStatus","家庭版");
-//                            tv_setting_order_status.setText("当前版本:家庭版");
                             toastMsg(SettingsActivity.this,"下载家庭账单成功");
                             Looper.loop();
                         }
@@ -853,7 +849,6 @@ public class SettingsActivity extends AppCompatActivity {
             //如果有本地个人版偏好,就直接切换
             if(SpUtils.contains(SettingsActivity.this,"personalBookName")){
                 downloadAllOrdersFromCloud(SpUtils.get(SettingsActivity.this,"personalBookName","").toString());
-//                toastMsg(SettingsActivity.this,"切换个人版成功");
             }else{
                 toastMsg(SettingsActivity.this,"请先在个人云上传/下载一次个人账单");
                 return;
@@ -863,11 +858,8 @@ public class SettingsActivity extends AppCompatActivity {
         else{
             //如果有本地家庭版偏好,就直接切换
             if(SpUtils.contains(SettingsActivity.this,"familyTableName")&&SpUtils.contains(SettingsActivity.this,"familyPersonTableName1")&&SpUtils.contains(SettingsActivity.this,"familyPersonTableName2")&&SpUtils.contains(SettingsActivity.this,"personalBookName")){
-//                //先将个人账单信息传到云端
-//                uploadAllOrdersToCloud(SpUtils.get(SettingsActivity.this,"personalBookName","").toString());
                 //将家庭云下载到本地
                 downloadFamilyOrdersFromCloud(SpUtils.get(SettingsActivity.this,"familyTableName","").toString());
-//                toastMsg(SettingsActivity.this,"切换家庭版成功");
             }else{
                 toastMsg(SettingsActivity.this,"请先在家庭与个人云上传/下载一次个人账单");
                 return;
