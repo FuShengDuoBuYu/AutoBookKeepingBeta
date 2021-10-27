@@ -42,8 +42,8 @@ public class Util {
     public final static int BLUE = Color.parseColor("#5091F3");
     public final static int Gray = Color.rgb(235, 235, 235);
     //匹配银行账单信息的正则表达式
-    private final static String regExBank = "[农业银行|建设银行|郑州银行|工商银行|招商银行]";
-    private final static String regExMoneyType = "[-|出|入|代]";
+    private final static String regExBank = "[农业银行|建设银行|郑州银行|工商银行|招商银行|中国银行]";
+    private final static String regExMoneyType = "[-|出|入|代|取]";
     private final static String regExMoney = "\\d*\\.\\d*";
 
     //弹出Toast的方法
@@ -114,7 +114,7 @@ public class Util {
 
         }
         String result = sb.toString();
-        if (result.equals("出") || result.equals("-")) {
+        if (result.equals("出") || result.equals("-")|| result.equals("取")) {
             return "支出";
         } else if (result.equals("入") || result.equals("代")) {
             return "收入";

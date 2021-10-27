@@ -4,7 +4,14 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     >
+    <ScrollView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
 
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
     <!-- 第一行,包含我的支出图标-->
     <LinearLayout
         android:layout_width="match_parent"
@@ -78,7 +85,7 @@
             </TextView>
             <ImageView
                 android:layout_width="30dp"
-                android:layout_height="match_parent"
+                android:layout_height="30dp"
                 android:background="@drawable/choose_arrow"
                 android:gravity="end"
                 android:layout_marginEnd="10dp">
@@ -111,7 +118,7 @@
             </TextView>
             <ImageView
                 android:layout_width="30dp"
-                android:layout_height="match_parent"
+                android:layout_height="30dp"
                 android:background="@drawable/choose_arrow"
                 android:gravity="end"
                 android:layout_marginEnd="10dp">
@@ -162,7 +169,7 @@
             </ProgressBar>
             <ImageView
                 android:layout_width="30dp"
-                android:layout_height="match_parent"
+                android:layout_height="30dp"
                 android:background="@drawable/choose_arrow"
                 android:gravity="end"
                 android:layout_marginEnd="10dp">
@@ -200,7 +207,7 @@
             </ProgressBar>
             <ImageView
                 android:layout_width="30dp"
-                android:layout_height="match_parent"
+                android:layout_height="30dp"
                 android:background="@drawable/choose_arrow"
                 android:gravity="end"
                 android:layout_marginEnd="10dp">
@@ -253,7 +260,7 @@
         </ProgressBar>
         <ImageView
             android:layout_width="30dp"
-            android:layout_height="match_parent"
+            android:layout_height="30dp"
             android:background="@drawable/choose_arrow"
             android:gravity="end"
             android:layout_marginEnd="10dp">
@@ -291,7 +298,7 @@
         </ProgressBar>
         <ImageView
             android:layout_width="30dp"
-            android:layout_height="match_parent"
+            android:layout_height="30dp"
             android:background="@drawable/choose_arrow"
             android:gravity="end"
             android:layout_marginEnd="10dp">
@@ -339,10 +346,12 @@
             android:id="@+id/pbChangeOrderStatus"
             android:layout_width="wrap_content"
             android:layout_height="25dp"
-            android:indeterminateTint="@color/blue"></ProgressBar>
+            android:indeterminateTint="@color/blue">
+
+        </ProgressBar>
         <ImageView
             android:layout_width="30dp"
-            android:layout_height="match_parent"
+            android:layout_height="30dp"
             android:background="@drawable/choose_arrow"
             android:gravity="end"
             android:layout_marginEnd="10dp">
@@ -365,4 +374,7 @@
             android:id="@+id/tv_setting_order_status">
         </TextView>
     </LinearLayout>
+</LinearLayout>
+
+    </ScrollView>
 </LinearLayout>
