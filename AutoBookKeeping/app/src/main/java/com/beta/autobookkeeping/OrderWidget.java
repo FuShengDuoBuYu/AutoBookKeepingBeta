@@ -3,14 +3,12 @@ package com.beta.autobookkeeping;
 import android.app.PendingIntent;
 import android.appwidget.AppWidgetManager;
 import android.appwidget.AppWidgetProvider;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
+import Util.*;
 import android.widget.RemoteViews;
 
-import Util.Util;
 
 public class OrderWidget extends AppWidgetProvider {
     /**
@@ -41,7 +39,15 @@ public class OrderWidget extends AppWidgetProvider {
         //设置小组件被点击时的事件
         Intent intent = new Intent(context, OrderWidget.class);
         intent.setAction(ONCLICK);
-        PendingIntent pendingIntent = PendingIntent.getBroadcast(context, 0, intent, 0);
+        PendingIntent pendingIntent = null;
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
+            pendingIntent = PendingIntent.getActivity
+                    (context, 0, intent, PendingIntent.FLAG_IMMUTABLE);
+        }
+        else {
+            pendingIntent = PendingIntent.getActivity
+                    (context, 0, intent, PendingIntent.FLAG_ONE_SHOT);
+        }
         remoteViews.setOnClickPendingIntent(R.id.wll, pendingIntent);
 
         appWidgetManager.updateAppWidget(appWidgetIds,remoteViews);
