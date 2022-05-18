@@ -37,7 +37,7 @@ public class OrderWidget extends AppWidgetProvider {
         remoteViews.setTextViewText(R.id.wtvAllMonthOrder, String .format("%.1f",Util.getMonthMoney(context)));
 
         //设置小组件被点击时的事件
-        Intent intent = new Intent(context, OrderWidget.class);
+        Intent intent = new Intent(context, MainActivity.class);
         intent.setAction(ONCLICK);
         PendingIntent pendingIntent = null;
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
