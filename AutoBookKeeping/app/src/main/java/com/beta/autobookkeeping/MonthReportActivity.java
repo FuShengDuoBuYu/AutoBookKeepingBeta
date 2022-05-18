@@ -327,7 +327,19 @@ public class MonthReportActivity extends AppCompatActivity {
     //动态显示月度消费排行榜
     public void showMonthlyCostRanking(){
         for(int i = 0;i < costLabels.size();i++){
-            costRankingProcessBar.addView(setCostProcessBar(costLabels.get(i),costMoney.get(i),Util.getMonthCost(recordYear,recordMonth,MonthReportActivity.this),i));
+            //要加入的进度条
+            LinearLayout costProcessBar = setCostProcessBar(costLabels.get(i),costMoney.get(i),Util.getMonthCost(recordYear,recordMonth,MonthReportActivity.this),i);
+            //点击进度条进入具体支出项目查询
+            //由于内部类,故使用final的i
+            int finalI = i;
+            costProcessBar.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    showCostItems(costLabels.get(finalI),recordYear,recordMonth);
+                }
+            });
+            //加入显示
+            costRankingProcessBar.addView(costProcessBar);
         }
     }
 
@@ -385,5 +397,19 @@ public class MonthReportActivity extends AppCompatActivity {
         rankingItem.addView(itemInfo);
         rankingItem.addView(progressBar);
         return rankingItem;
+    }
+
+    //点击进度条进入页面
+    public void showCostItems(String itemName,int recordYear,int recordMonth){
+        //放入数据
+        Bundle bundle = new Bundle();
+        bundle.putInt("year",recordYear);
+        bundle.putInt("month",recordMonth);
+        bundle.putString("itemName",itemName);
+        //此处架构不好,但是懒得优化了,这个项是不必要的
+        bundle.putString("noMeaning","noMeaning");
+        Intent intent = new Intent(MonthReportActivity.this,OrderItemSearchActivity.class);
+        intent.putExtras(bundle);
+        startActivity(intent);
     }
 }

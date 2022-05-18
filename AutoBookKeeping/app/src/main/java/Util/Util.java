@@ -7,6 +7,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.util.Log;
+import com.beta.autobookkeeping.SMStools.*;
 import android.view.Gravity;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -14,7 +15,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.beta.autobookkeeping.R;
-import com.beta.autobookkeeping.SMStools.SMSDataBase;
+
 
 import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
@@ -275,6 +276,24 @@ public class Util {
         }
         cursor.close();
         return appointMonthCost;
+    }
+
+    //获取查询某个月某一项支出总和,返回值为负
+    public static double getMonthSomeItemCost(int year, int month,String itemName, Context context) {
+        double appointMonthSomeItemCost = 0.0;
+        SMSDataBase smsDb = new SMSDataBase(context, "orderInfo", null, 1);
+        SQLiteDatabase db = smsDb.getWritableDatabase();
+        Cursor cursor = db.query("orderInfo", null, null, null, null, null, "id");
+        while (cursor.moveToNext()) {
+            Log.d("1",String.valueOf(month));
+            if (cursor.getInt(1) == year && cursor.getInt(2) == month && cursor.getString(8).equals(itemName) ) {
+                Log.d("2",String.valueOf(cursor.getDouble(5)));
+                appointMonthSomeItemCost += cursor.getDouble(5);
+            }
+        }
+        cursor.close();
+        Log.d("tag",String.valueOf(appointMonthSomeItemCost));
+        return appointMonthSomeItemCost;
     }
 
     //获取查询日所有支出总和,返回值为负
