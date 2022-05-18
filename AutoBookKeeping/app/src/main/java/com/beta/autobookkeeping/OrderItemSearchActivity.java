@@ -23,12 +23,13 @@ import Util.Util;
 
 public class OrderItemSearchActivity extends AppCompatActivity {
     SQLiteDatabase db;
-    //如果限制条件为3个,日查找,2个,就是月查找
+    //如果限制条件为3个,日查找,2个,就是月查找,如果是4个,就是月度报告中点击查找
     private int limitSize;
     private TextView tv_searchLimit,tv_allOrderMoney,tv_allCost;
     private LinearLayout ll_allOrderItemLimit;
     private Bundle searchLimitBundle = null;
     private int searchYear=0,searchMonth=0,searchDay = 0;
+    private String itemName = null;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -52,8 +53,14 @@ public class OrderItemSearchActivity extends AppCompatActivity {
         limitSize = searchLimitBundle.size();
         searchYear = searchLimitBundle.getInt("year");
         searchMonth =1+ searchLimitBundle.getInt("month");
+        //日查找
         if(limitSize==3){
             searchDay =searchLimitBundle.getInt("day");
+        }
+        //报告中查找
+        else if(limitSize==4){
+            itemName = searchLimitBundle.getString("itemName");
+            searchMonth-=1;
         }
     }
 
@@ -69,6 +76,10 @@ public class OrderItemSearchActivity extends AppCompatActivity {
             tv_allOrderMoney.setText("总收支\n"+String.format("%.1f",Util.getDayMoney(searchYear,searchMonth,searchDay,OrderItemSearchActivity.this)));
             tv_allCost.setText("总支出\n"+String.format("%.1f",Util.getDayCost(searchYear,searchMonth,searchDay,OrderItemSearchActivity.this)));
         }
+        else if(limitSize==4){
+            tv_allOrderMoney.setText(itemName);
+            tv_allCost.setText("总支出\n"+String.format("%.1f",Util.getMonthSomeItemCost(searchYear,searchMonth,itemName,OrderItemSearchActivity.this)));
+        }
         showFindOrderItems();
     }
 
@@ -77,8 +88,10 @@ public class OrderItemSearchActivity extends AppCompatActivity {
         String tv_searchLimit;
         if(limitSize==2){
             tv_searchLimit = searchYear+"/"+searchMonth;
-        }else{
+        }else if(limitSize == 3){
             tv_searchLimit = searchYear+"/"+searchMonth+"/"+searchDay;
+        }else{
+            tv_searchLimit = searchYear+"/"+searchMonth;
         }
         return tv_searchLimit;
     }
@@ -89,6 +102,8 @@ public class OrderItemSearchActivity extends AppCompatActivity {
             showFindDayOrderItems();
         if(limitSize==2)
             showFindMonthOrderItems();
+        if(limitSize==4)
+            showFindItemOrderItems();
     }
 
     //显示月的账单信息
@@ -130,6 +145,22 @@ public class OrderItemSearchActivity extends AppCompatActivity {
             String time = cursor.getString(4).substring(cursor.getString(4).length()-5,cursor.getString(4).length());
             LinearLayout dayOrderItem = setDayOrderItem(category,payWay,dayMoney,time,OrderItemSearchActivity.this);
             ll_allOrderItemLimit.addView(dayOrderItem);
+        }
+    }
+    //显示某一项的账单信息
+    public void showFindItemOrderItems(){
+        //找到本日所有账单信息
+        String sql = "select * from orderInfo where year="+searchYear+" and month="+searchMonth+" and costType='"+itemName+"'";
+        Cursor cursor = db.rawQuery(sql,null);
+        //将这些信息显示出来
+        while(cursor.moveToNext()){
+            int itemIdInDatabase = cursor.getInt(0);
+            String category = cursor.getString(8)  + (cursor.getString(7).equals("")?"":"-"+cursor.getString(7));
+            String payWay = cursor.getString(6);
+            String dayMoney = String.format("%.1f",cursor.getDouble(5))+"元";
+            String time = searchMonth + "月" + cursor.getString(3) + "日" + cursor.getString(4).substring(cursor.getString(4).length()-5,cursor.getString(4).length());
+            LinearLayout someItemOrderItem = setDayOrderItem(category,payWay,dayMoney,time,OrderItemSearchActivity.this);
+            ll_allOrderItemLimit.addView(someItemOrderItem);
         }
     }
 }
