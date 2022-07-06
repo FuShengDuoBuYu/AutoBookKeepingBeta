@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">自动记账</string>
+    <string name="app_name">雨生活</string>
     <string name="main_page_title">我的收支</string>
     <string name="today_all_cost">今日累计</string>
     <string name="month_all_cost">本月累计</string>
@@ -31,4 +31,6 @@
     <string name="attachment_summary_on">Automatically download attachments for incoming emails
     </string>
     <string name="attachment_summary_off">Only download attachments when manually requested</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>

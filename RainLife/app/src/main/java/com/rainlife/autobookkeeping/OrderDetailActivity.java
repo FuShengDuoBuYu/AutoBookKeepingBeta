@@ -44,7 +44,7 @@ public class OrderDetailActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_order_detail);
+        setContentView(R.layout.autobookkeeping_activity_order_detail);
         findViews();
         //页面进来的时候就查看是否有短信信息或者数据信息在这里,若有,则处理信息自动匹配
         bundle = getIntent().getExtras();

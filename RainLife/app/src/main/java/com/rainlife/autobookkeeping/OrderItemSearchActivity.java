@@ -31,7 +31,7 @@ public class OrderItemSearchActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_order_item_search);
+        setContentView(R.layout.autobookkeeping_activity_order_item_search);
         SMSDataBase smsDb = new SMSDataBase(OrderItemSearchActivity.this, "orderInfo", null, 1);
         db = smsDb.getWritableDatabase();
         findViewsAndInit();

@@ -72,7 +72,7 @@ public class MonthReportActivity extends AppCompatActivity {
         startService(new Intent(MonthReportActivity.this, SMSService.class));
         db = smsDb.getWritableDatabase();
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_month_report);
+        setContentView(R.layout.autobookkeeping_activity_month_report);
         //获取各个组件
         getViews();
         //先更新总收支数据

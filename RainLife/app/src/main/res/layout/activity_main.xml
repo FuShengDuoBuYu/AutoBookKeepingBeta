@@ -1,9 +1,47 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.rainlife.MainActivity">
-
-</androidx.constraintlayout.widget.ConstraintLayout>
+    android:background="@drawable/background"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    tools:context="com.rainlife.MainActivity"
+    android:orientation="vertical">
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginTop="20dp">
+                <com.qmuiteam.qmui.alpha.QMUIAlphaTextView
+                    android:id="@+id/date"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/qmui_config_color_black"
+                    android:textSize="40sp"
+                    android:layout_marginStart="30dp"
+                    android:textStyle="bold">
+                </com.qmuiteam.qmui.alpha.QMUIAlphaTextView>
+                <com.qmuiteam.qmui.widget.QMUIFontFitTextView
+                    android:id="@+id/time_and_week"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="100dp"
+                    android:textColor="@color/qmui_config_color_black">
+                </com.qmuiteam.qmui.widget.QMUIFontFitTextView>
+            </LinearLayout>
+            <fragment
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/AutobookkeepingFragment"
+                android:name="com.rainlife.AutobookkeepingFragment">
+            </fragment>
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>

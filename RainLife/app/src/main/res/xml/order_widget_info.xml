@@ -3,7 +3,7 @@
     android:minHeight="30dp"
     android:minWidth="300dp"
     android:previewImage="@drawable/order_widget_icon"
-    android:initialLayout="@layout/order_widget"
+    android:initialLayout="@layout/autobookkeeping_order_widget"
     android:updatePeriodMillis="600000"
     android:resizeMode="horizontal|vertical"
     android:widgetCategory="home_screen|keyguard"

@@ -56,7 +56,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         //先检查短信等权限是否获取
         ifGetPermission();
-        setContentView(R.layout.activity_main_autobookkeeping);
+        setContentView(R.layout.autobookkeeping_activity_main);
         //开启读取短信线程
         startService(new Intent(MainActivity.this, SMSService.class));
         //找到新增和设置两个按钮

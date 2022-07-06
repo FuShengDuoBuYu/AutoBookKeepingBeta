@@ -32,7 +32,7 @@ public class OrderWidget extends AppWidgetProvider {
     @Override
     public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
         super.onUpdate(context, appWidgetManager, appWidgetIds);
-        RemoteViews remoteViews = new RemoteViews(context.getPackageName(),R.layout.order_widget);
+        RemoteViews remoteViews = new RemoteViews(context.getPackageName(),R.layout.autobookkeeping_order_widget);
         remoteViews.setTextViewText(R.id.wtvAllTodayOrder, String .format("%.1f",Util.getTodayMoney(context)));
         remoteViews.setTextViewText(R.id.wtvAllMonthOrder, String .format("%.1f",Util.getMonthMoney(context)));
 
