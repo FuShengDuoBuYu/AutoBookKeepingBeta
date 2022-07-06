@@ -1,6 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<set android:interpolator="@android:anim/decelerate_interpolator" android:fillBefore="true" android:fillAfter="true" android:fillEnabled="true"
-  xmlns:android="http://schemas.android.com/apk/res/android">
-    <translate android:duration="250" android:fromYDelta="-25.0%" android:toYDelta="0.0" />
-    <alpha android:duration="250" android:fromAlpha="0.5" android:toAlpha="1.0" />
-</set>
