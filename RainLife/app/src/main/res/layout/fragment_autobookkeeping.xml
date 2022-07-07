@@ -4,6 +4,7 @@
     android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     tools:context="com.rainlife.AutobookkeepingFragment"
+    android:id="@+id/auto_book_keeping_panel"
     android:orientation="horizontal">
     <androidx.cardview.widget.CardView
         android:layout_width="match_parent"
@@ -11,72 +12,153 @@
         android:layout_margin="20dp"
         app:cardCornerRadius="20dp"
         >
+
         <LinearLayout
             android:orientation="horizontal"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="@color/qmui_config_color_white">
+            android:background="@color/qmui_config_color_white"
+            >
+            <!--        左半-->
             <com.qmuiteam.qmui.alpha.QMUIAlphaLinearLayout
-                android:layout_width="wrap_content"
-                android:layout_weight="1"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:id="@+id/cost_info">
-                <androidx.cardview.widget.CardView
+                android:id="@+id/cost_info"
+                android:layout_margin="10dp">
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    app:cardCornerRadius="20dp"
-                    android:layout_marginStart="20dp"
-                    android:layout_marginTop="10dp"
-                    android:layout_marginEnd="10dp"
-
-                    >
+                    android:orientation="vertical"
+                    android:layout_marginStart="10dp">
+<!--                    第一行,有名字-->
                     <LinearLayout
-                        android:background="@color/qmui_config_color_gray_1"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:orientation="vertical">
+                        android:orientation="horizontal">
+                        <ImageView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:src="@drawable/ic_auto_book_keeping_small_log">
+                        </ImageView>
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="@string/today_all_cost"
-                            android:textSize="25sp"
-                            android:textColor="@color/qmui_btn_blue_text"
-                            android:layout_marginStart="1dp">
+                            android:text="自动记账"
+                            android:textSize="15sp"
+                            android:layout_marginTop="2dp"
+                            android:layout_marginStart="3dp">
                         </TextView>
-                        <TextView
-                            android:layout_width="wrap_content"
+                        <LinearLayout
+                            android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:text="¥100"
-                            android:textSize="10sp"
-                            android:layout_gravity="right|center_vertical"
-                            android:textColor="@color/black"
-                            android:layout_marginEnd="1dp">
-                        </TextView>
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="@string/month_all_cost"
-                            android:textSize="25sp"
-                            android:textColor="@color/qmui_btn_blue_text"
-                            android:layout_marginStart="1dp">
-                        </TextView>
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="¥100"
-                            android:textSize="10sp"
-                            android:layout_gravity="right|center_vertical"
-                            android:textColor="@color/black"
-                            android:layout_marginEnd="1dp">
-                        </TextView>
+                            android:gravity="end">
+                            <ImageView
+                                android:id="@+id/add_form"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:src="@drawable/ic_plus"
+                                android:layout_marginEnd="20dp">
+                            </ImageView>
+                        </LinearLayout>
                     </LinearLayout>
-                </androidx.cardview.widget.CardView>
-            </com.qmuiteam.qmui.alpha.QMUIAlphaLinearLayout>
-            <com.qmuiteam.qmui.alpha.QMUIAlphaLinearLayout
-                android:layout_weight="1"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:id="@+id/operation">
+<!--                    第二行,日度收支-->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:layout_marginTop="20dp">
+                        <ImageView
+                            android:layout_width="wrap_content"
+                            android:layout_height="60dp"
+                            android:src="@drawable/ic_divider">
+                        </ImageView>
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical"
+                            android:layout_marginStart="10dp">
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/today_all_cost"
+                                android:textColor="@color/qmui_config_color_gray_6">
+                            </TextView>
+                            <TextView
+                                android:id="@+id/day_cost"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:textSize="25sp">
+                            </TextView>
+                        </LinearLayout>
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:gravity="end"
+                            android:layout_gravity="center_vertical">
+                            <ImageView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:src="@drawable/ic_left_single"
+                                android:layout_marginEnd="20dp">
+                            </ImageView>
+                            <ImageView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:src="@drawable/ic_right_single"
+                                android:layout_marginEnd="20dp">
+                            </ImageView>
+                        </LinearLayout>
+                    </LinearLayout>
+<!--                    第三行,月度收支-->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:layout_marginTop="20dp">
+                        <ImageView
+                            android:layout_width="wrap_content"
+                            android:layout_height="60dp"
+                            android:src="@drawable/ic_divider">
+                        </ImageView>
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical"
+                            android:layout_marginStart="10dp">
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="本月累计"
+                                android:textColor="@color/qmui_config_color_gray_6">
+                            </TextView>
+                            <TextView
+                                android:id="@+id/month_cost"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:textSize="25sp">
+                            </TextView>
+                        </LinearLayout>
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:gravity="end"
+                            android:layout_gravity="center_vertical">
+                            <ImageView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:src="@drawable/ic_left_double"
+                                android:layout_marginEnd="20dp">
+                            </ImageView>
+                            <ImageView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:src="@drawable/ic_right_double"
+                                android:layout_marginEnd="20dp">
+                            </ImageView>
+                        </LinearLayout>
+                    </LinearLayout>
+
+                </LinearLayout>
             </com.qmuiteam.qmui.alpha.QMUIAlphaLinearLayout>
         </LinearLayout>
     </androidx.cardview.widget.CardView>

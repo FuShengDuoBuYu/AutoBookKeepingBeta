@@ -1,6 +1,7 @@
 package com.rainlife;
 
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
 
 import androidx.annotation.Nullable;
@@ -9,10 +10,15 @@ import androidx.fragment.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 
-import com.qmuiteam.qmui.alpha.QMUIAlphaImageButton;
 import com.rainlife.autobookkeeping.MainActivity;
+import com.rainlife.autobookkeeping.OrderDetailActivity;
 import com.rainlife.autobookkeeping.R;
+
+import Util.Util;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -20,7 +26,10 @@ import com.rainlife.autobookkeeping.R;
  * create an instance of this fragment.
  */
 public class AutobookkeepingFragment extends Fragment {
-    QMUIAlphaImageButton btn_navigate_to_autobookkeeping_main_page = null;
+    LinearLayout autoBookKeepingPanel = null;
+    ImageView addForm = null;
+    TextView dayCost = null;
+    TextView monthCost = null;
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_PARAM1 = "param1";
@@ -63,6 +72,12 @@ public class AutobookkeepingFragment extends Fragment {
     }
 
     @Override
+    public void onStart() {
+        getComponentsAndSetEvent();
+        super.onStart();
+    }
+
+    @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
@@ -72,13 +87,54 @@ public class AutobookkeepingFragment extends Fragment {
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-//        btn_navigate_to_autobookkeeping_main_page = getActivity().findViewById(R.id.navigate_to_autobookkeeping_main_page);
-//        btn_navigate_to_autobookkeeping_main_page.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View view) {
-//                Intent intent = new Intent(getActivity(), MainActivity.class);
-//                startActivity(intent);
-//            }
-//        });
+        getComponentsAndSetEvent();
+    }
+
+    //获取组件并设置点击事件
+    void getComponentsAndSetEvent(){
+        gerPanelAndSetEvent();
+        getAddFormBtnAndSetEvent();
+        getDayCostAndSetValue();
+        getMonthCostAndSetValue();
+    }
+
+    //获取面板
+    void gerPanelAndSetEvent(){
+        autoBookKeepingPanel = getActivity().findViewById(R.id.auto_book_keeping_panel);
+        autoBookKeepingPanel.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(getActivity(), MainActivity.class);
+                startActivity(intent);
+            }
+        });
+    }
+
+    //获取添加账单按钮
+    void getAddFormBtnAndSetEvent(){
+        addForm = getActivity().findViewById(R.id.add_form);
+        addForm.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(getActivity(), OrderDetailActivity.class);
+                startActivity(intent);
+            }
+        });
+    }
+
+    //获取显示的日累计
+    void getDayCostAndSetValue(){
+        dayCost = getActivity().findViewById(R.id.day_cost);
+        Double dayMoney = Util.getTodayMoney(getContext());
+        dayCost.setTextColor(dayMoney>=0? Color.RED:Color.GREEN);
+        dayCost.setText(String.format("¥%s", dayMoney));
+    }
+
+    //获取显示的月累计
+    void getMonthCostAndSetValue(){
+        monthCost = getActivity().findViewById(R.id.month_cost);
+        Double monthMoney = Util.getMonthMoney(getContext());
+        monthCost.setTextColor(monthMoney>=0? Color.RED:Color.GREEN);
+        monthCost.setText(String.format("¥%s", monthMoney));
     }
 }
