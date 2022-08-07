@@ -1,10 +1,5 @@
 plugins {
     id 'com.android.application'
-<<<<<<< Updated upstream:AutoBookKeeping/app/build.gradle
-=======
-    id 'kotlin-android'
-    id 'kotlin-android-extensions'
->>>>>>> Stashed changes:RainLife/app/build.gradle
 }
 
 android {
