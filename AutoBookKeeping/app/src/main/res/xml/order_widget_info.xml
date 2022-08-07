@@ -1,4 +1,3 @@
-<<<<<<< Updated upstream:AutoBookKeeping/app/src/main/res/xml/order_widget_info.xml
 <?xml version="1.0" encoding="utf-8"?>
 <appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
     android:minHeight="30dp"
@@ -9,18 +8,4 @@
     android:resizeMode="horizontal|vertical"
     android:widgetCategory="home_screen|keyguard"
     >
-
-=======
-<?xml version="1.0" encoding="utf-8"?>
-<appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
-    android:minHeight="30dp"
-    android:minWidth="300dp"
-    android:previewImage="@drawable/order_widget_icon"
-    android:initialLayout="@layout/autobookkeeping_order_widget"
-    android:updatePeriodMillis="600000"
-    android:resizeMode="horizontal|vertical"
-    android:widgetCategory="home_screen|keyguard"
-    >
-
->>>>>>> Stashed changes:RainLife/app/src/main/res/xml/order_widget_info.xml
 </appwidget-provider>

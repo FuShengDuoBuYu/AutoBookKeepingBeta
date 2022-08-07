@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">雨生活</string>
+    <string name="app_name">自动记账</string>
     <string name="main_page_title">我的收支</string>
     <string name="today_all_cost">今日累计</string>
     <string name="month_all_cost">本月累计</string>
