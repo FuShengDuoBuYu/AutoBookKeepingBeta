@@ -1,15 +1,10 @@
-package com.beta.autobookkeeping.SMStools;
+package com.beta.autobookkeeping.smsTools;
 
 import android.app.Service;
 import android.content.Intent;
 import android.os.IBinder;
-import android.util.Log;
 
 import androidx.annotation.Nullable;
-
-import com.beta.autobookkeeping.OrderDetailActivity;
-
-import Util.Util;
 
 public class SMSService extends Service {
     @Nullable

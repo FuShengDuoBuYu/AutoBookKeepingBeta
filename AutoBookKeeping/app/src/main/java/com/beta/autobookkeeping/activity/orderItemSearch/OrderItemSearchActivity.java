@@ -1,9 +1,7 @@
-package com.beta.autobookkeeping;
+package com.beta.autobookkeeping.activity.orderItemSearch;
 
-import static Util.Util.getCurrentMonth;
-import static Util.Util.getCurrentYear;
-import static Util.Util.setDayOrderItem;
-import static Util.Util.setDayOrderTitle;
+import static Util.ProjectUtil.setDayOrderItem;
+import static Util.ProjectUtil.setDayOrderTitle;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -14,12 +12,13 @@ import android.os.Bundle;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import com.beta.autobookkeeping.SMStools.SMSDataBase;
+import com.beta.autobookkeeping.R;
+import com.beta.autobookkeeping.smsTools.SMSDataBase;
 
 import java.util.ArrayList;
 import java.util.Date;
 
-import Util.Util;
+import Util.ProjectUtil;
 
 public class OrderItemSearchActivity extends AppCompatActivity {
     SQLiteDatabase db;
@@ -69,16 +68,16 @@ public class OrderItemSearchActivity extends AppCompatActivity {
         tv_searchLimit.setText(setTvSearchLimit());
         //如果是按照月来查询
         if(limitSize==2){
-            tv_allOrderMoney.setText("总收支\n"+String.format("%.1f",Util.getMonthMoney(searchYear,searchMonth,OrderItemSearchActivity.this)));
-            tv_allCost.setText("总支出\n"+String.format("%.1f",Util.getMonthCost(searchYear,searchMonth,OrderItemSearchActivity.this)));
+            tv_allOrderMoney.setText("总收支\n"+String.format("%.1f", ProjectUtil.getMonthMoney(searchYear,searchMonth,OrderItemSearchActivity.this)));
+            tv_allCost.setText("总支出\n"+String.format("%.1f", ProjectUtil.getMonthCost(searchYear,searchMonth,OrderItemSearchActivity.this)));
         }
         else if(limitSize==3){
-            tv_allOrderMoney.setText("总收支\n"+String.format("%.1f",Util.getDayMoney(searchYear,searchMonth,searchDay,OrderItemSearchActivity.this)));
-            tv_allCost.setText("总支出\n"+String.format("%.1f",Util.getDayCost(searchYear,searchMonth,searchDay,OrderItemSearchActivity.this)));
+            tv_allOrderMoney.setText("总收支\n"+String.format("%.1f", ProjectUtil.getDayMoney(searchYear,searchMonth,searchDay,OrderItemSearchActivity.this)));
+            tv_allCost.setText("总支出\n"+String.format("%.1f", ProjectUtil.getDayCost(searchYear,searchMonth,searchDay,OrderItemSearchActivity.this)));
         }
         else if(limitSize==4){
             tv_allOrderMoney.setText(itemName);
-            tv_allCost.setText("总支出\n"+String.format("%.1f",Util.getMonthSomeItemCost(searchYear,searchMonth,itemName,OrderItemSearchActivity.this)));
+            tv_allCost.setText("总支出\n"+String.format("%.1f", ProjectUtil.getMonthSomeItemCost(searchYear,searchMonth,itemName,OrderItemSearchActivity.this)));
         }
         showFindOrderItems();
     }
@@ -109,12 +108,12 @@ public class OrderItemSearchActivity extends AppCompatActivity {
     //显示月的账单信息
     public void showFindMonthOrderItems(){
         //先获取本月都有哪些天有数据
-        ArrayList<Integer> hasOrderDays = Util.getHasOrderDays(searchMonth,OrderItemSearchActivity.this);
+        ArrayList<Integer> hasOrderDays = ProjectUtil.getHasOrderDays(searchMonth,OrderItemSearchActivity.this);
         //依次查询这些天,并进行view的添加
         for(int i = 0;i < hasOrderDays.size();i++){
             //每天先加一个title
             String date = searchMonth+"月"+String.valueOf(hasOrderDays.get(i))+"日";
-            String money ="本日总计: "+ String.format("%.1f",Util.getDayMoney(searchYear, searchMonth,hasOrderDays.get(i),OrderItemSearchActivity.this))+"元";
+            String money ="本日总计: "+ String.format("%.1f", ProjectUtil.getDayMoney(searchYear, searchMonth,hasOrderDays.get(i),OrderItemSearchActivity.this))+"元";
             ll_allOrderItemLimit.addView(setDayOrderTitle(date,money,OrderItemSearchActivity.this));
             //再加入每天的账单
             String sql = "select * from orderInfo where year = " + searchYear +
@@ -125,7 +124,7 @@ public class OrderItemSearchActivity extends AppCompatActivity {
                 String category = cursor.getString(8)  + (cursor.getString(7).equals("")?"":"-"+cursor.getString(7));
                 String payWay = cursor.getString(6);
                 String dayMoney = String.format("%.1f",cursor.getDouble(5))+"元";
-                String time = Util.getWeek(new Date(searchYear,searchMonth,hasOrderDays.get(i))) + " " +cursor.getString(4).substring(cursor.getString(4).length()-5,cursor.getString(4).length());
+                String time = ProjectUtil.getWeek(new Date(searchYear,searchMonth,hasOrderDays.get(i))) + " " +cursor.getString(4).substring(cursor.getString(4).length()-5,cursor.getString(4).length());
                 LinearLayout dayOrderItem = setDayOrderItem(category,payWay,dayMoney,time,OrderItemSearchActivity.this);
                 ll_allOrderItemLimit.addView(dayOrderItem);
             }

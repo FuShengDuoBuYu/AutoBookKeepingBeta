@@ -1,6 +1,6 @@
-package com.beta.autobookkeeping;
+package com.beta.autobookkeeping.activity.orderDetail;
 
-import static Util.Const.IP;
+import static Util.ConstVariable.IP;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
@@ -14,7 +14,6 @@ import android.content.Intent;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.os.Looper;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.DatePicker;
@@ -22,9 +21,10 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.TimePicker;
 
-import com.beta.autobookkeeping.SMStools.SMSApplication;
-import com.beta.autobookkeeping.SMStools.SMSDataBase;
-import com.beta.autobookkeeping.SMStools.SMSService;
+import com.beta.autobookkeeping.R;
+import com.beta.autobookkeeping.smsTools.SMSApplication;
+import com.beta.autobookkeeping.smsTools.SMSDataBase;
+import com.beta.autobookkeeping.smsTools.SMSService;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -32,7 +32,7 @@ import org.json.JSONObject;
 import java.io.IOException;
 import java.util.Set;
 
-import Util.Util;
+import Util.ProjectUtil;
 import Util.SpUtils;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
@@ -54,7 +54,7 @@ public class OrderDetailActivity extends AppCompatActivity {
     final String[] costTypes = {"消费","饮食","交通","体育","聚会","娱乐","购物","通讯","红包","医疗","一卡通","学习","其他"};
     final String[] payWays = {"银行卡","支付宝","微信","现金"};
     final String[] orderType = {"支出","收入"};
-    private int orderYear = Util.getCurrentYear(),orderMonth = Util.getCurrentMonth(),orderDay = Util.getCurrentDay(),orderHour = Util.getCurrentHour(),orderMin = Util.getCurrentMinute();
+    private int orderYear = ProjectUtil.getCurrentYear(),orderMonth = ProjectUtil.getCurrentMonth(),orderDay = ProjectUtil.getCurrentDay(),orderHour = ProjectUtil.getCurrentHour(),orderMin = ProjectUtil.getCurrentMinute();
     private String orderTime = orderMonth+"月"+orderDay+"日"+" "+orderHour+ ":"+orderMin;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -67,7 +67,7 @@ public class OrderDetailActivity extends AppCompatActivity {
         //开启读取短信线程
         startService(new Intent(OrderDetailActivity.this, SMSService.class));
         //页面一进来就执行获取当前时间的操作,不能放在最前面
-        String currentTime = Util.getCurrentTime();
+        String currentTime = ProjectUtil.getCurrentTime();
         btnGetCurrentTime.setText(currentTime);
         //保存账单信息的按钮
         btnSaveChanges.setOnClickListener(new View.OnClickListener() {
@@ -226,7 +226,7 @@ public class OrderDetailActivity extends AppCompatActivity {
             String msg = smsApplication.getSMSMsg();
             smsApplication.setSMSMsg(null);
             if(msg!=null)
-            msgContent = Util.getBankOrderInfo(msg);
+            msgContent = ProjectUtil.getBankOrderInfo(msg);
         }
     }
 
@@ -256,7 +256,7 @@ public class OrderDetailActivity extends AppCompatActivity {
     public void setDataBaseData(){
         //家庭版下不允许修改账单信息
         if(SpUtils.get(OrderDetailActivity.this,"OrderStatus","").toString().equals("家庭版")){
-            Util.toastMsg(OrderDetailActivity.this,"家庭版下不允许修改账单信息,请前往设置切换个人版");
+            ProjectUtil.toastMsg(OrderDetailActivity.this,"家庭版下不允许修改账单信息,请前往设置切换个人版");
             return;
         }
         SMSDataBase smsDb = new SMSDataBase(OrderDetailActivity.this, "orderInfo", null, 1);
@@ -298,13 +298,13 @@ public class OrderDetailActivity extends AppCompatActivity {
                             }
                             else{
                                 Looper.prepare();
-                                Util.toastMsg(OrderDetailActivity.this,jsonResponse.getString("message"));
+                                ProjectUtil.toastMsg(OrderDetailActivity.this,jsonResponse.getString("message"));
                                 Looper.loop();
                             }
                         }
                         else{
                             Looper.prepare();
-                            Util.toastMsg(OrderDetailActivity.this,"服务器出错");
+                            ProjectUtil.toastMsg(OrderDetailActivity.this,"服务器出错");
                             Looper.loop();
                         }
                         // str为json字符串
@@ -392,13 +392,13 @@ public class OrderDetailActivity extends AppCompatActivity {
                             }
                             else{
                                 Looper.prepare();
-                                Util.toastMsg(OrderDetailActivity.this,jsonResponse.getString("message"));
+                                ProjectUtil.toastMsg(OrderDetailActivity.this,jsonResponse.getString("message"));
                                 Looper.loop();
                             }
                         }
                         else{
                             Looper.prepare();
-                            Util.toastMsg(OrderDetailActivity.this,"服务器出错");
+                            ProjectUtil.toastMsg(OrderDetailActivity.this,"服务器出错");
                             Looper.loop();
                         }
                     } catch (IOException | JSONException e) {
@@ -420,11 +420,11 @@ public class OrderDetailActivity extends AppCompatActivity {
                             "',orderRemark='"+etOrderRemark.getText()+"',costType='"+(btnOrderType.getText().toString().equals("收入")?"收入":btnCostType.getText().toString())+"' where id="+
                             bundle.getInt("id");
                     db.execSQL(sql);
-                    Util.toastMsg(OrderDetailActivity.this,"保存成功");
+                    ProjectUtil.toastMsg(OrderDetailActivity.this,"保存成功");
                 }
                 else{
                     db.insert("orderInfo",null,values);
-                    Util.toastMsg(OrderDetailActivity.this,"保存成功");
+                    ProjectUtil.toastMsg(OrderDetailActivity.this,"保存成功");
                 }
                 finish();
             }
@@ -462,18 +462,18 @@ public class OrderDetailActivity extends AppCompatActivity {
                 orderDay = dayOfMonth;
             }
 
-        }, Util.getCurrentYear(), Util.getCurrentMonth()-1, Util.getCurrentDay()){
+        }, ProjectUtil.getCurrentYear(), ProjectUtil.getCurrentMonth()-1, ProjectUtil.getCurrentDay()){
             //不允许选择今天以后的时间
             @Override
             public void onDateChanged(@NonNull DatePicker view, int year, int month, int dayOfMonth) {
-                if (year > Util.getCurrentYear())
-                    view.updateDate(Util.getCurrentYear(),Util.getCurrentMonth(), Util.getCurrentDay());
+                if (year > ProjectUtil.getCurrentYear())
+                    view.updateDate(ProjectUtil.getCurrentYear(), ProjectUtil.getCurrentMonth(), ProjectUtil.getCurrentDay());
 
-                if (month > Util.getCurrentMonth() && year == Util.getCurrentYear())
-                    view.updateDate(Util.getCurrentYear(), Util.getCurrentMonth(),  Util.getCurrentDay());
+                if (month > ProjectUtil.getCurrentMonth() && year == ProjectUtil.getCurrentYear())
+                    view.updateDate(ProjectUtil.getCurrentYear(), ProjectUtil.getCurrentMonth(),  ProjectUtil.getCurrentDay());
 
-                if (dayOfMonth > Util.getCurrentDay() && year == Util.getCurrentYear() && month == Util.getCurrentMonth())
-                    view.updateDate(Util.getCurrentYear(), Util.getCurrentMonth(),  Util.getCurrentDay());
+                if (dayOfMonth > ProjectUtil.getCurrentDay() && year == ProjectUtil.getCurrentYear() && month == ProjectUtil.getCurrentMonth())
+                    view.updateDate(ProjectUtil.getCurrentYear(), ProjectUtil.getCurrentMonth(),  ProjectUtil.getCurrentDay());
             }
 
             //当该dialog被删除的时候,就把值赋值过去,这里要注意要查到dialog的生命周期十分重要
@@ -492,7 +492,7 @@ public class OrderDetailActivity extends AppCompatActivity {
                 orderHour = i;
                 orderMin = i1;
             }
-        },Util.getCurrentHour(),Util.getCurrentMinute(),true);
+        }, ProjectUtil.getCurrentHour(), ProjectUtil.getCurrentMinute(),true);
         timePicker.show();
         //选择好以后将ordertime修改
         orderTime = ((orderMonth>0&&orderMonth<10)?("0"+orderMonth):orderMonth)+"月"+orderDay+"日"+" "+orderHour+ ":"+((orderMin>0&&orderMin<10)?("0"+orderMin):orderMin);

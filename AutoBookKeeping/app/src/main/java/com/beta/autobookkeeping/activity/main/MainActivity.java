@@ -1,0 +1,260 @@
+package com.beta.autobookkeeping.activity.main;
+
+import static Util.ConstVariable.IP;
+import static Util.ProjectUtil.BLUE;
+import static Util.ProjectUtil.getCurrentDay;
+import static Util.ProjectUtil.getCurrentMonth;
+import static Util.ProjectUtil.getCurrentYear;
+import static Util.ProjectUtil.getDayMoney;
+import static Util.ProjectUtil.getDayRelation;
+import static Util.ProjectUtil.setDayOrderItem;
+import static Util.ProjectUtil.setDayOrderTitle;
+
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+
+import android.Manifest;
+import android.annotation.SuppressLint;
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+import android.graphics.Color;
+import android.os.Bundle;
+import android.os.Looper;
+import android.text.InputType;
+import android.util.Log;
+import android.view.MotionEvent;
+import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.LinearLayout;
+import android.widget.ScrollView;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import com.beta.autobookkeeping.activity.monthReport.MonthReportActivity;
+import com.beta.autobookkeeping.activity.orderDetail.OrderDetailActivity;
+import com.beta.autobookkeeping.activity.settings.SettingsActivity;
+import com.beta.autobookkeeping.R;
+import com.beta.autobookkeeping.smsTools.SMSApplication;
+import com.beta.autobookkeeping.smsTools.SMSDataBase;
+import com.beta.autobookkeeping.smsTools.SMSService;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
+import Util.ProjectUtil;
+import Util.SpUtils;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
+
+public class MainActivity extends AppCompatActivity {
+
+    private Button btnPlusNewOrder,btnSettings,btnSearchMonthlyReport;
+    private TextView tvAllTodayOrder,tvAllMonthOrder,tv_title;
+    private LinearLayout lvOrderDetail;
+    private ScrollView svOrderDetail;
+    Bundle bundle;
+    //数据库实例
+    SQLiteDatabase db;
+    //所有账单信息的list
+    private List<OrderInfo> orderInfos = new ArrayList<>();
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        //先检查短信等权限是否获取
+        DialogPermisson.ifGetPermission(MainActivity.this,MainActivity.this);
+        setContentView(R.layout.activity_main);
+        //开启读取短信线程
+        startService(new Intent(MainActivity.this, SMSService.class));
+        findViewByIdAndInit();
+        //设置初始偏好数据
+        initSpAndSqlLiteData();
+        //设置手机号
+        setPhoneNum();
+    }
+
+    //为各个组件设置事件
+    private void findViewByIdAndInit(){
+        tvAllTodayOrder = findViewById(R.id.tvAllTodayOrder);
+        tvAllMonthOrder = findViewById(R.id.tvAllMonthOrder);
+        //找到不同日期并显示
+        lvOrderDetail = findViewById(R.id.lvOrderDetail);
+        svOrderDetail = findViewById(R.id.svOrderDetail);
+        tv_title = findViewById(R.id.tv_title);
+        //找到新增和设置两个按钮
+        btnPlusNewOrder = findViewById(R.id.btnPlusNewOrder);
+        btnSettings = findViewById(R.id.btnSettings);
+        //设置两个新增和设置按钮的两个监听事件
+        btnPlusNewOrder.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                //跳转到新增界面
+                Intent intent = new Intent(MainActivity.this, OrderDetailActivity.class);
+                startActivity(intent);
+            }
+        });
+        btnSettings.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                //跳转到设置界面
+                Intent intent = new Intent(MainActivity.this, SettingsActivity.class);
+                startActivity(intent);
+            }
+        });
+        //找到<查找月度报告>的按钮
+        btnSearchMonthlyReport = findViewById(R.id.btnSearchMonthlyReport);
+        //设置该按钮的监听事件
+        btnSearchMonthlyReport.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(MainActivity.this, MonthReportActivity.class);
+                startActivity(intent);
+            }
+        });
+    }
+
+    //初始化数据Sp和sqlite
+    private void initSpAndSqlLiteData(){
+        //sq数据
+        if(!SpUtils.contains(this,"OrderStatus")){
+            SpUtils.put(this,"OrderStatus","个人版");
+        }
+        //初始化数据库
+        SMSDataBase smsDb = new SMSDataBase(this,"orderInfo",null,1);
+        db = smsDb.getWritableDatabase();
+        if(!ifContainTable(db,"orderInfo")){
+            String sql = "create table orderInfo(id int(8),year int(4),month int(2),day int(2),clock varchar(20),money numeric(10,2),bankName varchar(255),orderRemark varchar(255),costType varchar(255),userId varchar(255))";
+            db.execSQL(sql);
+        }
+    }
+
+    //判断是否有orderInfo表
+    private boolean ifContainTable(SQLiteDatabase db,String tableName){
+        String searchTable = "select name from sqlite_master where type='table' order by name;";
+        Cursor cursor = db.rawQuery(searchTable,null);
+        while (cursor.moveToNext()){
+            if(cursor.getString(0).equals(tableName)){
+                return true;
+            }
+        }
+        return false;
+    }
+
+    //注册手机号 todo:优化注册
+    private void setPhoneNum(){
+        //用户设置电话号码
+        if(!SpUtils.contains(this,"phoneNum")){
+            AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+//        builder.setTitle(" ");    //设置对话框标题
+//        builder.setIcon(android.R.drawable.btn_star);   //设置对话框标题前的图标
+            TextView textView = new TextView(MainActivity.this);
+            textView.setText("口令:");
+            textView.setTextSize(22);
+
+            final EditText edit = new EditText(MainActivity.this);
+            edit.setHint("请填写口令");
+            edit.setInputType(InputType.TYPE_CLASS_NUMBER);
+            edit.setWidth(550);
+            edit.setTextSize(18);
+
+            LinearLayout layout = new LinearLayout(MainActivity.this);
+            layout.setHorizontalGravity(LinearLayout.HORIZONTAL);
+            layout.addView(textView);
+            layout.addView(edit);
+
+            layout.setPadding(100, 0, 100, 20);
+            builder.setView(layout);
+            builder.setPositiveButton("确认", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    SpUtils.put(MainActivity.this,"phoneNum",edit.getText().toString());
+                    Toast.makeText(MainActivity.this, "你输入的是: " + edit.getText().toString(), Toast.LENGTH_SHORT).show();
+                }
+            });
+
+            builder.setCancelable(false);    //设置按钮是否可以按返回键取消,false则不可以取消
+            //创建对话框
+            AlertDialog dialog = builder.create();
+            dialog.setCanceledOnTouchOutside(false); //设置弹出框失去焦点是否隐藏,即点击屏蔽其它地方是否隐藏
+            dialog.show();
+        }
+//        new Thread(new Runnable() {
+//            @Override
+//            public void run() {
+//                String url = IP+"/18916629734/addOrder";
+//                OkHttpClient client = new OkHttpClient();
+//                JSONObject jsonObject = new JSONObject();
+//                try {
+//                    jsonObject.put("year",2018);
+//                } catch (JSONException e) {
+//                    e.printStackTrace();
+//                }
+//                RequestBody body = RequestBody.create(jsonObject.toString(), MediaType.parse("application/json;charset=utf-8"));
+//                Request requst = new Request.Builder()
+//                        .url(url)
+//                        .post(body)
+//                        .build();
+//                try {
+//                    Response response = client.newCall(requst).execute();
+//                    Log.d("1","--------------------");
+//                    Log.d("1",response.body().string());
+//                } catch (IOException e) {
+//                    e.printStackTrace();
+//                }
+//            }
+//        }).start();
+    }
+
+    @Override
+    protected void onStart() {
+        //显示账单状态
+        tv_title.setText("我的收支:"+SpUtils.get(this,"OrderStatus",""));
+        //检测Application中是否有短信数据
+        SMSApplication smsApplication = new SMSApplication();
+        smsApplication = (SMSApplication)getApplication();
+        if(smsApplication.getSMSMsg()!=null){
+            //跳转到新增界面
+            Intent intent = new Intent(MainActivity.this,OrderDetailActivity.class);
+            startActivity(intent);
+        }
+        //获取本日和本月累计收支
+        showDayAndMonthMoney();
+        //获取并显示所有账单详情
+        showOrderDetailList();
+        super.onStart();
+    }
+
+    //为今日和本月累计赋值刷新
+    public void showDayAndMonthMoney(){
+        //重新给月和日开销赋值
+        tvAllMonthOrder.setText(String .format("%.2f",ProjectUtil.getMonthMoney(this)));
+        tvAllTodayOrder.setText(String .format("%.2f",ProjectUtil.getDayMoney(getCurrentYear(),getCurrentMonth(),getCurrentDay(),this)));
+    }
+
+    //获取并显示所有账单详情的方法
+    public void showOrderDetailList(){
+        Cursor cursor = db.query ("orderInfo",null,null,null,null,null,"id desc");
+        //先清空list中的数据
+        orderInfos.clear();
+        while(cursor.moveToNext()){
+            //初始化orderInfoList
+            OrderInfo orderInfo = new OrderInfo(cursor.getString(4),cursor.getString(6),cursor.getString(7),cursor.getDouble(5),cursor.getString(8),cursor.getString(9));
+            orderInfos.add(orderInfo);
+        }
+        //显示数据
+        OrderDetail.addViewByData(this,lvOrderDetail,db,svOrderDetail,MainActivity.this);
+    }
+
+
+}

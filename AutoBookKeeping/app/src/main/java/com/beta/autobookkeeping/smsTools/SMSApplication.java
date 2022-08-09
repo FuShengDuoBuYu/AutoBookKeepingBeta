@@ -1,4 +1,4 @@
-package com.beta.autobookkeeping.SMStools;
+package com.beta.autobookkeeping.smsTools;
 
 import android.app.Application;
 

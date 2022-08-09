@@ -1,14 +1,15 @@
-package com.beta.autobookkeeping.OrderListView;
+package com.beta.autobookkeeping.activity.main;
 
 public class OrderInfo {
-    private String time,bankName,orderRemark,costType;
+    private String time,bankName,orderRemark,costType,user;
     private double money;
-    public OrderInfo(String time,String bankName,String orderRemark,double money,String costType){
+    public OrderInfo(String time,String bankName,String orderRemark,double money,String costType,String user){
         this.bankName = bankName;
         this.orderRemark = orderRemark;
         this.money = money;
         this.time = time;
         this.costType = costType;
+        this.user = user;
     }
     public String getTvOrderTypeAndRemark(){
             return costType+' '+orderRemark;
@@ -22,4 +23,5 @@ public class OrderInfo {
     public String getTvOrderTime(){
         return time;
     }
+    public String getUser(){return user;}
 }

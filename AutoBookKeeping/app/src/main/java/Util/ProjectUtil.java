@@ -7,7 +7,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.util.Log;
-import com.beta.autobookkeeping.SMStools.*;
+import com.beta.autobookkeeping.smsTools.*;
 import android.view.Gravity;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -26,7 +26,7 @@ import java.util.Date;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class Util {
+public class ProjectUtil {
     public final static int[] colors = new int[]{
             Color.rgb(92, 172, 238),
             Color.rgb(112, 128, 144),
@@ -147,7 +147,7 @@ public class Util {
         SQLiteDatabase db = smsDb.getWritableDatabase();
         Cursor cursor = db.query("orderInfo", null, null, null, null, null, "id");
         while (cursor.moveToNext()) {
-            if (cursor.getInt(1) == Util.getCurrentYear() && cursor.getInt(2) == Util.getCurrentMonth() && cursor.getInt(3) == Util.getCurrentDay()) {
+            if (cursor.getInt(1) == ProjectUtil.getCurrentYear() && cursor.getInt(2) == ProjectUtil.getCurrentMonth() && cursor.getInt(3) == ProjectUtil.getCurrentDay()) {
                 allTodayOrder += cursor.getDouble(5);
             }
         }
@@ -163,7 +163,7 @@ public class Util {
         SQLiteDatabase db = smsDb.getWritableDatabase();
         Cursor cursor = db.query("orderInfo", null, null, null, null, null, "id");
         while (cursor.moveToNext()) {
-            if (cursor.getInt(1) == Util.getCurrentYear() && cursor.getInt(2) == Util.getCurrentMonth()) {
+            if (cursor.getInt(1) == ProjectUtil.getCurrentYear() && cursor.getInt(2) == ProjectUtil.getCurrentMonth()) {
                 allMonthOrder += cursor.getDouble(5);
             }
         }

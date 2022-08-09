@@ -1,17 +1,15 @@
-package com.beta.autobookkeeping;
+package com.beta.autobookkeeping.activity.settings;
 
-import static Util.Util.BLUE;
-import static Util.Util.getLocalOrderInfo;
-import static Util.Util.toastMsg;
+import static Util.ProjectUtil.BLUE;
+import static Util.ProjectUtil.getLocalOrderInfo;
+import static Util.ProjectUtil.toastMsg;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.widget.ScrollerCompat;
 
 import android.annotation.SuppressLint;
 import android.app.DatePickerDialog;
-import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
@@ -21,11 +19,9 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
-import android.util.AttributeSet;
 import android.util.Log;
 import android.view.ContextThemeWrapper;
 import android.view.View;
-import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.LinearLayout;
@@ -33,9 +29,10 @@ import android.widget.NumberPicker;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
-import com.beta.autobookkeeping.SMStools.SMSDataBase;
-import com.beta.autobookkeeping.SMStools.SMSReader;
-import com.beta.autobookkeeping.SMStools.SMSService;
+import com.beta.autobookkeeping.R;
+import com.beta.autobookkeeping.activity.orderItemSearch.OrderItemSearchActivity;
+import com.beta.autobookkeeping.smsTools.SMSDataBase;
+import com.beta.autobookkeeping.smsTools.SMSService;
 
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
@@ -45,9 +42,8 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.LogRecord;
 
-import Util.Util;
+import Util.ProjectUtil;
 import Util.SpUtils;
 
 public class SettingsActivity extends AppCompatActivity {
@@ -336,11 +332,11 @@ public class SettingsActivity extends AppCompatActivity {
                         bundle.putInt("year",i);
                         bundle.putInt("month",i1);
                         //跳转到查询账单详情页
-                        Intent intent = new Intent(SettingsActivity.this,OrderItemSearchActivity.class);
+                        Intent intent = new Intent(SettingsActivity.this, OrderItemSearchActivity.class);
                         intent.putExtras(bundle);
                         startActivity(intent);
                     }
-                }, Util.getCurrentYear(), Util.getCurrentMonth() - 1, Util.getCurrentDay()){
+                }, ProjectUtil.getCurrentYear(), ProjectUtil.getCurrentMonth() - 1, ProjectUtil.getCurrentDay()){
                     @Override
                     //只显示年和月,不显示日
                     protected void onCreate(Bundle savedInstanceState) {
@@ -382,7 +378,7 @@ public class SettingsActivity extends AppCompatActivity {
                         startActivity(intent);
                     }
 
-                }, Util.getCurrentYear(), Util.getCurrentMonth()-1, Util.getCurrentDay()){};
+                }, ProjectUtil.getCurrentYear(), ProjectUtil.getCurrentMonth()-1, ProjectUtil.getCurrentDay()){};
                 datePicker.show();
             }
         });

@@ -1,4 +1,4 @@
-package com.beta.autobookkeeping;
+package com.beta.autobookkeeping.widget;
 
 import android.app.PendingIntent;
 import android.appwidget.AppWidgetManager;
@@ -8,6 +8,9 @@ import android.content.Intent;
 import android.os.Bundle;
 import Util.*;
 import android.widget.RemoteViews;
+
+import com.beta.autobookkeeping.activity.main.MainActivity;
+import com.beta.autobookkeeping.R;
 
 
 public class OrderWidget extends AppWidgetProvider {
@@ -32,9 +35,9 @@ public class OrderWidget extends AppWidgetProvider {
     @Override
     public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
         super.onUpdate(context, appWidgetManager, appWidgetIds);
-        RemoteViews remoteViews = new RemoteViews(context.getPackageName(),R.layout.order_widget);
-        remoteViews.setTextViewText(R.id.wtvAllTodayOrder, String .format("%.1f",Util.getTodayMoney(context)));
-        remoteViews.setTextViewText(R.id.wtvAllMonthOrder, String .format("%.1f",Util.getMonthMoney(context)));
+        RemoteViews remoteViews = new RemoteViews(context.getPackageName(), R.layout.order_widget);
+        remoteViews.setTextViewText(R.id.wtvAllTodayOrder, String .format("%.1f", ProjectUtil.getTodayMoney(context)));
+        remoteViews.setTextViewText(R.id.wtvAllMonthOrder, String .format("%.1f", ProjectUtil.getMonthMoney(context)));
 
         //设置小组件被点击时的事件
         Intent intent = new Intent(context, MainActivity.class);

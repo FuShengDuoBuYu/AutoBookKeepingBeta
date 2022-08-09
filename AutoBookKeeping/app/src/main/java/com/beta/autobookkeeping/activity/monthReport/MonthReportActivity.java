@@ -1,4 +1,4 @@
-package com.beta.autobookkeeping;
+package com.beta.autobookkeeping.activity.monthReport;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -9,19 +9,18 @@ import android.graphics.drawable.ClipDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
 import android.graphics.drawable.LayerDrawable;
-import android.icu.text.Transliterator;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
-import com.beta.autobookkeeping.SMStools.SMSDataBase;
-import com.beta.autobookkeeping.SMStools.SMSService;
+import com.beta.autobookkeeping.R;
+import com.beta.autobookkeeping.activity.orderItemSearch.OrderItemSearchActivity;
+import com.beta.autobookkeeping.smsTools.SMSDataBase;
+import com.beta.autobookkeeping.smsTools.SMSService;
 import com.github.mikephil.charting.animation.Easing;
 import com.github.mikephil.charting.charts.BarChart;
 import com.github.mikephil.charting.charts.PieChart;
@@ -45,7 +44,7 @@ import com.github.mikephil.charting.listener.OnChartValueSelectedListener;
 import java.util.ArrayList;
 import java.util.List;
 
-import Util.Util;
+import Util.ProjectUtil;
 
 public class MonthReportActivity extends AppCompatActivity {
     private Button btn_right_choose,btn_left_choose;
@@ -53,10 +52,10 @@ public class MonthReportActivity extends AppCompatActivity {
     private PieChart monthMoneyPieChart;
     private TextView tv_month_report_money,tv_month_report_time;
     private LinearLayout costRankingProcessBar;
-    private final int[] dataColor = Util.colors;
+    private final int[] dataColor = ProjectUtil.colors;
     //当前页面查看的月份
-    int recordYear = Util.getCurrentYear();
-    int recordMonth = Util.getCurrentMonth();
+    int recordYear = ProjectUtil.getCurrentYear();
+    int recordMonth = ProjectUtil.getCurrentMonth();
     SMSDataBase smsDb = new SMSDataBase(MonthReportActivity.this,"orderInfo",null,1);
     SQLiteDatabase db;
     //保存数据的实体
@@ -79,8 +78,8 @@ public class MonthReportActivity extends AppCompatActivity {
         //获取各个组件
         getViews();
         //先更新总收支数据
-        tv_month_report_money.setText(String.format("%.1f",Util.getMonthMoney(recordYear,recordMonth,MonthReportActivity.this)));
-        tv_month_report_time.setText(Util.getCurrentYear()+"年"+Util.getCurrentMonth()+"月");
+        tv_month_report_money.setText(String.format("%.1f", ProjectUtil.getMonthMoney(recordYear,recordMonth,MonthReportActivity.this)));
+        tv_month_report_time.setText(ProjectUtil.getCurrentYear()+"年"+ ProjectUtil.getCurrentMonth()+"月");
         showBarChart();
         showPieChart();
         showMonthlyCostRanking();
@@ -98,8 +97,8 @@ public class MonthReportActivity extends AppCompatActivity {
         btn_right_choose.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if(recordMonth+1>Util.getCurrentMonth()&&recordYear==Util.getCurrentYear()){
-                    Util.toastMsg(MonthReportActivity.this,"不能选择未发生的时间");
+                if(recordMonth+1> ProjectUtil.getCurrentMonth()&&recordYear== ProjectUtil.getCurrentYear()){
+                    ProjectUtil.toastMsg(MonthReportActivity.this,"不能选择未发生的时间");
                 }else {
                     //更改要查询年和月
                     if (recordMonth == 12) {
@@ -111,7 +110,7 @@ public class MonthReportActivity extends AppCompatActivity {
                     //更新文字
                     tv_month_report_time.setText(String.valueOf(recordYear) + "年" + String.valueOf(recordMonth) + "月");
                     //更新月份的总收支
-                    tv_month_report_money.setText(String.format("%.1f", Util.getMonthMoney(recordYear, recordMonth, MonthReportActivity.this)));
+                    tv_month_report_money.setText(String.format("%.1f", ProjectUtil.getMonthMoney(recordYear, recordMonth, MonthReportActivity.this)));
                     refreshPieChartAndRanking();
                 }
             }
@@ -129,7 +128,7 @@ public class MonthReportActivity extends AppCompatActivity {
                 //更新文字
                 tv_month_report_time.setText(String.valueOf(recordYear)+"年"+String.valueOf(recordMonth)+"月");
                 //更新月份的总收支
-                tv_month_report_money.setText(String.format("%.1f",Util.getMonthMoney(recordYear,recordMonth,MonthReportActivity.this)));
+                tv_month_report_money.setText(String.format("%.1f", ProjectUtil.getMonthMoney(recordYear,recordMonth,MonthReportActivity.this)));
                 refreshPieChartAndRanking();
             }
         });
@@ -175,10 +174,10 @@ public class MonthReportActivity extends AppCompatActivity {
         //中心可以加字
         pieChart.setDrawCenterText(true);
         //设置中心的文字
-        if(Util.getMonthCost(recordYear,recordMonth,MonthReportActivity.this)==0.0){
+        if(ProjectUtil.getMonthCost(recordYear,recordMonth,MonthReportActivity.this)==0.0){
             pieChart.setCenterText("暂无数据");
         }else{
-            pieChart.setCenterText("总支出:\n"+String.format("%.1f",Util.getMonthCost(recordYear,recordMonth,MonthReportActivity.this)));
+            pieChart.setCenterText("总支出:\n"+String.format("%.1f", ProjectUtil.getMonthCost(recordYear,recordMonth,MonthReportActivity.this)));
         }
         pieChart.setCenterTextSize(23f);
         //设置中心背景颜色为透明
@@ -268,7 +267,7 @@ public class MonthReportActivity extends AppCompatActivity {
         int index = 0;
         while (true){
             //查出某个月的收支总和
-            monthCost=Util.getMonthMoney(recordYear2,recordMonth2,MonthReportActivity.this);
+            monthCost= ProjectUtil.getMonthMoney(recordYear2,recordMonth2,MonthReportActivity.this);
             //如果某个月收支为0,说明为起始月份
             if(monthCost==0.0){
                 break;
@@ -291,9 +290,9 @@ public class MonthReportActivity extends AppCompatActivity {
     //设置柱状图的数据
     public void setPieDataSetDataMoney(int recordMonth,int recordYear){
         //获取本月中有消费的类型
-        costLabels = Util.getCostTypeAndMoney(recordMonth,recordYear,MonthReportActivity.this).get(0);
+        costLabels = ProjectUtil.getCostTypeAndMoney(recordMonth,recordYear,MonthReportActivity.this).get(0);
         //获取本月中所有消费的具体值
-        costMoney = Util.getCostTypeAndMoney(recordMonth,recordYear,MonthReportActivity.this).get(1);
+        costMoney = ProjectUtil.getCostTypeAndMoney(recordMonth,recordYear,MonthReportActivity.this).get(1);
         //创建Entry
         for(int i = 0;i < costLabels.size();i++){
             costEntry.add(new PieEntry(0.0f-costMoney.get(i),costLabels.get(i)));
@@ -328,7 +327,7 @@ public class MonthReportActivity extends AppCompatActivity {
     public void showMonthlyCostRanking(){
         for(int i = 0;i < costLabels.size();i++){
             //要加入的进度条
-            LinearLayout costProcessBar = setCostProcessBar(costLabels.get(i),costMoney.get(i),Util.getMonthCost(recordYear,recordMonth,MonthReportActivity.this),i);
+            LinearLayout costProcessBar = setCostProcessBar(costLabels.get(i),costMoney.get(i), ProjectUtil.getMonthCost(recordYear,recordMonth,MonthReportActivity.this),i);
             //点击进度条进入具体支出项目查询
             //由于内部类,故使用final的i
             int finalI = i;
@@ -408,7 +407,7 @@ public class MonthReportActivity extends AppCompatActivity {
         bundle.putString("itemName",itemName);
         //此处架构不好,但是懒得优化了,这个项是不必要的
         bundle.putString("noMeaning","noMeaning");
-        Intent intent = new Intent(MonthReportActivity.this,OrderItemSearchActivity.class);
+        Intent intent = new Intent(MonthReportActivity.this, OrderItemSearchActivity.class);
         intent.putExtras(bundle);
         startActivity(intent);
     }

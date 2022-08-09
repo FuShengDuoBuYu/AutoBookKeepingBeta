@@ -8,7 +8,7 @@
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <application
-        android:name=".SMStools.SMSApplication"
+        android:name=".smsTools.SMSApplication"
         android:allowBackup="true"
         android:icon="@drawable/start_icon"
         android:label="@string/app_name"
@@ -17,23 +17,23 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.AutoBookKeeping">
         <activity
-            android:name=".OrderItemSearchActivity"
+            android:name=".activity.orderItemSearch.OrderItemSearchActivity"
             android:exported="true"
             android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
         <activity
-            android:name=".MonthReportActivity"
+            android:name=".activity.monthReport.MonthReportActivity"
             android:exported="true"
             android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
         <activity
-            android:name=".OrderDetailActivity"
+            android:name=".activity.orderDetail.OrderDetailActivity"
             android:exported="true"
             android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
         <activity
-            android:name=".SettingsActivity"
+            android:name=".activity.settings.SettingsActivity"
             android:exported="true"
             android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
         <activity
-            android:name=".MainActivity"
+            android:name=".activity.main.MainActivity"
             android:exported="true"
             android:theme="@style/Theme.AppCompat.Light.NoActionBar">
             <intent-filter>
@@ -43,10 +43,10 @@
             </intent-filter>
         </activity>
 
-        <service android:name=".SMStools.SMSService" />
+        <service android:name=".smsTools.SMSService" />
 
         <receiver
-            android:name=".OrderWidget"
+            android:name=".widget.OrderWidget"
             android:exported="false">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" /> <!-- 必须添加的action，否则不会出现在小部件的列表中 -->

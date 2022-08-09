@@ -1,22 +1,15 @@
-package com.beta.autobookkeeping.SMStools;
+package com.beta.autobookkeeping.smsTools;
 
-import android.app.Activity;
-import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
-import android.util.Log;
-import android.widget.TextView;
-import android.widget.Toast;
 
-import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
-import Util.Util;
+import Util.ProjectUtil;
 
 public class SMSReader extends AppCompatActivity {
     SMSApplication smsApplication;
@@ -32,7 +25,7 @@ public class SMSReader extends AppCompatActivity {
             //如果短信是银行账单短信且和本地新信息不一致,就调开app并进行下一步操作
             if(isBankOrderMsg(body)){
                 if(isSavedMsg(body)){
-                    Util.toastMsg(context,"读取到银行账单!");
+                    ProjectUtil.toastMsg(context,"读取到银行账单!");
                     Intent intent = context.getPackageManager().getLaunchIntentForPackage(context.getPackageName());
                     intent.putExtras(bundle);
                     smsApplication  = (SMSApplication) context.getApplicationContext();
@@ -56,7 +49,7 @@ public class SMSReader extends AppCompatActivity {
 
     //判断短信是否是银行发的账单短信
     public boolean isBankOrderMsg(String msg){
-        String[] msgInfo = Util.getBankOrderInfo(msg);
+        String[] msgInfo = ProjectUtil.getBankOrderInfo(msg);
         //如果三个银行信息中有一个为空,就说明不是银行信息
         if(msgInfo[0].equals("")||msgInfo[1].equals("")||msgInfo[2].equals("")){
             return false;
