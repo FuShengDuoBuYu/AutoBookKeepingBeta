@@ -1,7 +1,7 @@
 package com.beta.autobookkeeping;
 
+import static Util.Const.IP;
 import static Util.Util.BLUE;
-import static Util.Util.Gray;
 import static Util.Util.getCurrentMonth;
 import static Util.Util.getCurrentYear;
 import static Util.Util.getDayMoney;
@@ -16,49 +16,44 @@ import androidx.core.app.ActivityCompat;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
-import android.app.Dialog;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
-import android.database.sqlite.SQLiteOpenHelper;
 import android.graphics.Color;
-import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
-import android.os.Environment;
 import android.util.Log;
-import android.view.Gravity;
-import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
-import android.view.ViewGroup;
-import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.LinearLayout;
-import android.widget.ListView;
 import android.widget.ScrollView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.beta.autobookkeeping.OrderListView.OrderInfo;
-import com.beta.autobookkeeping.OrderListView.OrderInfoAdapter;
 import com.beta.autobookkeeping.SMStools.SMSApplication;
 import com.beta.autobookkeeping.SMStools.SMSDataBase;
-import com.beta.autobookkeeping.SMStools.SMSReader;
 import com.beta.autobookkeeping.SMStools.SMSService;
 
-import java.io.File;
-import java.io.FileInputStream;
+import org.jetbrains.annotations.NotNull;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Properties;
 
 import Util.Util;
 import Util.SpUtils;
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.MediaType;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -114,6 +109,42 @@ public class MainActivity extends AppCompatActivity {
         db = smsDb.getWritableDatabase();
         //设置初始偏好数据
         initSpData();
+        //设置手机号
+        setPhoneNum();
+    }
+
+    private void setPhoneNum(){
+        if(!SpUtils.contains(this,"phoneNum")){
+            SpUtils.put(this,"phoneNum","0");
+        }
+        if(SpUtils.get(this,"phoneNum","").equals("0")){
+            SpUtils.put(this,"phoneNum","18916629734");
+        }
+//        new Thread(new Runnable() {
+//            @Override
+//            public void run() {
+//                String url = IP+"/18916629734/addOrder";
+//                OkHttpClient client = new OkHttpClient();
+//                JSONObject jsonObject = new JSONObject();
+//                try {
+//                    jsonObject.put("year",2018);
+//                } catch (JSONException e) {
+//                    e.printStackTrace();
+//                }
+//                RequestBody body = RequestBody.create(jsonObject.toString(), MediaType.parse("application/json;charset=utf-8"));
+//                Request requst = new Request.Builder()
+//                        .url(url)
+//                        .post(body)
+//                        .build();
+//                try {
+//                    Response response = client.newCall(requst).execute();
+//                    Log.d("1","--------------------");
+//                    Log.d("1",response.body().string());
+//                } catch (IOException e) {
+//                    e.printStackTrace();
+//                }
+//            }
+//        }).start();
     }
 
     @Override
@@ -296,6 +327,43 @@ public class MainActivity extends AppCompatActivity {
         line.setPadding(0,10,0,0);
         line.setBackgroundColor(Color.BLACK);
         lvOrderDetail.addView(line);
+        //设置左右监听
+        listenUserTouch();
+    }
+
+    //检测左右滑动的事件
+    @SuppressLint("ClickableViewAccessibility")
+    public void listenUserTouch(){
+        //检测用户的左右滑动
+        svOrderDetail.setOnTouchListener(new View.OnTouchListener() {
+            private float startX, startY, offsetX, offsetY;
+            @Override
+            public boolean onTouch(View view, MotionEvent event) {
+                switch (event.getAction()) {
+                    case MotionEvent.ACTION_DOWN:
+                        startX = event.getX();
+                        startY = event.getY();
+                        Log.d("下",String.valueOf(startX));
+                        break;
+                    case MotionEvent.ACTION_UP:
+                        offsetX = event.getX() - startX;
+                        offsetY = event.getY() - startY;
+                        if (Math.abs(offsetX) > Math.abs(offsetY)) {
+                            if (offsetX < -5) { // left
+                                Util.toastMsg(MainActivity.this,"左滑动");
+                            } else if (offsetX > 5) { // right
+                                Util.toastMsg(MainActivity.this,"右滑动");
+                            }
+                        }
+                        break;
+                    default:
+                        break;
+                }
+                return false;
+            }
+        });
+
+
     }
 
     //设置点击后修改账单信息的事件

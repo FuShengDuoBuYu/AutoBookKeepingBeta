@@ -1,5 +1,7 @@
 package com.beta.autobookkeeping;
 
+import static Util.Const.IP;
+
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
@@ -11,6 +13,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
+import android.os.Looper;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -18,17 +21,24 @@ import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.TimePicker;
-import android.widget.Toast;
 
 import com.beta.autobookkeeping.SMStools.SMSApplication;
 import com.beta.autobookkeeping.SMStools.SMSDataBase;
-import com.beta.autobookkeeping.SMStools.SMSReader;
 import com.beta.autobookkeeping.SMStools.SMSService;
 
-import java.util.Calendar;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.IOException;
+import java.util.Set;
 
 import Util.Util;
 import Util.SpUtils;
+import okhttp3.MediaType;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
 
 public class OrderDetailActivity extends AppCompatActivity {
     //点击item修改的标志
@@ -64,7 +74,6 @@ public class OrderDetailActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 setDataBaseData();
-                finish();
             }
         });
 
@@ -259,7 +268,9 @@ public class OrderDetailActivity extends AppCompatActivity {
                     "',orderRemark='"+etOrderRemark.getText()+"',costType='"+(btnOrderType.getText().toString().equals("收入")?"收入":btnCostType.getText().toString())+"' where id="+
                     bundle.getInt("id");
             db.execSQL(sql);
-        }else{
+        }
+        //新增账单数据
+        else{
             //设置数据库数据
             ContentValues values = new ContentValues();
             values.put("year",orderYear);
@@ -305,9 +316,66 @@ public class OrderDetailActivity extends AppCompatActivity {
             }
             //写入账单备注
             values.put("orderRemark",etOrderRemark.getText().toString());
-            db.insert("orderInfo",null,values);
-            Util.toastMsg(OrderDetailActivity.this,"保存成功");
+            String phoneNum = (String) SpUtils.get(OrderDetailActivity.this,"phoneNum","");
+            values.put("userId",phoneNum);
+            //传递给后端
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    String url = IP+"/18916629734/addOrder";
+                    OkHttpClient client = new OkHttpClient();
+                    JSONObject jsonObject = new JSONObject();
+                    try {
+//                        jsonObject.put("year",2018);
+                        Set<String> keys = values.keySet();
+                        for(String key:keys){
+                            jsonObject.put(key,values.get(key));
+                        }
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                    RequestBody body = RequestBody.create(jsonObject.toString(), MediaType.parse("application/json;charset=utf-8"));
+                    Request requst = new Request.Builder()
+                            .url(url)
+                            .post(body)
+                            .build();
+                    try {
+                        Response response = client.newCall(requst).execute();
+                        if(response.code()==200){
+                            JSONObject jsonResponse = new JSONObject(response.body().string());
+                            if(jsonResponse.getBoolean("success")){
+                                refreshLocalSql(db,values);
+                            }
+                            else{
+                                Looper.prepare();
+                                Util.toastMsg(OrderDetailActivity.this,jsonResponse.getString("message"));
+                                Looper.loop();
+                            }
+                        }
+                        else{
+                            Looper.prepare();
+                            Util.toastMsg(OrderDetailActivity.this,"服务器出错");
+                            Looper.loop();
+                        }
+                    } catch (IOException | JSONException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }).start();
         }
+    }
+
+    //后端返回成功后更新本地数据库
+    public void refreshLocalSql(SQLiteDatabase db,ContentValues values){
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                values.remove("userId");
+                db.insert("orderInfo",null,values);
+                Util.toastMsg(OrderDetailActivity.this,"保存成功");
+                finish();
+            }
+        });
     }
 
     //修改数据库中的数据
