@@ -263,11 +263,56 @@ public class OrderDetailActivity extends AppCompatActivity {
         SQLiteDatabase db = smsDb.getWritableDatabase();
         //执行更新数据库操作
         if(isChangeOrderInfo){
-            String sql = "update orderInfo set day="+orderDay+",month="+orderMonth+",clock='"+orderTime+
-                    "',money="+(btnOrderType.getText().toString().equals("收入")?"":"-")+Double.valueOf(etOrderNumber.getText().toString())+",bankName='"+btnPayWay.getText()+
-                    "',orderRemark='"+etOrderRemark.getText()+"',costType='"+(btnOrderType.getText().toString().equals("收入")?"收入":btnCostType.getText().toString())+"' where id="+
-                    bundle.getInt("id");
-            db.execSQL(sql);
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    String url = IP+"/modifyOrder/"+bundle.getInt("id");
+                    OkHttpClient client = new OkHttpClient();
+                    JSONObject jsonObject = new JSONObject();
+                    String sql = "update orderInfo set day="+orderDay+",month="+orderMonth+",clock='"+orderTime+
+                            "',money="+(btnOrderType.getText().toString().equals("收入")?"":"-")+Double.valueOf(etOrderNumber.getText().toString())+",bankName='"+btnPayWay.getText()+
+                            "',orderRemark='"+etOrderRemark.getText()+"',costType='"+(btnOrderType.getText().toString().equals("收入")?"收入":btnCostType.getText().toString())+"' where id="+
+                            bundle.getInt("id");
+                    try {
+                        jsonObject.put("day",orderDay);
+                        jsonObject.put("month",orderMonth);
+                        jsonObject.put("clock",orderTime);
+                        jsonObject.put("money",(btnOrderType.getText().toString().equals("收入")?"":"-")+Double.valueOf(etOrderNumber.getText().toString()));
+                        jsonObject.put("bankName",btnPayWay.getText());
+                        jsonObject.put("orderRemark",etOrderRemark.getText());
+                        jsonObject.put("costType",(btnOrderType.getText().toString().equals("收入")?"收入":btnCostType.getText().toString()));
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                    RequestBody body = RequestBody.create(jsonObject.toString(), MediaType.parse("application/json;charset=utf-8"));
+                    Request request = new Request.Builder()
+                            .url(url)
+                            .put(body)
+                            .build();
+                    try {
+                        Response response = client.newCall(request).execute();
+                        if(response.code()==200){
+                            JSONObject jsonResponse = new JSONObject(response.body().string());
+                            if(jsonResponse.getBoolean("success")){
+                                refreshLocalSql(db,null);
+                            }
+                            else{
+                                Looper.prepare();
+                                Util.toastMsg(OrderDetailActivity.this,jsonResponse.getString("message"));
+                                Looper.loop();
+                            }
+                        }
+                        else{
+                            Looper.prepare();
+                            Util.toastMsg(OrderDetailActivity.this,"服务器出错");
+                            Looper.loop();
+                        }
+                        // str为json字符串
+                    } catch (IOException | JSONException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }).start();
         }
         //新增账单数据
         else{
@@ -316,17 +361,15 @@ public class OrderDetailActivity extends AppCompatActivity {
             }
             //写入账单备注
             values.put("orderRemark",etOrderRemark.getText().toString());
-            String phoneNum = (String) SpUtils.get(OrderDetailActivity.this,"phoneNum","");
-            values.put("userId",phoneNum);
+            values.put("userId",(String) SpUtils.get(OrderDetailActivity.this,"phoneNum",""));
             //传递给后端
             new Thread(new Runnable() {
                 @Override
                 public void run() {
-                    String url = IP+"/18916629734/addOrder";
+                    String url = IP+"/addOrder";
                     OkHttpClient client = new OkHttpClient();
                     JSONObject jsonObject = new JSONObject();
                     try {
-//                        jsonObject.put("year",2018);
                         Set<String> keys = values.keySet();
                         for(String key:keys){
                             jsonObject.put(key,values.get(key));
@@ -344,6 +387,7 @@ public class OrderDetailActivity extends AppCompatActivity {
                         if(response.code()==200){
                             JSONObject jsonResponse = new JSONObject(response.body().string());
                             if(jsonResponse.getBoolean("success")){
+                                values.put("id",Integer.valueOf(jsonResponse.getString("data")));
                                 refreshLocalSql(db,values);
                             }
                             else{
@@ -370,9 +414,18 @@ public class OrderDetailActivity extends AppCompatActivity {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                values.remove("userId");
-                db.insert("orderInfo",null,values);
-                Util.toastMsg(OrderDetailActivity.this,"保存成功");
+                if(isChangeOrderInfo){
+                    String sql = "update orderInfo set day="+orderDay+",month="+orderMonth+",clock='"+orderTime+
+                            "',money="+(btnOrderType.getText().toString().equals("收入")?"":"-")+Double.valueOf(etOrderNumber.getText().toString())+",bankName='"+btnPayWay.getText()+
+                            "',orderRemark='"+etOrderRemark.getText()+"',costType='"+(btnOrderType.getText().toString().equals("收入")?"收入":btnCostType.getText().toString())+"' where id="+
+                            bundle.getInt("id");
+                    db.execSQL(sql);
+                    Util.toastMsg(OrderDetailActivity.this,"保存成功");
+                }
+                else{
+                    db.insert("orderInfo",null,values);
+                    Util.toastMsg(OrderDetailActivity.this,"保存成功");
+                }
                 finish();
             }
         });

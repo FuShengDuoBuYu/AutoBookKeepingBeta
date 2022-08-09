@@ -16,6 +16,7 @@ import androidx.core.app.ActivityCompat;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -23,13 +24,17 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.os.Looper;
+import android.text.InputType;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.beta.autobookkeeping.OrderListView.OrderInfo;
 import com.beta.autobookkeeping.SMStools.SMSApplication;
@@ -107,18 +112,64 @@ public class MainActivity extends AppCompatActivity {
         //设置数据库
         SMSDataBase smsDb = new SMSDataBase(this,"orderInfo",null,1);
         db = smsDb.getWritableDatabase();
+        if(!ifContainTable(db,"orderInfo")){
+            String sql = "create table orderInfo(id int(8),year int(4),month int(2),day int(2),clock varchar(20),money numeric(10,2),bankName varchar(255),orderRemark varchar(255),costType varchar(255),userId varchar(255))";
+            db.execSQL(sql);
+        }
         //设置初始偏好数据
         initSpData();
         //设置手机号
         setPhoneNum();
     }
 
-    private void setPhoneNum(){
-        if(!SpUtils.contains(this,"phoneNum")){
-            SpUtils.put(this,"phoneNum","0");
+    //判断是否有orderInfo表
+    private boolean ifContainTable(SQLiteDatabase db,String tableName){
+        String searchTable = "select name from sqlite_master where type='table' order by name;";
+        Cursor cursor = db.rawQuery(searchTable,null);
+        while (cursor.moveToNext()){
+            if(cursor.getString(0).equals(tableName)){
+                return true;
+            }
         }
-        if(SpUtils.get(this,"phoneNum","").equals("0")){
-            SpUtils.put(this,"phoneNum","18916629734");
+        return false;
+    }
+
+    private void setPhoneNum(){
+        //用户设置电话号码
+        if(!SpUtils.contains(this,"phoneNum")){
+            AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+//        builder.setTitle(" ");    //设置对话框标题
+//        builder.setIcon(android.R.drawable.btn_star);   //设置对话框标题前的图标
+            TextView textView = new TextView(MainActivity.this);
+            textView.setText("口令:");
+            textView.setTextSize(22);
+
+            final EditText edit = new EditText(MainActivity.this);
+            edit.setHint("请填写口令");
+            edit.setInputType(InputType.TYPE_CLASS_NUMBER);
+            edit.setWidth(550);
+            edit.setTextSize(18);
+
+            LinearLayout layout = new LinearLayout(MainActivity.this);
+            layout.setHorizontalGravity(LinearLayout.HORIZONTAL);
+            layout.addView(textView);
+            layout.addView(edit);
+
+            layout.setPadding(100, 0, 100, 20);
+            builder.setView(layout);
+            builder.setPositiveButton("确认", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    SpUtils.put(MainActivity.this,"phoneNum",edit.getText().toString());
+                    Toast.makeText(MainActivity.this, "你输入的是: " + edit.getText().toString(), Toast.LENGTH_SHORT).show();
+                }
+            });
+
+            builder.setCancelable(false);    //设置按钮是否可以按返回键取消,false则不可以取消
+            //创建对话框
+            AlertDialog dialog = builder.create();
+            dialog.setCanceledOnTouchOutside(false); //设置弹出框失去焦点是否隐藏,即点击屏蔽其它地方是否隐藏
+            dialog.show();
         }
 //        new Thread(new Runnable() {
 //            @Override
@@ -189,11 +240,35 @@ public class MainActivity extends AppCompatActivity {
         builder.setPositiveButton("确定", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
-                String sql = "delete from orderInfo where id =" + String.valueOf(itemId);
-                db.execSQL(sql);
-                //重新获取数据库的数据来展示信息
-                showDayAndMonthMoney();
-                showOrderDetailList();
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        String url = IP+"/deleteOrder/"+itemId;
+                        OkHttpClient client = new OkHttpClient();
+                        Request request = new Request.Builder().url(url).delete().build();
+                        try{
+                            Response response = client.newCall(request).execute();
+                            if(response.code()==200){
+                                JSONObject jsonResponse = new JSONObject(response.body().string());
+                                if(jsonResponse.getBoolean("success")){
+                                    handleAfterDelete(String.valueOf(itemId));
+                                }
+                                else{
+                                    Looper.prepare();
+                                    Util.toastMsg(MainActivity.this,jsonResponse.getString("message"));
+                                    Looper.loop();
+                                }
+                            }
+                            else{
+                                Looper.prepare();
+                                Util.toastMsg(MainActivity.this,"服务器出错");
+                                Looper.loop();
+                            }
+                        } catch (JSONException | IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }).start();
             }
         });
         builder.setNegativeButton("取消", new DialogInterface.OnClickListener() {
@@ -206,6 +281,19 @@ public class MainActivity extends AppCompatActivity {
         dialog.getButton(DialogInterface.BUTTON_NEGATIVE).setTextColor(BLUE);
     }
 
+    public void handleAfterDelete(String itemId){
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                String sql = "delete from orderInfo where id =" + itemId;
+                db.execSQL(sql);
+                Util.toastMsg(MainActivity.this,"删除成功");
+                //重新获取数据库的数据来展示信息
+                showDayAndMonthMoney();
+                showOrderDetailList();
+            }
+        });
+    }
     public void showDayAndMonthMoney(){
         //获取本日和本月收支数据
         double allTodayOrder = 0.0,allMonthOrder = 0.0;
@@ -385,7 +473,6 @@ public class MainActivity extends AppCompatActivity {
         bundle.putString("orderRemark",cursor.getString(7));
         bundle.putString("costType",cursor.getString(8));
         intent.putExtras(bundle);
-
         startActivity(intent);
     }
 
