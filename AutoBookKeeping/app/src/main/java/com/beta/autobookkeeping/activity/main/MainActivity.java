@@ -1,33 +1,23 @@
 package com.beta.autobookkeeping.activity.main;
 
-import static Util.ConstVariable.IP;
-import static Util.ProjectUtil.BLUE;
 import static Util.ProjectUtil.getCurrentDay;
 import static Util.ProjectUtil.getCurrentMonth;
 import static Util.ProjectUtil.getCurrentYear;
 import static Util.ProjectUtil.getDayMoney;
-import static Util.ProjectUtil.getDayRelation;
-import static Util.ProjectUtil.setDayOrderItem;
-import static Util.ProjectUtil.setDayOrderTitle;
 
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
 
-import android.Manifest;
-import android.annotation.SuppressLint;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
-import android.graphics.Color;
 import android.os.Bundle;
-import android.os.Looper;
+import android.os.Parcelable;
 import android.text.InputType;
 import android.util.Log;
-import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -40,23 +30,18 @@ import com.beta.autobookkeeping.activity.monthReport.MonthReportActivity;
 import com.beta.autobookkeeping.activity.orderDetail.OrderDetailActivity;
 import com.beta.autobookkeeping.activity.settings.SettingsActivity;
 import com.beta.autobookkeeping.R;
+import com.beta.autobookkeeping.fragment.OrderDetailFragment;
 import com.beta.autobookkeeping.smsTools.SMSApplication;
 import com.beta.autobookkeeping.smsTools.SMSDataBase;
 import com.beta.autobookkeeping.smsTools.SMSService;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import Util.ProjectUtil;
 import Util.SpUtils;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.Response;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -72,16 +57,67 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+        //设置初始偏好数据
+        initSpAndSqlLiteData();
         //先检查短信等权限是否获取
         DialogPermisson.ifGetPermission(MainActivity.this,MainActivity.this);
-        setContentView(R.layout.activity_main);
+        initFragment();
         //开启读取短信线程
         startService(new Intent(MainActivity.this, SMSService.class));
         findViewByIdAndInit();
-        //设置初始偏好数据
-        initSpAndSqlLiteData();
         //设置手机号
         setPhoneNum();
+    }
+
+    //初始化fragment
+    private void initFragment(){
+
+    }
+
+    //获取要展示的数据
+    public ArrayList<ArrayList> getShowOrdersInfo(){
+        ArrayList<ArrayList> res = new ArrayList<>();
+        ArrayList<OrderInfo> orders = new ArrayList<>();
+        ArrayList<OrderDayItems> orderDayItems = new ArrayList<>();
+        //先获取本月都有哪些天有数据
+        ArrayList<Integer> hasOrderDays = ProjectUtil.getHasOrderDays(getCurrentMonth(),this);
+        //依次查询这些天的账单
+        for(int i = 0;i < hasOrderDays.size();i++) {
+            //再加入每天的账单
+            String sql = "select * from orderInfo where year = " + String.valueOf(getCurrentYear()) + " and month = " + String.valueOf(getCurrentMonth()) + " and day= " + String.valueOf(hasOrderDays.get(i));
+            Cursor cursor = db.rawQuery(sql, null);
+            int orderNums = 0;
+            double dayMoney = 0.0;
+            while (cursor.moveToNext()) {
+                OrderInfo orderInfo = new OrderInfo(
+                        cursor.getInt(0),
+                        cursor.getInt(1),
+                        cursor.getInt(2),
+                        cursor.getInt(3),
+                        cursor.getString(4),
+                        cursor.getDouble(5),
+                        cursor.getString(6),
+                        cursor.getString(7),
+                        cursor.getString(8),
+                        cursor.getString(9)
+                );
+                orderNums++;
+                dayMoney += cursor.getDouble(5);
+                orders.add(orderInfo);
+            }
+            orderDayItems.add(new OrderDayItems(
+                    getCurrentYear(),
+                    getCurrentMonth(),
+                    hasOrderDays.get(i),
+                    dayMoney>0?"收入":"支出",
+                    orderNums,
+                    dayMoney
+                    ));
+        }
+        res.add(orderDayItems);
+        res.add(orders);
+        return res;
     }
 
     //为各个组件设置事件
@@ -231,7 +267,7 @@ public class MainActivity extends AppCompatActivity {
         //获取本日和本月累计收支
         showDayAndMonthMoney();
         //获取并显示所有账单详情
-        showOrderDetailList();
+//        showOrderDetailList();
         super.onStart();
     }
 
@@ -243,18 +279,18 @@ public class MainActivity extends AppCompatActivity {
     }
 
     //获取并显示所有账单详情的方法
-    public void showOrderDetailList(){
-        Cursor cursor = db.query ("orderInfo",null,null,null,null,null,"id desc");
-        //先清空list中的数据
-        orderInfos.clear();
-        while(cursor.moveToNext()){
-            //初始化orderInfoList
-            OrderInfo orderInfo = new OrderInfo(cursor.getString(4),cursor.getString(6),cursor.getString(7),cursor.getDouble(5),cursor.getString(8),cursor.getString(9));
-            orderInfos.add(orderInfo);
-        }
-        //显示数据
-        OrderDetail.addViewByData(this,lvOrderDetail,db,svOrderDetail,MainActivity.this);
-    }
+//    public void showOrderDetailList(){
+//        Cursor cursor = db.query ("orderInfo",null,null,null,null,null,"id desc");
+//        //先清空list中的数据
+//        orderInfos.clear();
+//        while(cursor.moveToNext()){
+//            //初始化orderInfoList
+//            OrderInfo orderInfo = new OrderInfo(cursor.getString(4),cursor.getString(6),cursor.getString(7),cursor.getDouble(5),cursor.getString(8),cursor.getString(9));
+//            orderInfos.add(orderInfo);
+//        }
+//        //显示数据
+//        OrderDetail.addViewByData(this,lvOrderDetail,db,svOrderDetail,MainActivity.this);
+//    }
 
 
 }

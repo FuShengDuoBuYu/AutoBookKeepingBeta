@@ -129,17 +129,12 @@ f
     </View>
 
     <!--所有账单的详细信息-->
-    <ScrollView
+    <androidx.fragment.app.FragmentContainerView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:id="@+id/svOrderDetail">
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:id="@+id/lvOrderDetail">
-        </LinearLayout>
-    </ScrollView>
+        android:name="com.beta.autobookkeeping.fragment.OrderDetailFragment"
+        android:id="@+id/orders_detail">
+    </androidx.fragment.app.FragmentContainerView>
 
 
 
