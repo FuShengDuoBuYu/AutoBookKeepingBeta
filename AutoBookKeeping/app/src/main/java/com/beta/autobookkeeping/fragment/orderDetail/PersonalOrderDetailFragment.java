@@ -1,11 +1,9 @@
-package com.beta.autobookkeeping.fragment;
+package com.beta.autobookkeeping.fragment.orderDetail;
 
 import static Util.ConstVariable.IP;
 import static Util.ProjectUtil.BLUE;
 import static Util.ProjectUtil.getCurrentMonth;
 import static Util.ProjectUtil.getCurrentYear;
-import static Util.ProjectUtil.getDayMoney;
-import static Util.ProjectUtil.getDayRelation;
 import static Util.ProjectUtil.setDayOrderItem;
 import static Util.ProjectUtil.setDayOrderTitle;
 
@@ -25,7 +23,6 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
 
 import android.os.Looper;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -43,7 +40,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Date;
 
@@ -54,10 +50,10 @@ import okhttp3.Response;
 
 /**
  * A simple {@link Fragment} subclass.
- * Use the {@link OrderDetailFragment#newInstance} factory method to
+ * Use the {@link PersonalOrderDetailFragment#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class OrderDetailFragment extends Fragment {
+public class PersonalOrderDetailFragment extends Fragment {
 
     private ArrayList<OrderInfo> ordersInfo;
     private ArrayList<OrderDayItems> orderDayItems;
@@ -65,13 +61,13 @@ public class OrderDetailFragment extends Fragment {
     private ScrollView svOrderDetail;
     private LinearLayout lvOrderDetail;
 
-    public OrderDetailFragment() {
+    public PersonalOrderDetailFragment() {
         // Required empty public constructor
     }
 
     // TODO: Rename and change types and number of parameters
-    public static OrderDetailFragment newInstance(ArrayList<OrderInfo> ordersInfo,String test) {
-        OrderDetailFragment fragment = new OrderDetailFragment();
+    public static PersonalOrderDetailFragment newInstance(ArrayList<OrderInfo> ordersInfo, String test) {
+        PersonalOrderDetailFragment fragment = new PersonalOrderDetailFragment();
         return fragment;
     }
 
@@ -104,7 +100,7 @@ public class OrderDetailFragment extends Fragment {
                     context
             ));
             //加各个账单
-            for(;ordersIndex < orderDayItems.get(i).getOrderNums();ordersIndex++){
+            for(int j = 0;j < orderDayItems.get(i).getOrderNums();j++,ordersIndex++){
                 int itemIdInDatabase = this.ordersInfo.get(ordersIndex).getId();
                 String category = this.ordersInfo.get(ordersIndex).getCostType()  + (this.ordersInfo.get(ordersIndex).getOrderRemark().equals("")?"":"-"+this.ordersInfo.get(ordersIndex).getOrderRemark());
                 String payWay = this.ordersInfo.get(ordersIndex).getBankName();

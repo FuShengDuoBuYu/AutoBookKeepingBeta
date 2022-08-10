@@ -128,14 +128,32 @@ f
         android:layout_marginTop="10dp">
     </View>
 
-    <!--所有账单的详细信息-->
-    <androidx.fragment.app.FragmentContainerView
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:name="com.beta.autobookkeeping.fragment.OrderDetailFragment"
-        android:id="@+id/orders_detail">
-    </androidx.fragment.app.FragmentContainerView>
-
-
+        android:orientation="horizontal">
+        <Button
+            android:id="@+id/personal_order_detail"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center_horizontal"
+            android:layout_weight="1"
+            android:background="@color/white"
+            android:text="个人版" />
+        <Button
+            android:id="@+id/family_order_detail"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center_horizontal"
+            android:layout_weight="1"
+            android:background="@color/white"
+            android:text="家庭版" />
+    </LinearLayout>
+    <!--所有账单的详细信息-->
+    <androidx.viewpager2.widget.ViewPager2
+        android:id="@+id/orders_detail_view_page"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_weight="1" />
 
 </LinearLayout>

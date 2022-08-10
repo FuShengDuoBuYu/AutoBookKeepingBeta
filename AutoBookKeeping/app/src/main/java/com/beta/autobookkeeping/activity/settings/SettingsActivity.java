@@ -445,13 +445,13 @@ public class SettingsActivity extends AppCompatActivity {
                             SMSDataBase smsDb = new SMSDataBase(SettingsActivity.this, "orderInfo", null, 1);
                             SQLiteDatabase db = smsDb.getWritableDatabase();
                             db.execSQL("delete from orderInfo");
-                            db.execSQL("UPDATE sqlite_sequence SET seq = 0 WHERE name= 'orderInfo'");
+//                            db.execSQL("UPDATE sqlite_sequence SET seq = 0 WHERE name= 'orderInfo'");
                             //如果云没有本地的某条记录,就将其传上去
                             while (cloudDataResult.next()) {
-                                    String sql = "insert into orderInfo" +"(id,year,month,day,clock,money,bankName,orderRemark,costType) "
+                                    String sql = "insert into orderInfo" +"(id,year,month,day,clock,money,bankName,orderRemark,costType,userId) "
                                             + "values (" + cloudDataResult.getInt("id") + "," + cloudDataResult.getInt("year") + "," + cloudDataResult.getInt("month") + "," + cloudDataResult.getInt("day") + ","
                                             + "'" + cloudDataResult.getString("clock") + "'" + "," + cloudDataResult.getDouble("money") + "," + "'" + cloudDataResult.getString("bankName") + "'" + "," + "'" +
-                                            cloudDataResult.getString("orderRemark") + "'" + "," + "'" + cloudDataResult.getString("costType") + "'" + ");";
+                                            cloudDataResult.getString("orderRemark") + "'" + "," + "'" + cloudDataResult.getString("costType") + "'" + "," + "'" + cloudDataResult.getString("userId")+ "'" +");";
                                     Log.d("sql", sql);
                                     db.execSQL(sql);
                             }

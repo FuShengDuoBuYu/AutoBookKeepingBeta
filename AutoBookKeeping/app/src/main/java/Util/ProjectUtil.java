@@ -6,6 +6,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
+import android.graphics.drawable.VectorDrawable;
 import android.util.Log;
 import com.beta.autobookkeeping.smsTools.*;
 import android.view.Gravity;
@@ -355,33 +356,33 @@ public class ProjectUtil {
         }
         switch (categoryName){
             case("收入"):
-                return context.getDrawable(R.drawable.part_time_job);
+                return context.getDrawable(R.drawable.ic_part_time_job);
             case("消费"):
-                return context.getDrawable(R.drawable.normal);
+                return context.getDrawable(R.drawable.ic_normal);
             case("饮食"):
-                return context.getDrawable(R.drawable.food);
+                return context.getDrawable(R.drawable.ic_food);
             case("交通"):
-                return context.getDrawable(R.drawable.traffic);
+                return context.getDrawable(R.drawable.ic_traffic);
             case("体育"):
-                return context.getDrawable(R.drawable.sport);
+                return context.getDrawable(R.drawable.ic_sport);
             case("聚会"):
-                return context.getDrawable(R.drawable.party);
+                return context.getDrawable(R.drawable.ic_party);
             case("娱乐"):
-                return context.getDrawable(R.drawable.entertain);
+                return context.getDrawable(R.drawable.ic_entertain);
             case("购物"):
-                return context.getDrawable(R.drawable.shopping);
+                return context.getDrawable(R.drawable.ic_shopping);
             case("通讯"):
-                return context.getDrawable(R.drawable.communication);
+                return context.getDrawable(R.drawable.ic_communication);
             case("红包"):
-                return context.getDrawable(R.drawable.red_money);
+                return context.getDrawable(R.drawable.ic_red_money);
             case("医疗"):
-                return context.getDrawable(R.drawable.hospital);
+                return context.getDrawable(R.drawable.ic_hospital);
             case("一卡通"):
-                return context.getDrawable(R.drawable.ecard);
+                return context.getDrawable(R.drawable.ic_ecard);
             case("学习"):
-                return context.getDrawable(R.drawable.study);
+                return context.getDrawable(R.drawable.ic_study);
             case("其他"):
-                return context.getDrawable(R.drawable.others);
+                return context.getDrawable(R.drawable.ic_others);
         }
         return null;
     }

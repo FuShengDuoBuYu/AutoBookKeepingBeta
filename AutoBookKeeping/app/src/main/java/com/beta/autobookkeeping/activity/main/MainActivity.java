@@ -3,21 +3,20 @@ package com.beta.autobookkeeping.activity.main;
 import static Util.ProjectUtil.getCurrentDay;
 import static Util.ProjectUtil.getCurrentMonth;
 import static Util.ProjectUtil.getCurrentYear;
-import static Util.ProjectUtil.getDayMoney;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.fragment.app.FragmentManager;
-import androidx.fragment.app.FragmentTransaction;
+import androidx.fragment.app.Fragment;
+import androidx.viewpager2.widget.CompositePageTransformer;
+import androidx.viewpager2.widget.ViewPager2;
 
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.graphics.Color;
 import android.os.Bundle;
-import android.os.Parcelable;
 import android.text.InputType;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -30,26 +29,31 @@ import com.beta.autobookkeeping.activity.monthReport.MonthReportActivity;
 import com.beta.autobookkeeping.activity.orderDetail.OrderDetailActivity;
 import com.beta.autobookkeeping.activity.settings.SettingsActivity;
 import com.beta.autobookkeeping.R;
-import com.beta.autobookkeeping.fragment.OrderDetailFragment;
+import com.beta.autobookkeeping.fragment.orderDetail.FamilyOrderDetailFragment;
+import com.beta.autobookkeeping.fragment.orderDetail.PersonalOrderDetailFragment;
+import com.beta.autobookkeeping.fragment.orderDetail.TabOrderDetailFragmentPagerAdapter;
 import com.beta.autobookkeeping.smsTools.SMSApplication;
 import com.beta.autobookkeeping.smsTools.SMSDataBase;
 import com.beta.autobookkeeping.smsTools.SMSService;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 
 import Util.ProjectUtil;
 import Util.SpUtils;
 
 public class MainActivity extends AppCompatActivity {
 
-    private Button btnPlusNewOrder,btnSettings,btnSearchMonthlyReport;
+    private ViewPager2 tabViewPager;
+    private List<Fragment> fragments;
+    private TabOrderDetailFragmentPagerAdapter tabOrderDetailFragmentPagerAdapter;
+    private Button btnPlusNewOrder,btnSettings,btnSearchMonthlyReport,btnPersonalOrderDetail,btnFamilyOrderDetail;
     private TextView tvAllTodayOrder,tvAllMonthOrder,tv_title;
     private LinearLayout lvOrderDetail;
     private ScrollView svOrderDetail;
     Bundle bundle;
+    int currentViewPageFragmentIndex = 0;
     //数据库实例
     SQLiteDatabase db;
     //所有账单信息的list
@@ -62,17 +66,45 @@ public class MainActivity extends AppCompatActivity {
         initSpAndSqlLiteData();
         //先检查短信等权限是否获取
         DialogPermisson.ifGetPermission(MainActivity.this,MainActivity.this);
-        initFragment();
+        findViewByIdAndInit();
+        //初始化页面布局
+        initFragmentAndViewPage();
         //开启读取短信线程
         startService(new Intent(MainActivity.this, SMSService.class));
-        findViewByIdAndInit();
+
         //设置手机号
         setPhoneNum();
     }
 
-    //初始化fragment
-    private void initFragment(){
-
+    private void changePager(int position) {
+        btnPersonalOrderDetail.setTextColor(position==1?Color.BLACK:Color.BLUE);
+        btnFamilyOrderDetail.setTextColor(position==0?Color.BLACK:Color.BLUE);
+    }
+    //初始化fragment和viewpage
+    private void initFragmentAndViewPage(){
+        fragments = new LinkedList<>();
+        fragments.add(new PersonalOrderDetailFragment());
+        fragments.add(FamilyOrderDetailFragment.newInstance("home"));
+        tabOrderDetailFragmentPagerAdapter = new TabOrderDetailFragmentPagerAdapter(getSupportFragmentManager(),getLifecycle(), fragments);
+        tabViewPager.setAdapter(tabOrderDetailFragmentPagerAdapter);
+        //初始化显示第一个页面(个人)
+        tabViewPager.setCurrentItem(0);
+        //设置监听
+        tabViewPager.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
+            @Override
+            public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
+                super.onPageScrolled(position, positionOffset, positionOffsetPixels);
+                changePager(position);
+            }
+            @Override
+            public void onPageSelected(int position) {
+                super.onPageSelected(position);
+            }
+            @Override
+            public void onPageScrollStateChanged(int state) {
+                super.onPageScrollStateChanged(state);
+            }
+        });
     }
 
     //获取要展示的数据
@@ -122,6 +154,27 @@ public class MainActivity extends AppCompatActivity {
 
     //为各个组件设置事件
     private void findViewByIdAndInit(){
+        //个人/家庭版切换按钮
+        btnPersonalOrderDetail = findViewById(R.id.personal_order_detail);
+        btnPersonalOrderDetail.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                tabViewPager.setCurrentItem(0);
+                btnPersonalOrderDetail.setTextColor(Color.BLUE);
+                btnFamilyOrderDetail.setTextColor(Color.BLACK);
+            }
+        });
+        btnFamilyOrderDetail = findViewById(R.id.family_order_detail);
+        btnFamilyOrderDetail.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                tabViewPager.setCurrentItem(1);
+                btnFamilyOrderDetail.setTextColor(Color.BLUE);
+                btnPersonalOrderDetail.setTextColor(Color.BLACK);
+            }
+        });
+        //viewpage
+        tabViewPager = (ViewPager2) findViewById(R.id.orders_detail_view_page);
         tvAllTodayOrder = findViewById(R.id.tvAllTodayOrder);
         tvAllMonthOrder = findViewById(R.id.tvAllMonthOrder);
         //找到不同日期并显示
@@ -277,20 +330,5 @@ public class MainActivity extends AppCompatActivity {
         tvAllMonthOrder.setText(String .format("%.2f",ProjectUtil.getMonthMoney(this)));
         tvAllTodayOrder.setText(String .format("%.2f",ProjectUtil.getDayMoney(getCurrentYear(),getCurrentMonth(),getCurrentDay(),this)));
     }
-
-    //获取并显示所有账单详情的方法
-//    public void showOrderDetailList(){
-//        Cursor cursor = db.query ("orderInfo",null,null,null,null,null,"id desc");
-//        //先清空list中的数据
-//        orderInfos.clear();
-//        while(cursor.moveToNext()){
-//            //初始化orderInfoList
-//            OrderInfo orderInfo = new OrderInfo(cursor.getString(4),cursor.getString(6),cursor.getString(7),cursor.getDouble(5),cursor.getString(8),cursor.getString(9));
-//            orderInfos.add(orderInfo);
-//        }
-//        //显示数据
-//        OrderDetail.addViewByData(this,lvOrderDetail,db,svOrderDetail,MainActivity.this);
-//    }
-
 
 }
