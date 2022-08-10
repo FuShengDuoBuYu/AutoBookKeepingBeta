@@ -10,6 +10,7 @@ import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
 import android.graphics.drawable.LayerDrawable;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.Button;
@@ -138,16 +139,22 @@ public class MonthReportActivity extends AppCompatActivity {
     public void showBarChart(){
         //将moneyEntry的值先去到
         setBarDataSetDataMoney(recordMonth,recordYear);
-        moneyEntry.add(new BarEntry(-0.5f,0));
+//        moneyEntry.add(new BarEntry(-0.5f,0));
         //创建第一个变量总收支的图
         moneyDataSet = new BarDataSet(moneyEntry,"总收支");
         //设置这个变量柱子的基本参数
-        moneyDataSet.setColor(Color.parseColor("#5091F3"));
-        moneyDataSet.setDrawValues(true);
+        int[] colors = new int[moneyEntry.size()];
+        for (int i = 0; i < moneyEntry.size(); i++) {
+            Log.d("money",String.valueOf(moneyEntry.get(i).getY()));
+            colors[i] = (moneyEntry.get(i).getY()>0?Color.GREEN:Color.RED);
+        }
+        moneyDataSet.setColors(colors,80);
+//        moneyDataSet.setDrawValues(true);
         //创建变量组
         ArrayList<IBarDataSet> dataSets = new ArrayList<>();
         dataSets.add(moneyDataSet);
         BarData data = new BarData(dataSets);
+        data.setBarWidth(0.3f);
         //将变量组交给图
         monthMoneyBarChart.setData(data);
         //显示柱状图
@@ -183,7 +190,7 @@ public class MonthReportActivity extends AppCompatActivity {
         //设置中心背景颜色为透明
         pieChart.setHoleColor(0);
         //设置饼状图的颜色
-        costDataSet.setColors(dataColor);
+        costDataSet.setColors(dataColor,150);
         //图例设置
         Legend legend = pieChart.getLegend();
         legend.setEnabled(true);//是否显示图例
@@ -234,9 +241,12 @@ public class MonthReportActivity extends AppCompatActivity {
         barChart.setHighlightFullBarEnabled(false);
         //显示边框
         barChart.setDrawBorders(false);
+        barChart.setTouchEnabled(false);
+        barChart.notifyDataSetChanged();
+        barChart.setFitBars(true);
         //设置动画效果
-        barChart.animateY(1000, Easing.Linear);
-        barChart.animateX(1000, Easing.Linear);
+        barChart.animateY(500, Easing.Linear);
+        barChart.animateX(500, Easing.Linear);
         //不显示右下角描述内容
         Description description = new Description();
         description.setEnabled(false);
@@ -246,10 +256,9 @@ public class MonthReportActivity extends AppCompatActivity {
         //X轴设置显示位置在底部
         xAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
         //X轴横坐标显示的数量
-        xAxis.setLabelCount(9,true);
-        //X轴最大坐标
-        xAxis.setAxisMaximum(7.5f);
+        xAxis.setLabelCount(12,true);
 
+        xAxis.setCenterAxisLabels(true);
         xAxis.setValueFormatter(new ValueFormatter() {
             @Override
             public String getFormattedValue(float value) {
@@ -269,17 +278,20 @@ public class MonthReportActivity extends AppCompatActivity {
             //查出某个月的收支总和
             monthCost= ProjectUtil.getMonthMoney(recordYear2,recordMonth2,MonthReportActivity.this);
             //如果某个月收支为0,说明为起始月份
-            if(monthCost==0.0){
+            if(monthCost==0.0 || moneyEntry.size() ==12){
                 break;
             }
             //否则将收支总和写入记录的list
             else{
+//                Log.d("index",String.valueOf(index));
+//                Log.d("monthCost",String.valueOf(monthCost));
+//                Log.d("month",String.valueOf(recordMonth2));
                 moneyEntry.add(new BarEntry(index++,(float)monthCost));
-                monthLabels.add(String.valueOf(recordYear2)+"/"+String.valueOf(recordMonth2)+"");
+                monthLabels.add(String.valueOf(recordMonth2));
             }
             //更新要查询的月份
             if(recordMonth2==1){
-                recordMonth2 = 9;
+                recordMonth2 = 12;
                 recordYear2-=1;
             }else{
                 recordMonth2-=1;
