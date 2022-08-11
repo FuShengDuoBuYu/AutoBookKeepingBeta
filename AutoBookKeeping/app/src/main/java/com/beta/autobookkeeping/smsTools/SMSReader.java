@@ -9,10 +9,12 @@ import android.os.Handler;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.beta.autobookkeeping.BaseApplication;
+
 import Util.ProjectUtil;
 
 public class SMSReader extends AppCompatActivity {
-    SMSApplication smsApplication;
+    BaseApplication baseApplication;
     private Context context;
     //短信内容
     private String body;
@@ -28,8 +30,8 @@ public class SMSReader extends AppCompatActivity {
                     ProjectUtil.toastMsg(context,"读取到银行账单!");
                     Intent intent = context.getPackageManager().getLaunchIntentForPackage(context.getPackageName());
                     intent.putExtras(bundle);
-                    smsApplication  = (SMSApplication) context.getApplicationContext();
-                    smsApplication.setSMSMsg(body);
+                    baseApplication = (BaseApplication) context.getApplicationContext();
+                    baseApplication.setSMSMsg(body);
                     context.startActivity(intent);
                 }
             }

@@ -4,17 +4,16 @@ import static Util.ProjectUtil.getCurrentDay;
 import static Util.ProjectUtil.getCurrentMonth;
 import static Util.ProjectUtil.getCurrentYear;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
-import androidx.viewpager2.widget.CompositePageTransformer;
 import androidx.viewpager2.widget.ViewPager2;
 
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.text.InputType;
 import android.view.View;
@@ -32,9 +31,12 @@ import com.beta.autobookkeeping.R;
 import com.beta.autobookkeeping.fragment.orderDetail.FamilyOrderDetailFragment;
 import com.beta.autobookkeeping.fragment.orderDetail.PersonalOrderDetailFragment;
 import com.beta.autobookkeeping.fragment.orderDetail.TabOrderDetailFragmentPagerAdapter;
-import com.beta.autobookkeeping.smsTools.SMSApplication;
+import com.beta.autobookkeeping.BaseApplication;
 import com.beta.autobookkeeping.smsTools.SMSDataBase;
 import com.beta.autobookkeeping.smsTools.SMSService;
+import com.google.android.material.tabs.TabLayout;
+import com.google.android.material.tabs.TabLayoutMediator;
+import com.hss01248.dialog.StyledDialog;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -47,8 +49,9 @@ public class MainActivity extends AppCompatActivity {
 
     private ViewPager2 tabViewPager;
     private List<Fragment> fragments;
+    private TabLayout tabLayout;
     private TabOrderDetailFragmentPagerAdapter tabOrderDetailFragmentPagerAdapter;
-    private Button btnPlusNewOrder,btnSettings,btnSearchMonthlyReport,btnPersonalOrderDetail,btnFamilyOrderDetail;
+    private Button btnPlusNewOrder,btnSettings,btnSearchMonthlyReport;
     private TextView tvAllTodayOrder,tvAllMonthOrder,tv_title;
     private LinearLayout lvOrderDetail;
     private ScrollView svOrderDetail;
@@ -71,14 +74,10 @@ public class MainActivity extends AppCompatActivity {
         initFragmentAndViewPage();
         //开启读取短信线程
         startService(new Intent(MainActivity.this, SMSService.class));
-
         //设置手机号
         setPhoneNum();
-    }
+//        StyledDialog.buildLoading().show();
 
-    private void changePager(int position) {
-        btnPersonalOrderDetail.setTextColor(position==1?Color.BLACK:Color.BLUE);
-        btnFamilyOrderDetail.setTextColor(position==0?Color.BLACK:Color.BLUE);
     }
     //初始化fragment和viewpage
     private void initFragmentAndViewPage(){
@@ -93,8 +92,8 @@ public class MainActivity extends AppCompatActivity {
         tabViewPager.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
             @Override
             public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
+                //todo:做某些事情
                 super.onPageScrolled(position, positionOffset, positionOffsetPixels);
-                changePager(position);
             }
             @Override
             public void onPageSelected(int position) {
@@ -105,6 +104,19 @@ public class MainActivity extends AppCompatActivity {
                 super.onPageScrollStateChanged(state);
             }
         });
+        TabLayoutMediator mediator = new TabLayoutMediator(tabLayout, tabViewPager, new TabLayoutMediator.TabConfigurationStrategy() {
+            @Override
+            public void onConfigureTab(@NonNull TabLayout.Tab tab, int position) {
+                if(position==0){
+                    tab.setText("个人版");
+                }
+                else{
+                    tab.setText("家庭版");
+                }
+            }
+        });
+        mediator.attach();
+
     }
 
     //获取要展示的数据
@@ -154,25 +166,8 @@ public class MainActivity extends AppCompatActivity {
 
     //为各个组件设置事件
     private void findViewByIdAndInit(){
-        //个人/家庭版切换按钮
-        btnPersonalOrderDetail = findViewById(R.id.personal_order_detail);
-        btnPersonalOrderDetail.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                tabViewPager.setCurrentItem(0);
-                btnPersonalOrderDetail.setTextColor(Color.BLUE);
-                btnFamilyOrderDetail.setTextColor(Color.BLACK);
-            }
-        });
-        btnFamilyOrderDetail = findViewById(R.id.family_order_detail);
-        btnFamilyOrderDetail.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                tabViewPager.setCurrentItem(1);
-                btnFamilyOrderDetail.setTextColor(Color.BLUE);
-                btnPersonalOrderDetail.setTextColor(Color.BLACK);
-            }
-        });
+        //顶部导航栏
+        tabLayout = findViewById(R.id.order_detail_tab);
         //viewpage
         tabViewPager = (ViewPager2) findViewById(R.id.orders_detail_view_page);
         tvAllTodayOrder = findViewById(R.id.tvAllTodayOrder);
@@ -310,9 +305,9 @@ public class MainActivity extends AppCompatActivity {
         //显示账单状态
         tv_title.setText("我的收支:"+SpUtils.get(this,"OrderStatus",""));
         //检测Application中是否有短信数据
-        SMSApplication smsApplication = new SMSApplication();
-        smsApplication = (SMSApplication)getApplication();
-        if(smsApplication.getSMSMsg()!=null){
+        BaseApplication baseApplication = new BaseApplication();
+        baseApplication = (BaseApplication)getApplication();
+        if(baseApplication.getSMSMsg()!=null){
             //跳转到新增界面
             Intent intent = new Intent(MainActivity.this,OrderDetailActivity.class);
             startActivity(intent);

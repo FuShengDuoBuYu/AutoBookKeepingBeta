@@ -127,28 +127,23 @@ f
         android:background="@color/black"
         android:layout_marginTop="10dp">
     </View>
-
-    <LinearLayout
+    <com.google.android.material.tabs.TabLayout
+        android:id="@+id/order_detail_tab"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal">
-        <Button
-            android:id="@+id/personal_order_detail"
+        style="@style/Base.Widget.Design.TabLayout"
+        android:layout_height="wrap_content">
+        <com.google.android.material.tabs.TabItem
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:gravity="center_horizontal"
-            android:layout_weight="1"
-            android:background="@color/white"
-            android:text="个人版" />
-        <Button
-            android:id="@+id/family_order_detail"
+            android:layout_height="match_parent"
+            style="@style/TextAppearanceBase"
+            android:id="@+id/personal_order_detail_item">
+        </com.google.android.material.tabs.TabItem>
+        <com.google.android.material.tabs.TabItem
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:gravity="center_horizontal"
-            android:layout_weight="1"
-            android:background="@color/white"
-            android:text="家庭版" />
-    </LinearLayout>
+            android:id="@+id/family_order_detail_item"
+            android:layout_height="match_parent">
+        </com.google.android.material.tabs.TabItem>
+    </com.google.android.material.tabs.TabLayout>
     <!--所有账单的详细信息-->
     <androidx.viewpager2.widget.ViewPager2
         android:id="@+id/orders_detail_view_page"

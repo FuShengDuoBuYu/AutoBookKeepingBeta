@@ -22,7 +22,7 @@ import android.widget.TextView;
 import android.widget.TimePicker;
 
 import com.beta.autobookkeeping.R;
-import com.beta.autobookkeeping.smsTools.SMSApplication;
+import com.beta.autobookkeeping.BaseApplication;
 import com.beta.autobookkeeping.smsTools.SMSDataBase;
 import com.beta.autobookkeeping.smsTools.SMSService;
 
@@ -126,9 +126,9 @@ public class OrderDetailActivity extends AppCompatActivity {
 
     @Override
     protected void onDestroy() {
-        SMSApplication smsApplication = new SMSApplication();
-        smsApplication = (SMSApplication)getApplication();
-        smsApplication.setSMSMsg(null);
+        BaseApplication baseApplication = new BaseApplication();
+        baseApplication = (BaseApplication)getApplication();
+        baseApplication.setSMSMsg(null);
         super.onDestroy();
     }
 
@@ -221,10 +221,10 @@ public class OrderDetailActivity extends AppCompatActivity {
         }
         //代表用户读取短信获取
         else{
-            SMSApplication smsApplication = new SMSApplication();;
-            smsApplication = (SMSApplication) getApplication();
-            String msg = smsApplication.getSMSMsg();
-            smsApplication.setSMSMsg(null);
+            BaseApplication baseApplication = new BaseApplication();;
+            baseApplication = (BaseApplication) getApplication();
+            String msg = baseApplication.getSMSMsg();
+            baseApplication.setSMSMsg(null);
             if(msg!=null)
             msgContent = ProjectUtil.getBankOrderInfo(msg);
         }
@@ -234,10 +234,10 @@ public class OrderDetailActivity extends AppCompatActivity {
     protected void onPause() {
         //在这里将Application中的数据设置为空,这样就不会跳转两次,这个bug和activity的生命周期
         //息息相关
-        SMSApplication smsApplication = new SMSApplication();;
-        smsApplication = (SMSApplication) getApplication();
-        String msg = smsApplication.getSMSMsg();
-        smsApplication.setSMSMsg(null);
+        BaseApplication baseApplication = new BaseApplication();;
+        baseApplication = (BaseApplication) getApplication();
+        String msg = baseApplication.getSMSMsg();
+        baseApplication.setSMSMsg(null);
         super.onPause();
     }
 

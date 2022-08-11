@@ -8,7 +8,7 @@
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <application
-        android:name=".smsTools.SMSApplication"
+        android:name=".BaseApplication"
         android:allowBackup="true"
         android:icon="@drawable/start_icon"
         android:label="@string/app_name"
