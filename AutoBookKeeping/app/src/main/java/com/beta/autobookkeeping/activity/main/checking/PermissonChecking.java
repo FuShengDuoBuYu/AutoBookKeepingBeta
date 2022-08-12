@@ -1,4 +1,4 @@
-package com.beta.autobookkeeping.activity.main;
+package com.beta.autobookkeeping.activity.main.checking;
 
 import android.Manifest;
 import android.app.Activity;
@@ -11,7 +11,7 @@ import androidx.core.app.ActivityCompat;
 import java.util.ArrayList;
 import java.util.List;
 
-public class DialogPermisson {
+public class PermissonChecking {
     //查看有没有获取到权限,没有就弹窗获取权限
     public static void ifGetPermission(Context context, Activity activity){
         List<String> permissions = new ArrayList<>();

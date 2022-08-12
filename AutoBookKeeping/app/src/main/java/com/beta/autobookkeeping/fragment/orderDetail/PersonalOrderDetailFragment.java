@@ -31,8 +31,8 @@ import android.widget.ScrollView;
 
 import com.beta.autobookkeeping.R;
 import com.beta.autobookkeeping.activity.main.MainActivity;
-import com.beta.autobookkeeping.activity.main.OrderDayItems;
-import com.beta.autobookkeeping.activity.main.OrderInfo;
+import com.beta.autobookkeeping.activity.main.entity.OrderDayItems;
+import com.beta.autobookkeeping.activity.main.entity.OrderInfo;
 import com.beta.autobookkeeping.activity.orderDetail.OrderDetailActivity;
 import com.beta.autobookkeeping.smsTools.SMSDataBase;
 

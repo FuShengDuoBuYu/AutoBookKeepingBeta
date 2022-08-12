@@ -1,4 +1,4 @@
-package com.beta.autobookkeeping.activity.main;
+package com.beta.autobookkeeping.activity.main.entity;
 
 public class OrderDayItems {
     private int year,month,day;

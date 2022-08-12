@@ -446,6 +446,71 @@ public class ProjectUtil {
         return linearLayoutItem;
     }
 
+    public static LinearLayout setDayOrderItem(String category, String payWay, String money, String time, Context context,ImageView imageView) {
+        //最外层的总LinearLayout
+        LinearLayout linearLayoutItem = new LinearLayout(context);
+        linearLayoutItem.setOrientation(LinearLayout.HORIZONTAL);
+        linearLayoutItem.setPadding(0, 20, 0, 20);
+        //再加四个子layout
+        LinearLayout linearLayoutLeftPart = new LinearLayout(context);
+        LinearLayout linearLayoutLeftImagePart = new LinearLayout(context);
+        LinearLayout linearLayoutRightPart = new LinearLayout(context);
+        LinearLayout linearLayoutRightImagePart = new LinearLayout(context);
+        linearLayoutLeftPart.setOrientation(LinearLayout.VERTICAL);
+        linearLayoutLeftImagePart.setOrientation(LinearLayout.VERTICAL);
+        linearLayoutRightPart.setOrientation(LinearLayout.VERTICAL);
+        linearLayoutRightImagePart.setOrientation(LinearLayout.VERTICAL);
+        //再设置图片
+        ImageView categoryImage = new ImageView(context);
+        Drawable image = getIconByCategory(category, context);
+        categoryImage.setImageDrawable(image);
+        linearLayoutRightImagePart.addView(imageView);
+        //设置子布局格式
+        linearLayoutLeftPart.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT, 1.0f));
+        linearLayoutRightPart.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT, 1.0f));
+        linearLayoutLeftImagePart.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT,LinearLayout.LayoutParams.WRAP_CONTENT));
+        linearLayoutLeftPart.setPadding(60, 7, 0, 7);
+        linearLayoutRightPart.setPadding(60, 7, 0, 7);
+        linearLayoutLeftImagePart.setPadding(60, 16, 0, 7);
+        linearLayoutLeftPart.setGravity(Gravity.START);
+        linearLayoutLeftImagePart.setHorizontalGravity(1);
+        linearLayoutLeftImagePart.setVerticalGravity(16);
+        linearLayoutRightPart.setGravity(Gravity.END);
+        //每个字layout里加两个textview
+        TextView tvCategory = new TextView(context);
+        tvCategory.setMaxEms(10);
+        TextView tvPayWay = new TextView(context);
+        TextView tvMoney = new TextView(context);
+        TextView tvTime = new TextView(context);
+        //设置每个textview
+        tvCategory.setText(category);
+        tvPayWay.setText(payWay);
+        tvMoney.setText(money);
+        tvTime.setText(time);
+        //设置textView格式
+        tvCategory.setTextColor(Color.BLACK);
+        tvCategory.setTextSize(18);
+        tvMoney.setGravity(Gravity.END);
+        tvTime.setGravity(Gravity.END);
+        tvMoney.setPadding(0, 0, 10, 0);
+        tvTime.setPadding(0, 0, 10, 0);
+        //将textView加入子布局
+        linearLayoutLeftPart.addView(tvCategory);
+        linearLayoutLeftPart.addView(tvPayWay);
+        linearLayoutRightPart.addView(tvMoney);
+        linearLayoutRightPart.addView(tvTime);
+        linearLayoutLeftImagePart.addView(categoryImage);
+        //将子布局加到总布局里
+        linearLayoutItem.addView(linearLayoutLeftImagePart);
+        linearLayoutItem.addView(linearLayoutLeftPart);
+        linearLayoutItem.addView(linearLayoutRightPart);
+        linearLayoutItem.addView(linearLayoutRightImagePart);
+        return linearLayoutItem;
+    }
+
+
+
+
     //动态设置一个xmlTitle
     public static LinearLayout setDayOrderTitle(String date, String money, Context context) {
         LinearLayout linearLayoutTitle = new LinearLayout(context);

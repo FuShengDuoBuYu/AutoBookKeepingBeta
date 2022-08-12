@@ -22,6 +22,7 @@ import android.os.Message;
 import android.util.Log;
 import android.view.ContextThemeWrapper;
 import android.view.View;
+import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.LinearLayout;
@@ -31,6 +32,7 @@ import android.widget.TextView;
 
 import com.beta.autobookkeeping.R;
 import com.beta.autobookkeeping.activity.orderItemSearch.OrderItemSearchActivity;
+import com.beta.autobookkeeping.activity.presonalInfo.PersonlInfoActivity;
 import com.beta.autobookkeeping.smsTools.SMSDataBase;
 import com.beta.autobookkeeping.smsTools.SMSService;
 
@@ -60,6 +62,7 @@ public class SettingsActivity extends AppCompatActivity {
     private LinearLayout llDeleteAllOrders,ll_searchLimitTimeOrders,ll_downloadAllOrders,ll_uploadAllOrders,ll_uploadFamilyOrder,ll_downloadFamilyOrder,ll_changeOrderStatus;
     private ProgressBar pbUploadPersonalOrder,pbDownloadPersonalOrder,pbUploadFamilyOrder,pbDownloadFamilyOrder,pbChangeOrderStatus;
     private TextView tv_setting_order_status;
+    private Button button;
     //用来上传下载完成后取消显示进度条的handler
     private Handler handler = new Handler(){
         @Override
@@ -131,6 +134,14 @@ public class SettingsActivity extends AppCompatActivity {
         ll_uploadFamilyOrder.setOnClickListener(onClick);
         ll_downloadFamilyOrder.setOnClickListener(onClick);
         ll_changeOrderStatus.setOnClickListener(onClick);
+        button = findViewById(R.id.iii);
+        button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(SettingsActivity.this, PersonlInfoActivity.class);
+                startActivity(intent);
+            }
+        });
         //初始化账单状态
         tv_setting_order_status.setText("当前版本:"+SpUtils.get(SettingsActivity.this,"OrderStatus","").toString());
     }

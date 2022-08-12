@@ -1,4 +1,4 @@
-package com.beta.autobookkeeping.activity.main;
+package com.beta.autobookkeeping.activity.main.entity;
 
 import android.os.Parcel;
 import android.os.Parcelable;

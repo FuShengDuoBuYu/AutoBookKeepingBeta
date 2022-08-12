@@ -3,6 +3,7 @@ package com.beta.autobookkeeping.activity.main;
 import static Util.ProjectUtil.getCurrentDay;
 import static Util.ProjectUtil.getCurrentMonth;
 import static Util.ProjectUtil.getCurrentYear;
+import static Util.ProjectUtil.toastMsg;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
@@ -24,6 +25,11 @@ import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.beta.autobookkeeping.activity.main.checking.FamilyChecking;
+import com.beta.autobookkeeping.activity.main.checking.PermissonChecking;
+import com.beta.autobookkeeping.activity.main.checking.UserRegister;
+import com.beta.autobookkeeping.activity.main.entity.OrderDayItems;
+import com.beta.autobookkeeping.activity.main.entity.OrderInfo;
 import com.beta.autobookkeeping.activity.monthReport.MonthReportActivity;
 import com.beta.autobookkeeping.activity.orderDetail.OrderDetailActivity;
 import com.beta.autobookkeeping.activity.settings.SettingsActivity;
@@ -37,6 +43,7 @@ import com.beta.autobookkeeping.smsTools.SMSService;
 import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.tabs.TabLayoutMediator;
 import com.hss01248.dialog.StyledDialog;
+import com.hss01248.dialog.interfaces.MyDialogListener;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -68,7 +75,7 @@ public class MainActivity extends AppCompatActivity {
         //设置初始偏好数据
         initSpAndSqlLiteData();
         //先检查短信等权限是否获取
-        DialogPermisson.ifGetPermission(MainActivity.this,MainActivity.this);
+        PermissonChecking.ifGetPermission(MainActivity.this,MainActivity.this);
         findViewByIdAndInit();
         //初始化页面布局
         initFragmentAndViewPage();
@@ -76,8 +83,7 @@ public class MainActivity extends AppCompatActivity {
         startService(new Intent(MainActivity.this, SMSService.class));
         //设置手机号
         setPhoneNum();
-//        StyledDialog.buildLoading().show();
-
+        FamilyChecking.checkFamily(this);
     }
     //初始化fragment和viewpage
     private void initFragmentAndViewPage(){
@@ -237,42 +243,35 @@ public class MainActivity extends AppCompatActivity {
 
     //注册手机号 todo:优化注册
     private void setPhoneNum(){
-        //用户设置电话号码
-        if(!SpUtils.contains(this,"phoneNum")){
-            AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
-//        builder.setTitle(" ");    //设置对话框标题
-//        builder.setIcon(android.R.drawable.btn_star);   //设置对话框标题前的图标
-            TextView textView = new TextView(MainActivity.this);
-            textView.setText("口令:");
-            textView.setTextSize(22);
-
-            final EditText edit = new EditText(MainActivity.this);
-            edit.setHint("请填写口令");
-            edit.setInputType(InputType.TYPE_CLASS_NUMBER);
-            edit.setWidth(550);
-            edit.setTextSize(18);
-
-            LinearLayout layout = new LinearLayout(MainActivity.this);
-            layout.setHorizontalGravity(LinearLayout.HORIZONTAL);
-            layout.addView(textView);
-            layout.addView(edit);
-
-            layout.setPadding(100, 0, 100, 20);
-            builder.setView(layout);
-            builder.setPositiveButton("确认", new DialogInterface.OnClickListener() {
+        //用户设置电话号码和昵称
+        if(
+                SpUtils.get(this,"phoneNum","")==null ||
+                SpUtils.get(this,"phoneNum","").equals("")
+        ){
+            StyledDialog.buildNormalInput("用户注册", "请输入手机号", "请输入密码", "确定", "取消", new MyDialogListener() {
                 @Override
-                public void onClick(DialogInterface dialog, int which) {
-                    SpUtils.put(MainActivity.this,"phoneNum",edit.getText().toString());
-                    Toast.makeText(MainActivity.this, "你输入的是: " + edit.getText().toString(), Toast.LENGTH_SHORT).show();
+                public void onFirst() {}
+                @Override
+                public void onSecond() {}
+                @Override
+                public void onGetInput(CharSequence input1, CharSequence input2) {
+//                    toastMsg(MainActivity.this,input1.toString());
+                    super.onGetInput(input1, input2);
                 }
-            });
 
-            builder.setCancelable(false);    //设置按钮是否可以按返回键取消,false则不可以取消
-            //创建对话框
-            AlertDialog dialog = builder.create();
-            dialog.setCanceledOnTouchOutside(false); //设置弹出框失去焦点是否隐藏,即点击屏蔽其它地方是否隐藏
-            dialog.show();
+                @Override
+                public boolean onInputValid(CharSequence input1, CharSequence input2, EditText editText1, EditText editText2) {
+                    if(input1.toString().matches("^[1][3,4,5,7,8,9][0-9]{9}$")&&(!(input2.toString()==null))&&(!input2.toString().equals(""))){
+                        UserRegister.userRegister(input1.toString(),input2.toString(),MainActivity.this);
+                        return true;
+                    }else{
+                        toastMsg(MainActivity.this,"输入有误,请重试");
+                        return false;
+                    }
+                }
+            }).show();
         }
+
 //        new Thread(new Runnable() {
 //            @Override
 //            public void run() {
