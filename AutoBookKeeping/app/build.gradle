@@ -45,4 +45,7 @@ dependencies {
     implementation ('com.github.hss01248:DialogUtil:2.0.2'){
         exclude group: 'com.android.support'
     }
+    implementation 'io.github.lucksiege:pictureselector:v3.10.5'
+    implementation 'io.github.lucksiege:compress:v3.10.4'
+    implementation 'io.github.lucksiege:ucrop:v3.10.4'
 }

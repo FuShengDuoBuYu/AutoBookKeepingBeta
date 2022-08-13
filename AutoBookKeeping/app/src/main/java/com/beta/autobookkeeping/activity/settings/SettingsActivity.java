@@ -463,9 +463,10 @@ public class SettingsActivity extends AppCompatActivity {
                                             + "values (" + cloudDataResult.getInt("id") + "," + cloudDataResult.getInt("year") + "," + cloudDataResult.getInt("month") + "," + cloudDataResult.getInt("day") + ","
                                             + "'" + cloudDataResult.getString("clock") + "'" + "," + cloudDataResult.getDouble("money") + "," + "'" + cloudDataResult.getString("bankName") + "'" + "," + "'" +
                                             cloudDataResult.getString("orderRemark") + "'" + "," + "'" + cloudDataResult.getString("costType") + "'" + "," + "'" + cloudDataResult.getString("userId")+ "'" +");";
-                                    Log.d("sql", sql);
+//                                    Log.d("sql", sql);
                                     db.execSQL(sql);
                             }
+                            Log.d("sql", String.valueOf(ProjectUtil.getMonthMoney(SettingsActivity.this)));
                             //设置进度条不显示
                             Message msgComplete = new Message();
                             msgComplete.what = pbDownloadPersonalOrderCOMPLETED;

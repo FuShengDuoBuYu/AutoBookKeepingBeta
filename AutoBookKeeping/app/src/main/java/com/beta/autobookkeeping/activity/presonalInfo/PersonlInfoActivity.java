@@ -3,11 +3,18 @@ package com.beta.autobookkeeping.activity.presonalInfo;
 import static com.hss01248.dialog.StyledDialog.context;
 import static Util.ConstVariable.IP;
 
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.content.ContentResolver;
+import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Looper;
+import android.provider.MediaStore;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
@@ -21,12 +28,15 @@ import com.beta.autobookkeeping.activity.presonalInfo.personalInfoItems.BasicInf
 import com.beta.autobookkeeping.activity.presonalInfo.personalInfoItems.FamilyInfo;
 import com.hss01248.dialog.StyledDialog;
 import com.hss01248.dialog.interfaces.MyDialogListener;
+import com.yalantis.ucrop.UCrop;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -39,7 +49,8 @@ import okhttp3.RequestBody;
 import okhttp3.Response;
 
 public class PersonlInfoActivity extends AppCompatActivity {
-
+    private Uri resultUri;
+    private BasicInfo basicInfo = null;
     private TextView phoneNum,nickname;
     private LinearLayout familyDetail,llContainer;
     @Override
@@ -53,7 +64,7 @@ public class PersonlInfoActivity extends AppCompatActivity {
 
     private void findViewByIdAndInit(){
         llContainer = findViewById(R.id.ll_container);
-        BasicInfo basicInfo = new BasicInfo((String) SpUtils.get(this,"phoneNum",""),(SpUtils.get(this,"nickName","")==null||SpUtils.get(this,"nickName","").equals(""))?"暂未设置":(String) SpUtils.get(this,"nickName",""),this);
+        basicInfo = new BasicInfo((String) SpUtils.get(this,"phoneNum",""),(SpUtils.get(this,"nickName","")==null||SpUtils.get(this,"nickName","").equals(""))?"暂未设置":(String) SpUtils.get(this,"nickName",""),this);
         LinearLayout basicInfoLayoutView = basicInfo.getLayoutView();
         llContainer.addView(basicInfoLayoutView);
     }
@@ -113,4 +124,22 @@ public class PersonlInfoActivity extends AppCompatActivity {
         });
     }
 
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        if (resultCode == RESULT_OK && requestCode == UCrop.REQUEST_CROP) {
+            resultUri = UCrop.getOutput(data);
+            ContentResolver contentResolver = this.getContentResolver();
+            Bitmap bitmap = null;
+            try {
+                bitmap  = BitmapFactory.decodeStream(contentResolver.openInputStream(resultUri));
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            }
+            StyledDialog.buildLoading().show();
+            basicInfo.modifyPortrait(bitmap);
+        } else if (resultCode == UCrop.RESULT_ERROR) {
+            final Throwable cropError = UCrop.getError(data);
+        }
+        super.onActivityResult(requestCode, resultCode, data);
+    }
 }

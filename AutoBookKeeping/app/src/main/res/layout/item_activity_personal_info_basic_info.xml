@@ -18,7 +18,8 @@
         android:layout_width="match_parent"
         android:layout_height="50dp"
         android:orientation="horizontal"
-        android:gravity="center_vertical">
+        android:gravity="center_vertical"
+        android:id="@+id/ll_portrait">
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -32,8 +33,9 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content">
             <ImageView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:id="@+id/iv_portrait"
                 android:background="@drawable/ic_portrait">
             </ImageView>
         </LinearLayout>

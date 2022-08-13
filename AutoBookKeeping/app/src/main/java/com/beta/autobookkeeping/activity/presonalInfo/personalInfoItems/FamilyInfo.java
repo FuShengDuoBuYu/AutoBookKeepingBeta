@@ -1,14 +1,19 @@
 package com.beta.autobookkeeping.activity.presonalInfo.personalInfoItems;
 
 import static Util.ConstVariable.IP;
+import static Util.ImageUtil.base642bitmap;
+import static Util.ImageUtil.getCircleBitmap;
 
 import android.app.Activity;
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.graphics.Color;
+import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Looper;
 import android.util.Log;
 import android.view.View;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -222,9 +227,17 @@ public class FamilyInfo {
         tvFamilyId.setText("我的家庭id是 "+SpUtils.get(context,"familyId",""));
         for (int i = 0; i < familyMembers.length(); i++) {
             LinearLayout linearLayoutItem = (LinearLayout) LinearLayout.inflate(context,R.layout.item_activity_personal_info_member_family_item,null);
+            ImageView ivFamilyMemberPortrait = linearLayoutItem.findViewById(R.id.iv_family_member_portrait);
             TextView tvFamilyMemberIdentityAndNickname = linearLayoutItem.findViewById(R.id.tv_family_member_identity_and_nickname);
             TextView tvFamilyMemberPhoneNum = linearLayoutItem.findViewById(R.id.tv_family_member_phoneNum);
+            //设置原始头像/自定义头像
             try {
+                if(familyMembers.getJSONObject(i).getString("portrait")==null||"".equals(familyMembers.getJSONObject(i).getString("portrait"))){
+                    ivFamilyMemberPortrait.setBackground(context.getDrawable(R.drawable.ic_portrait));
+                }
+                else{
+                    ivFamilyMemberPortrait.setBackground(new BitmapDrawable(base642bitmap(familyMembers.getJSONObject(i).getString("portrait"))));
+                }
                 tvFamilyMemberIdentityAndNickname.setText(familyMembers.getJSONObject(i).getString("familyIdentity")+"·"+familyMembers.getJSONObject(i).getString("nickname"));
                 tvFamilyMemberPhoneNum.setText(familyMembers.getJSONObject(i).getString("phoneNum"));
             } catch (JSONException e) {
