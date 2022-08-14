@@ -98,11 +98,15 @@ public class MainActivity extends AppCompatActivity {
         tabViewPager.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
             @Override
             public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
-                //todo:做某些事情
                 super.onPageScrolled(position, positionOffset, positionOffsetPixels);
             }
             @Override
             public void onPageSelected(int position) {
+                //更新头部信息
+                if(position==0){
+                    showDayAndMonthMoney();
+                }
+                //家庭信息由对应的fragment负责更新
                 super.onPageSelected(position);
             }
             @Override
@@ -241,7 +245,7 @@ public class MainActivity extends AppCompatActivity {
         return false;
     }
 
-    //注册手机号 todo:优化注册
+    //注册手机号
     private void setPhoneNum(){
         //用户设置电话号码和昵称
         if(
@@ -318,11 +322,15 @@ public class MainActivity extends AppCompatActivity {
         super.onStart();
     }
 
-    //为今日和本月累计赋值刷新
+    //为今日和本月累计赋值刷新(个人)
     public void showDayAndMonthMoney(){
         //重新给月和日开销赋值
         tvAllMonthOrder.setText(String .format("%.2f",ProjectUtil.getMonthMoney(this)));
         tvAllTodayOrder.setText(String .format("%.2f",ProjectUtil.getDayMoney(getCurrentYear(),getCurrentMonth(),getCurrentDay(),this)));
     }
 
+    public void showDayAndMonthMoney(String dayMoney,String monthMoney){
+        tvAllTodayOrder.setText(dayMoney);
+        tvAllMonthOrder.setText(monthMoney);
+    }
 }

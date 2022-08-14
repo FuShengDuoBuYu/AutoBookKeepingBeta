@@ -18,7 +18,7 @@
             android:layout_weight="1"
             android:layout_height="50dp"
             android:text="@string/OrderDetail"
-            android:textColor="@color/black"
+            android:textColor="@color/primary_font"
             android:textSize="20sp"
             android:gravity="center">
         </TextView>
@@ -28,7 +28,7 @@
     <View
         android:layout_width="match_parent"
         android:layout_height="1px"
-        android:background="@color/black"
+        android:background="@color/primary_font"
         android:layout_marginTop="10dp">
     </View>
 
@@ -65,7 +65,7 @@
         <View
             android:layout_width="1px"
             android:layout_height="match_parent"
-            android:background="@color/black"
+            android:background="@color/primary_font"
             android:layout_margin="10dp">
         </View>
         <!--类型选择-->
@@ -87,7 +87,7 @@
     <View
         android:layout_width="match_parent"
         android:layout_height="1px"
-        android:background="@color/black"
+        android:background="@color/primary_font"
         >
     </View>
 
@@ -111,7 +111,7 @@
         <View
             android:layout_width="1px"
             android:layout_height="match_parent"
-            android:background="@color/black"
+            android:background="@color/primary_font"
             android:layout_margin="10dp">
         </View>
         <!--支付方式-->
@@ -131,7 +131,7 @@
     <View
         android:layout_width="match_parent"
         android:layout_height="1px"
-        android:background="@color/black"
+        android:background="@color/primary_font"
         android:layout_marginTop="10dp">
     </View>
 
@@ -154,7 +154,7 @@
     <View
         android:layout_width="match_parent"
         android:layout_height="1px"
-        android:background="@color/black"
+        android:background="@color/primary_font"
         android:layout_marginTop="10dp">
     </View>
 

@@ -3,6 +3,7 @@ package com.beta.autobookkeeping.fragment.orderDetail;
 import static Util.ConstVariable.IP;
 
 import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
@@ -20,6 +21,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.beta.autobookkeeping.R;
+import com.beta.autobookkeeping.activity.main.MainActivity;
 import com.hss01248.dialog.StyledDialog;
 
 import org.json.JSONArray;
@@ -50,26 +52,17 @@ import okhttp3.Response;
  */
 public class FamilyOrderDetailFragment extends Fragment {
 
-    // TODO: Rename parameter arguments, choose names that match
-    // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_PARAM1 = "param1";
     View rootView;
     LinearLayout ll_FamilyOrders;
-    // TODO: Rename and change types of parameters
     private String mParam1;
-
+    Activity activity = null;
+    private Double dayMoney = 0.0;
+    private Double monthMoney = 0.0;
     public FamilyOrderDetailFragment() {
         // Required empty public constructor
     }
 
-    /**
-     * Use this factory method to create a new instance of
-     * this fragment using the provided parameters.
-     *
-     * @param param1 Parameter 1.
-     * @return A new instance of fragment FamilyOrderDetailFragment.
-     */
-    // TODO: Rename and change types and number of parameters
     public static FamilyOrderDetailFragment newInstance(String param1) {
         FamilyOrderDetailFragment fragment = new FamilyOrderDetailFragment();
         Bundle args = new Bundle();
@@ -87,12 +80,11 @@ public class FamilyOrderDetailFragment extends Fragment {
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         if(rootView ==null){
             rootView = inflater.inflate(R.layout.fragment_family_order_detail, container, false);
-
         }
+        activity = getActivity();
         findViewById(rootView);
         return rootView;
     }
@@ -100,7 +92,21 @@ public class FamilyOrderDetailFragment extends Fragment {
     @Override
     public void onResume() {
         getFamilyOrders();
+        //更新头部信息
+        if(activity instanceof MainActivity){
+            ((MainActivity) activity).showDayAndMonthMoney(String .format("%.2f",dayMoney),String .format("%.2f",monthMoney));
+        }
         super.onResume();
+    }
+
+    @Override
+    public void onStart() {
+        getFamilyOrders();
+        //更新头部信息
+        if(activity instanceof MainActivity){
+            ((MainActivity) activity).showDayAndMonthMoney(String .format("%.2f",dayMoney),String .format("%.2f",monthMoney));
+        }
+        super.onStart();
     }
 
     private void findViewById(View v){
@@ -146,6 +152,8 @@ public class FamilyOrderDetailFragment extends Fragment {
     private void afterGetFamilyOrders(JSONArray familyOrdersAndUsers,LinearLayout linearLayout){
         JSONArray familyOrders = null;
         JSONArray familyUsers = null;
+        dayMoney = 0.0;
+        monthMoney = 0.0;
         try {
             familyOrders = familyOrdersAndUsers.getJSONArray(0);
             familyUsers = familyOrdersAndUsers.getJSONArray(1);
@@ -188,6 +196,7 @@ public class FamilyOrderDetailFragment extends Fragment {
                             money+= finalFamilyOrders.getJSONObject(i).getDouble("money");
                             daysCount.add(nums);
                             dayCost.add(money);
+                            monthMoney+=money;
                             nums = 0;
                             money = 0.0;
                             continue;
@@ -198,9 +207,14 @@ public class FamilyOrderDetailFragment extends Fragment {
                 }
                 daysCount.add(nums);
                 dayCost.add(money);
+                monthMoney+=money;
                 int orderIndex = 0;
                 for (int i =0;i < daysCount.size();i++){
                     try {
+                        if(finalFamilyOrders.getJSONObject(orderIndex).getInt("day")==ProjectUtil.getCurrentDay()){
+                            dayMoney = dayCost.get(i);
+                        }
+
                         linearLayout.addView(ProjectUtil.setDayOrderTitle(finalFamilyOrders.getJSONObject(orderIndex).getString("clock").substring(0,6),(dayCost.get(i)+"元"),getContext()));
                         for (int j = 0; j < daysCount.get(i); j++) {
 

@@ -12,6 +12,7 @@ import android.content.ContentValues;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.sqlite.SQLiteDatabase;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Looper;
 import android.view.View;
@@ -25,11 +26,15 @@ import com.beta.autobookkeeping.R;
 import com.beta.autobookkeeping.BaseApplication;
 import com.beta.autobookkeeping.smsTools.SMSDataBase;
 import com.beta.autobookkeeping.smsTools.SMSService;
+import com.hss01248.dialog.StyledDialog;
+import com.hss01248.dialog.interfaces.MyItemDialogListener;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Set;
 
 import Util.ProjectUtil;
@@ -135,79 +140,37 @@ public class OrderDetailActivity extends AppCompatActivity {
     //选择消费类型并显示的方法
     private void showCostType(){
         costType = -1;
-        AlertDialog.Builder costTypeDialog = new AlertDialog.Builder(OrderDetailActivity.this);
-        costTypeDialog.setTitle("选择支出类型");
-        //第二个参数是默认选项,此处设置为0.即数组的第一个元素
-        costTypeDialog.setSingleChoiceItems(costTypes, 0, new DialogInterface.OnClickListener() {
+        StyledDialog.buildIosSingleChoose(new ArrayList<>(Arrays.asList(costTypes)), new MyItemDialogListener() {
             @Override
-            public void onClick(DialogInterface dialogInterface, int i) {
-                //将选择的数据赋值(下标)
-                costType = i;
+            public void onItemClick(CharSequence text, int position) {
+                costType = position;
+                btnCostType.setText(text.toString());
             }
-        });
-        //设置确定按钮并将结果返回给界面
-        costTypeDialog.setPositiveButton("确定", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialogInterface, int i) {
-                if(costType!=-1){
-                    btnCostType.setText(costTypes[costType]);
-                }
-            }
-        });
-        //调用dialog的show方法
-        costTypeDialog.show();
+        }).setTitle("请选择消费类别").setTitleSize(40).setTitleColor(R.color.primary_font).show();
     }
 
     //选择支付方式类型并显示的方法
     private void showPayWay(){
         payWayType = -1;
-        AlertDialog.Builder payWayDialog = new AlertDialog.Builder(OrderDetailActivity.this);
-        payWayDialog.setTitle("选择支付方式");
-        //第二个参数是默认选项,此处设置为0.即数组的第一个元素
-        payWayDialog.setSingleChoiceItems(payWays, 0, new DialogInterface.OnClickListener() {
+        StyledDialog.buildIosSingleChoose(new ArrayList<>(Arrays.asList(payWays)), new MyItemDialogListener() {
             @Override
-            public void onClick(DialogInterface dialogInterface, int i) {
-                //将选择的数据赋值(下标)
-                payWayType = i;
+            public void onItemClick(CharSequence text, int position) {
+                payWayType = position;
+                btnPayWay.setText(text.toString());
             }
-        });
-        //设置确定按钮并将结果返回给界面
-        payWayDialog.setPositiveButton("确定", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialogInterface, int i) {
-                if(payWayType!=-1){
-                    btnPayWay.setText(payWays[payWayType]);
-                }
-            }
-        });
-        //调用dialog的show方法
-        payWayDialog.show();
+        }).setTitle("请选择支出方式").setTitleSize(40).setTitleColor(R.color.primary_font).show();
     }
 
     //选择账单是收入还是支出并显示的方法
     private void showOrderType(){
         orderTypeIndex = -1;
-        AlertDialog.Builder orderTypeDialog = new AlertDialog.Builder(OrderDetailActivity.this);
-        orderTypeDialog.setTitle("选择账单类型");
-        //第二个参数是默认选项,此处设置为0.即数组的第一个元素
-        orderTypeDialog.setSingleChoiceItems(orderType, 0, new DialogInterface.OnClickListener() {
+        StyledDialog.buildIosSingleChoose(new ArrayList<>(Arrays.asList(orderType)), new MyItemDialogListener() {
             @Override
-            public void onClick(DialogInterface dialogInterface, int i) {
-                //将选择的数据赋值(下标)
-                orderTypeIndex = i;
+            public void onItemClick(CharSequence text, int position) {
+                orderTypeIndex = position;
+                btnOrderType.setText(text.toString());
             }
-        });
-        //设置确定按钮并将结果返回给界面
-        orderTypeDialog.setPositiveButton("确定", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialogInterface, int i) {
-                if(orderTypeIndex!=-1){
-                    btnOrderType.setText(orderType[orderTypeIndex]);
-                }
-            }
-        });
-        //调用dialog的show方法
-        orderTypeDialog.show();
+        }).setTitle("请选择账单类型").setTitleSize(40).setTitleColor(R.color.primary_font).show();
     }
 
     //获取短信内容并处理的方法
@@ -228,28 +191,6 @@ public class OrderDetailActivity extends AppCompatActivity {
             if(msg!=null)
             msgContent = ProjectUtil.getBankOrderInfo(msg);
         }
-    }
-
-    @Override
-    protected void onPause() {
-        //在这里将Application中的数据设置为空,这样就不会跳转两次,这个bug和activity的生命周期
-        //息息相关
-        BaseApplication baseApplication = new BaseApplication();;
-        baseApplication = (BaseApplication) getApplication();
-        String msg = baseApplication.getSMSMsg();
-        baseApplication.setSMSMsg(null);
-        super.onPause();
-    }
-
-    @Override
-    protected void onStart() {
-        //先尝试查找Application中是否有信息
-        if(msgContent != null){
-            etOrderNumber.setText(msgContent[2]);
-            btnOrderType.setText(msgContent[1]);
-            btnPayWay.setText(msgContent[0]);
-        }
-        super.onStart();
     }
 
     //写入数据库数据
@@ -449,7 +390,6 @@ public class OrderDetailActivity extends AppCompatActivity {
         }
     }
 
-
     //点击时间按钮后进行时间的选择
     public void selectOrderTime(){
         //显示日期选择器
@@ -496,5 +436,27 @@ public class OrderDetailActivity extends AppCompatActivity {
         timePicker.show();
         //选择好以后将ordertime修改
         orderTime = ((orderMonth>0&&orderMonth<10)?("0"+orderMonth):orderMonth)+"月"+orderDay+"日"+" "+orderHour+ ":"+((orderMin>0&&orderMin<10)?("0"+orderMin):orderMin);
+    }
+
+    @Override
+    protected void onPause() {
+        //在这里将Application中的数据设置为空,这样就不会跳转两次,这个bug和activity的生命周期
+        //息息相关
+        BaseApplication baseApplication = new BaseApplication();;
+        baseApplication = (BaseApplication) getApplication();
+        String msg = baseApplication.getSMSMsg();
+        baseApplication.setSMSMsg(null);
+        super.onPause();
+    }
+
+    @Override
+    protected void onStart() {
+        //先尝试查找Application中是否有信息
+        if(msgContent != null){
+            etOrderNumber.setText(msgContent[2]);
+            btnOrderType.setText(msgContent[1]);
+            btnPayWay.setText(msgContent[0]);
+        }
+        super.onStart();
     }
 }
