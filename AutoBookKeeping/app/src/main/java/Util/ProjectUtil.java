@@ -9,6 +9,8 @@ import android.graphics.drawable.Drawable;
 import android.graphics.drawable.VectorDrawable;
 import android.util.Log;
 import com.beta.autobookkeeping.smsTools.*;
+
+import android.util.TypedValue;
 import android.view.Gravity;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -443,10 +445,15 @@ public class ProjectUtil {
         linearLayoutItem.addView(linearLayoutImagePart);
         linearLayoutItem.addView(linearLayoutLeftPart);
         linearLayoutItem.addView(linearLayoutRightPart);
+        TypedValue outValue = new TypedValue();
+        context.getTheme().resolveAttribute(
+                android.R.attr.selectableItemBackground, outValue, true);
+        linearLayoutItem.setForeground(context.getDrawable(outValue.resourceId));
         return linearLayoutItem;
     }
 
-    public static LinearLayout setDayOrderItem(String category, String payWay, String money, String time, Context context,ImageView imageView) {
+    @SuppressLint("UseCompatLoadingForDrawables")
+    public static LinearLayout setDayOrderItem(String category, String payWay, String money, String time, Context context, ImageView imageView) {
         //最外层的总LinearLayout
         LinearLayout linearLayoutItem = new LinearLayout(context);
         linearLayoutItem.setOrientation(LinearLayout.HORIZONTAL);
@@ -505,6 +512,12 @@ public class ProjectUtil {
         linearLayoutItem.addView(linearLayoutLeftPart);
         linearLayoutItem.addView(linearLayoutRightPart);
         linearLayoutItem.addView(linearLayoutRightImagePart);
+        //设置水滴按压效果
+        TypedValue outValue = new TypedValue();
+        context.getTheme().resolveAttribute(
+                android.R.attr.selectableItemBackground, outValue, true);
+        linearLayoutItem.setForeground(context.getDrawable(outValue.resourceId));
+        linearLayoutItem.setOnClickListener(null);
         return linearLayoutItem;
     }
 

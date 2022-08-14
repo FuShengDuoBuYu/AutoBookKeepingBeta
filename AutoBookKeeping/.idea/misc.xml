@@ -48,6 +48,7 @@
         <entry key="..\:/Users/fengchuiyusan/Desktop/AutoBookKeepingBeta/AutoBookKeeping/app/src/main/res/xml/order_widget_info.xml" value="0.18385416666666668" />
         <entry key="..\:/Users/fengchuiyusan/Desktop/AutoBookKeepingBeta/AutoBookKeeping/app/src/main/res/xml/root_preferences.xml" value="0.3333333333333333" />
         <entry key="..\:/Users/fengchuiyusan/Desktop/mySoftwares/AutoBookKeepingBeta/AutoBookKeeping/app/src/main/res/drawable/corner_btn.xml" value="0.1" />
+        <entry key="..\:/Users/fengchuiyusan/Desktop/mySoftwares/AutoBookKeepingBeta/AutoBookKeeping/app/src/main/res/drawable/corner_linearlayout.xml" value="0.1" />
         <entry key="..\:/Users/fengchuiyusan/Desktop/mySoftwares/AutoBookKeepingBeta/AutoBookKeeping/app/src/main/res/drawable/ic_none_info.xml" value="0.1" />
         <entry key="..\:/Users/fengchuiyusan/Desktop/mySoftwares/AutoBookKeepingBeta/AutoBookKeeping/app/src/main/res/drawable/ic_others.xml" value="0.1" />
         <entry key="..\:/Users/fengchuiyusan/Desktop/mySoftwares/AutoBookKeepingBeta/AutoBookKeeping/app/src/main/res/drawable/ic_part_time_job.xml" value="0.1" />
@@ -60,7 +61,7 @@
         <entry key="..\:/Users/fengchuiyusan/Desktop/mySoftwares/AutoBookKeepingBeta/AutoBookKeeping/app/src/main/res/layout/activity_main.xml" value="0.1734375" />
         <entry key="..\:/Users/fengchuiyusan/Desktop/mySoftwares/AutoBookKeepingBeta/AutoBookKeeping/app/src/main/res/layout/activity_order_detail.xml" value="0.1734375" />
         <entry key="..\:/Users/fengchuiyusan/Desktop/mySoftwares/AutoBookKeepingBeta/AutoBookKeeping/app/src/main/res/layout/activity_personl_info.xml" value="0.16666666666666666" />
-        <entry key="..\:/Users/fengchuiyusan/Desktop/mySoftwares/AutoBookKeepingBeta/AutoBookKeeping/app/src/main/res/layout/activity_settings.xml" value="0.1171875" />
+        <entry key="..\:/Users/fengchuiyusan/Desktop/mySoftwares/AutoBookKeepingBeta/AutoBookKeeping/app/src/main/res/layout/activity_settings.xml" value="0.13333333333333333" />
         <entry key="..\:/Users/fengchuiyusan/Desktop/mySoftwares/AutoBookKeepingBeta/AutoBookKeeping/app/src/main/res/layout/autobook_keepingactivity_main.xml" value="0.1734375" />
         <entry key="..\:/Users/fengchuiyusan/Desktop/mySoftwares/AutoBookKeepingBeta/AutoBookKeeping/app/src/main/res/layout/fragment_auto_book_keeping.xml" value="0.1734375" />
         <entry key="..\:/Users/fengchuiyusan/Desktop/mySoftwares/AutoBookKeepingBeta/AutoBookKeeping/app/src/main/res/layout/fragment_family_order_detail.xml" value="0.15833333333333333" />

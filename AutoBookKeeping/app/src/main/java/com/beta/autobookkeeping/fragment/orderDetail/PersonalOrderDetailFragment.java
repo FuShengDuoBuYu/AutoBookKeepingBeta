@@ -36,6 +36,8 @@ import com.beta.autobookkeeping.activity.main.entity.OrderDayItems;
 import com.beta.autobookkeeping.activity.main.entity.OrderInfo;
 import com.beta.autobookkeeping.activity.orderDetail.OrderDetailActivity;
 import com.beta.autobookkeeping.smsTools.SMSDataBase;
+import com.hss01248.dialog.StyledDialog;
+import com.hss01248.dialog.interfaces.MyDialogListener;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -155,7 +157,7 @@ public class PersonalOrderDetailFragment extends Fragment {
     @SuppressLint("UseCompatLoadingForDrawables")
     public void confirmDeleteOrderInfo(Cursor cursor, int itemId){
         AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
-        builder.setTitle("是否删除该记录?").setIcon(getContext().getDrawable(R.drawable.warning));
+        builder.setTitle("是否删除该记录?").setIcon(getContext().getDrawable(R.drawable.ic_warning)).setMessage("删除后该账单将不可恢复!");
         builder.setPositiveButton("确定", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {

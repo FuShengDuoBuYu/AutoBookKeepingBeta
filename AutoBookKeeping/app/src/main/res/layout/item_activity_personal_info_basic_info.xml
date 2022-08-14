@@ -19,6 +19,7 @@
         android:layout_height="50dp"
         android:orientation="horizontal"
         android:gravity="center_vertical"
+        android:foreground="?selectableItemBackground"
         android:id="@+id/ll_portrait">
         <TextView
             android:layout_width="wrap_content"
@@ -45,6 +46,8 @@
         android:layout_width="match_parent"
         android:layout_height="50dp"
         android:orientation="horizontal"
+        android:clickable="true"
+        android:foreground="?selectableItemBackground"
         android:gravity="center_vertical">
         <TextView
             android:layout_width="wrap_content"
@@ -72,6 +75,7 @@
         android:layout_height="50dp"
         android:orientation="horizontal"
         android:gravity="center_vertical"
+        android:foreground="?selectableItemBackground"
         android:id="@+id/ll_nick_name">
         <TextView
             android:layout_width="wrap_content"
