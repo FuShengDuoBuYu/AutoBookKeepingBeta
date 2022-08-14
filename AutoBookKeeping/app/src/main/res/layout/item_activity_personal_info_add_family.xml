@@ -30,7 +30,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="暂未有家庭信息"
-            android:textColor="@color/black"
+            android:textColor="@color/primary_font"
             android:textSize="16sp"
             android:layout_weight="1"
             >

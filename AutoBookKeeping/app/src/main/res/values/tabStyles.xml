@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <style name="Base.Widget.Design.TabLayout" parent="android:Widget">
-        <item name="tabBackground">@android:color/white</item>
+        <item name="tabBackground">@color/reverse_primary_font</item>
         <item name="tabIndicatorColor">#5091F3</item>
         <item name="tabIndicatorHeight">2dp</item>
         <item name="tabTextAppearance">@style/TextAppearance.Design.Tab</item>

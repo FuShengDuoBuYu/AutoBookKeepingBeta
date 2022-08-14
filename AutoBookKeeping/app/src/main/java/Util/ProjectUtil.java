@@ -427,7 +427,7 @@ public class ProjectUtil {
         tvMoney.setText(money);
         tvTime.setText(time);
         //设置textView格式
-        tvCategory.setTextColor(Color.BLACK);
+        tvCategory.setTextColor(context.getResources().getColor(R.color.primary_font));
         tvCategory.setTextSize(18);
         tvMoney.setGravity(Gravity.END);
         tvTime.setGravity(Gravity.END);
@@ -488,7 +488,7 @@ public class ProjectUtil {
         tvMoney.setText(money);
         tvTime.setText(time);
         //设置textView格式
-        tvCategory.setTextColor(Color.BLACK);
+        tvCategory.setTextColor(context.getResources().getColor(R.color.primary_font));
         tvCategory.setTextSize(18);
         tvMoney.setGravity(Gravity.END);
         tvTime.setGravity(Gravity.END);
@@ -515,7 +515,7 @@ public class ProjectUtil {
     public static LinearLayout setDayOrderTitle(String date, String money, Context context) {
         LinearLayout linearLayoutTitle = new LinearLayout(context);
         linearLayoutTitle.setOrientation(LinearLayout.HORIZONTAL);
-        linearLayoutTitle.setBackgroundColor(Gray);
+        linearLayoutTitle.setBackgroundColor(context.getResources().getColor(R.color.item_background));
         //创建两个textview并赋值
         TextView tvDate, tvMoney;
         tvDate = new TextView(context);

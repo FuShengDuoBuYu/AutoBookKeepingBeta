@@ -9,4 +9,7 @@
     <color name="white">#FFFFFFFF</color>
     <color name="blue">#5091F3</color>
     <color name="gray">#EBEBEB</color>
+    <color name="primary_font">#000000</color>
+    <color name="item_background">#EBEBEB</color>
+    <color name="reverse_primary_font">#FFFFFFFF</color>
 </resources>
