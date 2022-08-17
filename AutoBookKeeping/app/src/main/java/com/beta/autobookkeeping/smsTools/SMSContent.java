@@ -8,6 +8,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.util.Log;
 
 public class SMSContent extends ContentObserver {
     private Handler mHandler;
@@ -35,6 +36,7 @@ public class SMSContent extends ContentObserver {
                     Message msg=Message.obtain();
                     Bundle bundle=new Bundle();
                     bundle.putString("body", body);
+                    bundle.putString("sender", cursor.getString(2));
                     msg.setData(bundle);
                     mHandler.sendMessage(msg);
                 }

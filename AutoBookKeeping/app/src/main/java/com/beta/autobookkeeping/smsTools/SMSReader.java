@@ -6,34 +6,39 @@ import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
+import android.util.Log;
 
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.beta.autobookkeeping.BaseApplication;
 
+import java.util.List;
+
 import Util.ProjectUtil;
+import Util.SpUtils;
+import Util.StringUtil;
 
 public class SMSReader extends AppCompatActivity {
     BaseApplication baseApplication;
     private Context context;
     //短信内容
-    private String body;
+    private String body,sender;
     //短信观察者
     private SMSContent smsObsever;
     private Handler handler =new Handler(){
         public void handleMessage(android.os.Message msg) {
+
             Bundle bundle=msg.getData();
             body=bundle.getString("body");
+            sender=bundle.getString("sender");
             //如果短信是银行账单短信且和本地新信息不一致,就调开app并进行下一步操作
-            if(isBankOrderMsg(body)){
-                if(isSavedMsg(body)){
-                    ProjectUtil.toastMsg(context,"读取到银行账单!");
-                    Intent intent = context.getPackageManager().getLaunchIntentForPackage(context.getPackageName());
-                    intent.putExtras(bundle);
-                    baseApplication = (BaseApplication) context.getApplicationContext();
-                    baseApplication.setSMSMsg(body);
-                    context.startActivity(intent);
-                }
+            if(isBankOrderMsg(body)&&isSavedMsg(body)&&isUserInputBankNumber(sender)){
+                ProjectUtil.toastMsg(context,"读取到银行账单!");
+                Intent intent = context.getPackageManager().getLaunchIntentForPackage(context.getPackageName());
+                intent.putExtras(bundle);
+                baseApplication = (BaseApplication) context.getApplicationContext();
+                baseApplication.setSMSMsg(body);
+                context.startActivity(intent);
             }
         };
     };
@@ -72,6 +77,18 @@ public class SMSReader extends AppCompatActivity {
             editor.putString("msgSave",msg);
             editor.apply();
             return true;
+        }
+    }
+    //判断是否是精确识别号码的账单
+    private boolean isUserInputBankNumber(String sender){
+        //用户未设置
+        if(SpUtils.get(context,"bankNumbers","")==null||"".equals(SpUtils.get(context,"bankNumbers",""))){
+            return true;
+        }
+        //用户已设置
+        else{
+            List<String> bankNumbers = StringUtil.string2List((String) SpUtils.get(context,"bankNumbers",""));
+            return bankNumbers.contains(sender) || bankNumbers.contains(sender.substring(3));
         }
     }
 }

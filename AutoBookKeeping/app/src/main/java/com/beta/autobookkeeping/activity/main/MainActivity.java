@@ -258,12 +258,6 @@ public class MainActivity extends AppCompatActivity {
                 @Override
                 public void onSecond() {}
                 @Override
-                public void onGetInput(CharSequence input1, CharSequence input2) {
-//                    toastMsg(MainActivity.this,input1.toString());
-                    super.onGetInput(input1, input2);
-                }
-
-                @Override
                 public boolean onInputValid(CharSequence input1, CharSequence input2, EditText editText1, EditText editText2) {
                     if(input1.toString().matches("^[1][3,4,5,7,8,9][0-9]{9}$")&&(!(input2.toString()==null))&&(!input2.toString().equals(""))){
                         UserRegister.userRegister(input1.toString(),input2.toString(),MainActivity.this);
@@ -275,32 +269,6 @@ public class MainActivity extends AppCompatActivity {
                 }
             }).show();
         }
-
-//        new Thread(new Runnable() {
-//            @Override
-//            public void run() {
-//                String url = IP+"/18916629734/addOrder";
-//                OkHttpClient client = new OkHttpClient();
-//                JSONObject jsonObject = new JSONObject();
-//                try {
-//                    jsonObject.put("year",2018);
-//                } catch (JSONException e) {
-//                    e.printStackTrace();
-//                }
-//                RequestBody body = RequestBody.create(jsonObject.toString(), MediaType.parse("application/json;charset=utf-8"));
-//                Request requst = new Request.Builder()
-//                        .url(url)
-//                        .post(body)
-//                        .build();
-//                try {
-//                    Response response = client.newCall(requst).execute();
-//                    Log.d("1","--------------------");
-//                    Log.d("1",response.body().string());
-//                } catch (IOException e) {
-//                    e.printStackTrace();
-//                }
-//            }
-//        }).start();
     }
 
     @Override

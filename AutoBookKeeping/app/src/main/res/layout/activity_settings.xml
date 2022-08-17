@@ -2,8 +2,8 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    >
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical">
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -31,17 +31,12 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical">
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="1px"
-                android:background="@color/primary_font"
-                android:layout_marginTop="10dp">
-            </View>
 <!--            个人中心-->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="70dp"
                 android:orientation="horizontal"
+                android:layout_marginTop="10dp"
                 android:foreground="?selectableItemBackground"
                 android:id="@+id/ll_personal_center">
                 <ImageView
@@ -71,6 +66,50 @@
                     </TextView>
                 </LinearLayout>
             </LinearLayout>
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1px"
+                android:background="@color/primary_font"
+                android:layout_marginTop="10dp">
+            </View>
+<!--            银行号码设置-->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="添加银行短信号码可精准识别账单"
+                    android:textColor="@color/primary_font"
+                    android:textSize="16sp"
+                    android:layout_weight="1"
+                    >
+                </TextView>
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content">
+                    <com.qmuiteam.qmui.widget.roundwidget.QMUIRoundButton
+                        android:layout_marginLeft="5dp"
+                        android:layout_width="100dp"
+                        android:layout_height="30dp"
+                        android:gravity="center_vertical|center_horizontal"
+                        android:id="@+id/btn_add_bank_number"
+                        app:qmui_backgroundColor="@color/blue"
+                        android:textColor="@color/white"
+                        app:qmui_radius="10dp"
+                        android:text="添加号码">
+                    </com.qmuiteam.qmui.widget.roundwidget.QMUIRoundButton>
+                </LinearLayout>
+            </LinearLayout>
+            <GridLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:columnCount="2"
+
+                android:id="@+id/gl_bank_num">
+            </GridLayout>
         </LinearLayout>
     </ScrollView>
 </LinearLayout>
