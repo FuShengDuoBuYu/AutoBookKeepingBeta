@@ -8,6 +8,8 @@ import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.VectorDrawable;
 import android.util.Log;
+
+import com.beta.autobookkeeping.activity.main.entity.OrderInfo;
 import com.beta.autobookkeeping.smsTools.*;
 
 import android.util.TypedValue;
@@ -204,8 +206,35 @@ public class ProjectUtil {
         return appointDayMoney;
     }
 
+    //获取指定月份的所有账单信息
+    public static ArrayList<OrderInfo> getMonthOrders(int year,int month,Context context){
+        ArrayList<OrderInfo> orderInfos = new ArrayList<>();
+        SMSDataBase smsDb = new SMSDataBase(context, "orderInfo", null, 1);
+        SQLiteDatabase db = smsDb.getWritableDatabase();
+        Cursor cursor = db.query("orderInfo", null, null, null, null, null, "id");
+        while (cursor.moveToNext()) {
+            //当是查询月的时候且是支出时
+            if (cursor.getInt(1) == year && cursor.getInt(2) == month && cursor.getDouble(5) < 0) {
+                orderInfos.add(new OrderInfo(
+                        cursor.getInt(0),
+                        cursor.getInt(1),
+                        cursor.getInt(2),
+                        cursor.getInt(3),
+                        cursor.getString(4),
+                        cursor.getDouble(5),
+                        cursor.getString(6),
+                        cursor.getString(7),
+                        cursor.getString(8),
+                        cursor.getString(9)
+                ));
+            }
+        }
+        cursor.close();
+        return orderInfos;
+    }
+
     //获取指定月份的支出类型和金额
-    public static ArrayList<ArrayList> getCostTypeAndMoney(int month, int year, Context context) {
+    public static ArrayList<ArrayList> getCostTypeAndMoney(ArrayList<OrderInfo> monthOrders) {
         //包含金额和支付类型两个量的ArrayList
         ArrayList<ArrayList> result = new ArrayList<>();
         //支付类型
@@ -215,27 +244,24 @@ public class ProjectUtil {
         result.add(costlabels);
         result.add(costMoney);
 
-        SMSDataBase smsDb = new SMSDataBase(context, "orderInfo", null, 1);
-        SQLiteDatabase db = smsDb.getWritableDatabase();
-        Cursor cursor = db.query("orderInfo", null, null, null, null, null, "id");
-        while (cursor.moveToNext()) {
-            //当是查询月的时候且是支出时
-            if (cursor.getInt(1) == year && cursor.getInt(2) == month && cursor.getDouble(5) < 0) {
+        for(int i = 0;i < monthOrders.size();i++){
+            OrderInfo orderInfo = monthOrders.get(i);
+            //支出
+            if(orderInfo.getMoney()<0){
                 //如果这个标签在labels中,就不插入labels而将数据合并
-                if (costlabels.contains(cursor.getString(8))) {
+                if(costlabels.contains(orderInfo.getCostType())){
                     //当前这个标签的index
-                    int index = costlabels.indexOf(cursor.getString(8));
+                    int index = costlabels.indexOf(orderInfo.getCostType());
                     //将这个数值加进去
-                    costMoney.set(index, costMoney.get(index) + (float) cursor.getDouble(5));
+                    costMoney.set(index,costMoney.get(index)+(float) orderInfo.getMoney());
                 }
                 //不存在的话就添加这个label,并进行加入数据
                 else {
-                    costlabels.add(cursor.getString(8));
-                    costMoney.add((float) cursor.getDouble(5));
+                    costlabels.add(orderInfo.getCostType());
+                    costMoney.add((float) orderInfo.getMoney());
                 }
             }
         }
-        cursor.close();
         //将两个list按照金额大小排序,手动写一个冒泡排序
         for(int i = 0;i < costMoney.size();i++){
             for(int j = i+1;j < costMoney.size();j++){
@@ -251,13 +277,14 @@ public class ProjectUtil {
         }
         Collections.reverse(costlabels);
         Collections.reverse(costMoney);
-        //去掉小于2%项目的显示
-        for(int i = 0;i < costMoney.size();i++){
-            if((costMoney.get(i)/(float)getMonthCost(year,month,context))-0.02f<0){
-                costMoney.remove(i);
-                costlabels.remove(i);
-            }
-        }
+
+//        //去掉小于2%项目的显示
+//        for(int i = 0;i < costMoney.size();i++){
+//            if((costMoney.get(i)/(float)getMonthCost(year,month,context))-0.02f<0){
+//                costMoney.remove(i);
+//                costlabels.remove(i);
+//            }
+//        }
         //将金额只保留两位小数
         for(int i = 0;i < costMoney.size();i++){
             BigDecimal b = new BigDecimal(costMoney.get(i));

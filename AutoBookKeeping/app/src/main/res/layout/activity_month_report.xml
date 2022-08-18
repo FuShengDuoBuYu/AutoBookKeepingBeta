@@ -26,7 +26,7 @@
     <View
         android:layout_width="match_parent"
         android:layout_height="1px"
-        android:background="@color/black"
+        android:background="@color/primary_font"
         android:layout_marginTop="10dp">
     </View>
 
@@ -65,7 +65,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="233元"
-                android:textColor="@color/black"
+                android:textColor="@color/primary_font"
                 android:textSize="30sp"
                 android:id="@+id/tv_month_report_money"
                 android:layout_gravity="center">
@@ -86,58 +86,29 @@
     <View
         android:layout_width="match_parent"
         android:layout_height="1px"
-        android:background="@color/black"
+        android:background="@color/primary_font"
         android:layout_marginTop="10dp">
     </View>
-
-    <ScrollView
+    <com.google.android.material.tabs.TabLayout
+        android:id="@+id/month_report_tab"
         android:layout_width="match_parent"
+        style="@style/Base.Widget.Design.TabLayout"
         android:layout_height="wrap_content">
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical">
-            <!--总收支的提示-->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/total_revenue_expenditure"
-                android:textSize="15sp"
-                android:padding="15dp">
-            </TextView>
-            <com.github.mikephil.charting.charts.BarChart
-                android:layout_width="match_parent"
-                android:layout_height="200dp"
-                android:id="@+id/bar_chart_month_money">
-            </com.github.mikephil.charting.charts.BarChart>
-
-            <!-- 灰色分割线-->
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="1px"
-                android:background="@color/black"
-                android:layout_marginTop="10dp">
-            </View>
-            <!--支出分布的提示-->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/expenditure_distribution"
-                android:textSize="15sp"
-                android:padding="30dp">
-            </TextView>
-            <com.github.mikephil.charting.charts.PieChart
-                android:id="@+id/pie_chart_month_money"
-                android:layout_width="match_parent"
-                android:layout_height="300dp"
-                android:paddingBottom="30dp"/>
-            <!--花费排行进度条-->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:id="@+id/costRankingProcessBar"
-                android:orientation="vertical">
-            </LinearLayout>
-        </LinearLayout>
-    </ScrollView>
+        <com.google.android.material.tabs.TabItem
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            style="@style/TextAppearanceBase"
+            android:id="@+id/personal_month_report_item">
+        </com.google.android.material.tabs.TabItem>
+        <com.google.android.material.tabs.TabItem
+            android:layout_width="wrap_content"
+            android:id="@+id/family_month_report_item"
+            android:layout_height="match_parent">
+        </com.google.android.material.tabs.TabItem>
+    </com.google.android.material.tabs.TabLayout>
+    <androidx.viewpager2.widget.ViewPager2
+        android:id="@+id/month_report_view_page"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_weight="1" />
 </LinearLayout>

@@ -274,7 +274,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onStart() {
         //显示账单状态
-        tv_title.setText("我的收支:"+SpUtils.get(this,"OrderStatus",""));
+        tv_title.setText("我的收支");
         //检测Application中是否有短信数据
         BaseApplication baseApplication = new BaseApplication();
         baseApplication = (BaseApplication)getApplication();
