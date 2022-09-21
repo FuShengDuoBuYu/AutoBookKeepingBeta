@@ -135,7 +135,7 @@ public class MainActivity extends AppCompatActivity {
         ArrayList<OrderInfo> orders = new ArrayList<>();
         ArrayList<OrderDayItems> orderDayItems = new ArrayList<>();
         //先获取本月都有哪些天有数据
-        ArrayList<Integer> hasOrderDays = ProjectUtil.getHasOrderDays(getCurrentMonth(),this);
+        ArrayList<Integer> hasOrderDays = ProjectUtil.getHasOrderDays(getCurrentYear(),getCurrentMonth(),this);
         //依次查询这些天的账单
         for(int i = 0;i < hasOrderDays.size();i++) {
             //再加入每天的账单

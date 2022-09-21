@@ -50,6 +50,12 @@ public class PersonalMonthReportFragment extends Fragment {
         return view;
     }
 
+    @Override
+    public void onResume() {
+        refreshMonthCost(activity.recordYear,activity.recordMonth);
+        super.onResume();
+    }
+
     private void findViewsByIdAndInit(View v){
         this.activity = (MonthReportActivity)getActivity();
         monthMoneyBarChart = v.findViewById(R.id.bar_chart_month_money);
@@ -97,7 +103,8 @@ public class PersonalMonthReportFragment extends Fragment {
     }
 
     //更新显示月份
-    public void refreshMonthCost(){
+    public void refreshMonthCost(int recordYear,int recordMonth){
+        activity.refreshMonthMoney(ProjectUtil.getMonthMoney(recordYear,recordMonth,getContext()),recordYear,recordMonth);
         pieChart.refreshPieChartAndRanking(activity.recordYear,activity.recordMonth,ProjectUtil.getMonthOrders(activity.recordYear,activity.recordMonth,getContext()));
     }
 }

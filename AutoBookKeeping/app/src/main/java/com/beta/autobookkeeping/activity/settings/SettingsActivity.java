@@ -65,15 +65,6 @@ public class SettingsActivity extends AppCompatActivity {
         userPortrait = findViewById(R.id.iv_portrait);
         btnAddBankNumber = findViewById(R.id.btn_add_bank_number);
         glBankNum = findViewById(R.id.gl_bank_num);
-//        LinearLayout linearLayout = (LinearLayout) View.inflate(this,R.layout.item_btn,null);
-//        QMUIRoundButton button = linearLayout.findViewById(R.id.btn_add_bank_number);
-//        button.setText("18916629734");
-//        glBankNum.addView(linearLayout);
-//        LinearLayout linearLayout2 = (LinearLayout) View.inflate(this,R.layout.item_btn,null);
-//        QMUIRoundButton button2 = linearLayout.findViewById(R.id.btn_add_bank_number);
-//        button.setText("18916629734");
-//        glBankNum.addView(linearLayout2);
-
     }
 
     private void initViews(){
@@ -102,11 +93,6 @@ public class SettingsActivity extends AppCompatActivity {
                     @Override
                     public boolean onInputValid(CharSequence input1, CharSequence input2, EditText editText1, EditText editText2) {
                         if(input1.toString().matches("^[0-9]*$")&&!input1.toString().equals("")){
-//                            List<String>
-//                            //加入号码
-//                            SpUtils.put(SettingsActivity.this,"bankNumbers",
-//                                    StringUtil.list2String()
-//                                    );
                             addBankNumber(input1.toString());
                         }
                         else{
@@ -119,7 +105,6 @@ public class SettingsActivity extends AppCompatActivity {
         });
         //银行短信
         bankNumbers = new BankNumbers(SpUtils.get(this,"bankNumbers","")==null?"": (String) SpUtils.get(this,"bankNumbers",""),SettingsActivity.this);
-        Log.d("teg", (String) SpUtils.get(this,"bankNumbers",""));
         for(int i = 0;i < bankNumbers.getBankNumbersViews().size();i++){
             glBankNum.addView(bankNumbers.getBankNumbersViews().get(i));
         }

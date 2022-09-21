@@ -84,6 +84,10 @@ public class MonthReportActivity extends AppCompatActivity {
     public ArrayList<String> monthLabels = new ArrayList<String>();
     public ArrayList<String> costLabels = new ArrayList<>();
     public ArrayList<Float> costMoney = new ArrayList<>();
+
+    private int currentMode = 0;
+    private static final int FAMILY_MODE = 0;
+    private static final int PERSONAL_MODE = 1;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         //开启读取短信线程
@@ -95,8 +99,8 @@ public class MonthReportActivity extends AppCompatActivity {
         getViews();
 
         //先更新总收支数据
-        tv_month_report_money.setText(String.format("%.1f", ProjectUtil.getMonthMoney(recordYear,recordMonth,MonthReportActivity.this)));
-        tv_month_report_time.setText(ProjectUtil.getCurrentYear()+"年"+ ProjectUtil.getCurrentMonth()+"月");
+        tv_month_report_money.setText("0.00");
+        tv_month_report_time.setText("计算中...");
     }
 
     //获取views的控件
@@ -124,13 +128,15 @@ public class MonthReportActivity extends AppCompatActivity {
                     } else {
                         recordMonth++;
                     }
-                    //更新文字
-                    tv_month_report_time.setText(String.valueOf(recordYear) + "年" + String.valueOf(recordMonth) + "月");
-                    //更新月份的总收支
-                    tv_month_report_money.setText(String.format("%.1f", ProjectUtil.getMonthMoney(recordYear, recordMonth, MonthReportActivity.this)));
-//                    refreshPieChartAndRanking();
-                    PersonalMonthReportFragment personalMonthReportFragment = (PersonalMonthReportFragment) fragments.get(1);
-                    personalMonthReportFragment.refreshMonthCost();
+                    //更新数据
+                    if(currentMode==FAMILY_MODE){
+                        FamilyMonthReportFragment familyMonthReportFragment = (FamilyMonthReportFragment) fragments.get(0);
+                        familyMonthReportFragment.refreshMonthCost(recordYear,recordMonth);
+                    }
+                    else{
+                        PersonalMonthReportFragment personalMonthReportFragment = (PersonalMonthReportFragment) fragments.get(1);
+                        personalMonthReportFragment.refreshMonthCost(recordYear,recordMonth);
+                    }
                 }
             }
         });
@@ -144,12 +150,15 @@ public class MonthReportActivity extends AppCompatActivity {
                 }else{
                     recordMonth--;
                 }
-                //更新文字
-                tv_month_report_time.setText(String.valueOf(recordYear)+"年"+String.valueOf(recordMonth)+"月");
-                //更新月份的总收支
-                tv_month_report_money.setText(String.format("%.1f", ProjectUtil.getMonthMoney(recordYear,recordMonth,MonthReportActivity.this)));
-                PersonalMonthReportFragment personalMonthReportFragment = (PersonalMonthReportFragment) fragments.get(1);
-                personalMonthReportFragment.refreshMonthCost();            }
+                if(currentMode==FAMILY_MODE){
+                    FamilyMonthReportFragment familyMonthReportFragment = (FamilyMonthReportFragment) fragments.get(0);
+                    familyMonthReportFragment.refreshMonthCost(recordYear,recordMonth);
+                }
+                else{
+                    PersonalMonthReportFragment personalMonthReportFragment = (PersonalMonthReportFragment) fragments.get(1);
+                    personalMonthReportFragment.refreshMonthCost(recordYear,recordMonth);
+                }
+            }
         });
 
         fragments = new LinkedList<>();
@@ -168,11 +177,7 @@ public class MonthReportActivity extends AppCompatActivity {
             @Override
             public void onPageSelected(int position) {
                 //更新头部信息
-                if(position==1){
-
-//                    showDayAndMonthMoney();
-                }
-                //家庭信息由对应的fragment负责更新
+                currentMode = position;
                 super.onPageSelected(position);
             }
             @Override
@@ -195,4 +200,8 @@ public class MonthReportActivity extends AppCompatActivity {
 
     }
 
+    public void refreshMonthMoney(Double money, int year, int month) {
+        tv_month_report_money.setText(String.format("%.1f", money));
+        tv_month_report_time.setText(String.valueOf(year)+"年"+String.valueOf(month)+"月");
+    }
 }

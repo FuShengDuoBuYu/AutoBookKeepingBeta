@@ -70,16 +70,23 @@ public class PieChart {
         //设置使用百分比
         pieChart.setUsePercentValues(true);
         setPieDataSetDataMoney();
+        //设置动画
+        pieChart.animateXY(500,500);
         //设置中心有空圆
         pieChart.setDrawHoleEnabled(true);
         pieChart.setHoleRadius(60f);
         //中心可以加字
         pieChart.setDrawCenterText(true);
 //        设置中心的文字
-        if(ProjectUtil.getMonthCost(recordYear,recordMonth, context)==0.0){
+        double totalMoney = 0.0;
+        //通过monthOrders获取总金额
+        for (OrderInfo orderInfo:monthOrders){
+            totalMoney += orderInfo.getMoney();
+        }
+        if(totalMoney==0.0){
             pieChart.setCenterText("暂无数据");
         }else{
-            pieChart.setCenterText("总支出:\n"+String.format("%.1f", ProjectUtil.getMonthCost(recordYear,recordMonth,context)));
+            pieChart.setCenterText("总支出:\n"+String.format("%.1f", totalMoney)+"元");
         }
         pieChart.setCenterTextSize(23f);
         //设置中心背景颜色为透明

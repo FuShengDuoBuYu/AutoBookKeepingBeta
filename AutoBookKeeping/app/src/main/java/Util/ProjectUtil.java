@@ -48,7 +48,9 @@ public class ProjectUtil {
     public final static int BLUE = Color.parseColor("#5091F3");
     public final static int Gray = Color.rgb(235, 235, 235);
     //匹配银行账单信息的正则表达式
-    private final static String regExBank = "[农业银行|建设银行|郑州银行|工商银行|招商银行|中国银行]";
+    //获取【】之内的内容
+    private final static String regExBank = "【(.*?)】";
+//    private final static String regExBank = "[农业银行|建设银行|郑州银行|工商银行|招商银行|中国银行]";
     private final static String regExMoneyType = "[-|出|入|代|取]";
     private final static String regExMoney = "\\d*\\.\\d*";
 
@@ -91,10 +93,15 @@ public class ProjectUtil {
 
     //获取字符串中的银行账单数据的方法
     public static String[] getBankOrderInfo(String bankOrder) {
+        //将[]替换为【】
+        bankOrder = bankOrder.replace("[", "【");
+        bankOrder = bankOrder.replace("]", "】");
         String[] result = new String[3];
         //获取银行名称
         Matcher matchBank = Pattern.compile(regExBank).matcher(bankOrder);
-        result[0] = getString(matchBank, false);
+        String bankName = getString(matchBank, false);
+        result[0] = bankName.substring(1, bankName.length() - 1);
+        Log.d("bank", result[0]);
         //对工商银行进行单独适配
         if ("工商银行".equals(result[0])) {
             result[1] = getICBCInfo(bankOrder)[0];
@@ -342,14 +349,14 @@ public class ProjectUtil {
     }
 
     //获取某个月都有那几天有数据
-    public static ArrayList<Integer> getHasOrderDays(int month, Context context) {
+    public static ArrayList<Integer> getHasOrderDays(int year,int month, Context context) {
         ArrayList<Integer> hasOrderDays = new ArrayList<>();
         SMSDataBase smsDb = new SMSDataBase(context, "orderInfo", null, 1);
         SQLiteDatabase db = smsDb.getWritableDatabase();
         Cursor cursor = db.query("orderInfo", null, null, null, null, null, "id");
         while (cursor.moveToNext()) {
             //先找到当月
-            if (cursor.getInt(2) == month) {
+            if (cursor.getInt(2) == month&&cursor.getInt(1)==year) {
                 //如果没由记录这个日期,就记录进去
                 if (!hasOrderDays.contains(cursor.getInt(3))) {
                     hasOrderDays.add(cursor.getInt(3));

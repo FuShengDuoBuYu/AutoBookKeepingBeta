@@ -1,5 +1,6 @@
 package com.beta.autobookkeeping.activity.orderItemSearch;
 
+import static Util.ProjectUtil.getCurrentYear;
 import static Util.ProjectUtil.setDayOrderItem;
 import static Util.ProjectUtil.setDayOrderTitle;
 
@@ -108,7 +109,7 @@ public class OrderItemSearchActivity extends AppCompatActivity {
     //显示月的账单信息
     public void showFindMonthOrderItems(){
         //先获取本月都有哪些天有数据
-        ArrayList<Integer> hasOrderDays = ProjectUtil.getHasOrderDays(searchMonth,OrderItemSearchActivity.this);
+        ArrayList<Integer> hasOrderDays = ProjectUtil.getHasOrderDays(getCurrentYear(),searchMonth,OrderItemSearchActivity.this);
         //依次查询这些天,并进行view的添加
         for(int i = 0;i < hasOrderDays.size();i++){
             //每天先加一个title
