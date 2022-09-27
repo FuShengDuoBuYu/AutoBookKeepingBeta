@@ -7,6 +7,7 @@ import static Util.ProjectUtil.getCurrentYear;
 import static Util.ProjectUtil.setDayOrderItem;
 import static Util.ProjectUtil.setDayOrderTitle;
 
+import android.animation.Animator;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
@@ -23,7 +24,6 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
 
 import android.os.Looper;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -36,8 +36,10 @@ import com.beta.autobookkeeping.activity.main.entity.OrderDayItems;
 import com.beta.autobookkeeping.activity.main.entity.OrderInfo;
 import com.beta.autobookkeeping.activity.orderDetail.OrderDetailActivity;
 import com.beta.autobookkeeping.smsTools.SMSDataBase;
-import com.hss01248.dialog.StyledDialog;
-import com.hss01248.dialog.interfaces.MyDialogListener;
+import com.willowtreeapps.spruce.Spruce;
+import com.willowtreeapps.spruce.SpruceAnimator;
+import com.willowtreeapps.spruce.animation.DefaultAnimations;
+import com.willowtreeapps.spruce.sort.DefaultSort;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -226,6 +228,11 @@ public class PersonalOrderDetailFragment extends Fragment {
     @Override
     public void onStart() {
         addViewByData(getContext());
+        SpruceAnimator spruceAnimator = new Spruce
+                .SpruceBuilder(lvOrderDetail)
+                .sortWith(new DefaultSort(/*interObjectDelay=*/50L))
+                .animateWith(new Animator[] {DefaultAnimations.shrinkAnimator(lvOrderDetail, /*duration=*/800)})
+                .start();
         super.onStart();
     }
 

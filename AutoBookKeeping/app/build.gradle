@@ -48,4 +48,7 @@ dependencies {
     implementation 'io.github.lucksiege:pictureselector:v3.10.5'
     implementation 'io.github.lucksiege:compress:v3.10.4'
     implementation 'io.github.lucksiege:ucrop:v3.10.4'
+    implementation 'com.wdeo3601:drop-down-menu:1.0.5'
+    implementation 'com.willowtreeapps.spruce:spruce-android:1.1.0'
+    implementation 'com.github.limxing:DatePickerView:1.1.0'
 }

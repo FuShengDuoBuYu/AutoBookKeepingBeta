@@ -2,6 +2,7 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical">
     <!-- 第一行,包含账单查询字样-->
     <LinearLayout
@@ -10,95 +11,52 @@
         android:id="@+id/theFirstLine"
         android:layout_marginTop="10dp"
         android:orientation="horizontal">
-        <!-- 账单查询 -->
+        <!-- 我的收支-->
         <TextView
-            android:id="@+id/tv_title"
+            android:background="@drawable/blue_background"
             android:layout_width="0dp"
             android:layout_weight="1"
-            android:layout_height="50dp"
+            android:layout_height="55dp"
             android:text="账单查询"
-            android:textColor="@color/black"
+            android:textColor="@color/white"
             android:textSize="20sp"
             android:gravity="center">
         </TextView>
     </LinearLayout>
 
-    <!-- 灰色分割线-->
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="1px"
-        android:background="@color/black"
-        android:layout_marginTop="10dp">
-    </View>
-
-    <!--第二行,包括查询条件,总收支,总支出-->
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal">
-        <!--查询条件-->
-        <TextView
-            android:layout_width="0dp"
-            android:layout_weight="1"
-            android:layout_height="wrap_content"
-            android:id="@+id/tv_searchLimit"
-            android:gravity="center"
-            android:layout_gravity="center"
-            android:textColor="@color/black"
-            android:textSize="18sp">
-        </TextView>
-        <!--竖向分割线-->
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:layout_marginStart="20dp"
+        android:layout_marginEnd="20dp">
+        <!-- 灰色分割线-->
         <View
-            android:layout_width="1px"
-            android:layout_height="match_parent"
-            android:background="@color/black"
-            android:layout_margin="10dp">
+            android:layout_width="match_parent"
+            android:layout_height="1px"
+            android:background="@color/primary_font"
+            android:layout_marginTop="10dp">
         </View>
-        <!--总收支-->
-        <TextView
-            android:layout_width="0dp"
-            android:layout_weight="1"
-            android:layout_height="wrap_content"
-            android:id="@+id/tv_allOrderMoney"
-            android:gravity="center"
-            android:textColor="@color/black"
-            android:textSize="18sp">
-        </TextView>
-        <!--竖向分割线-->
-        <View
-            android:layout_width="1px"
-            android:layout_height="match_parent"
-            android:background="@color/black"
-            android:layout_margin="10dp">
-        </View>
-        <!--总支出-->
-        <TextView
-            android:layout_width="0dp"
-            android:layout_weight="1"
-            android:layout_height="wrap_content"
-            android:id="@+id/tv_allCost"
-            android:gravity="center"
-            android:textColor="@color/black"
-            android:textSize="18sp">
-        </TextView>
-    </LinearLayout>
 
-    <!-- 灰色分割线-->
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="1px"
-        android:background="@color/black"
-        android:layout_marginTop="5dp">
-    </View>
-    <!--第三行,包括所有的账单信息-->
-    <ScrollView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content">
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:id="@+id/ll_allOrderItemLimit"
+            android:layout_height="match_parent"
+            android:id="@+id/ll_down_menu"
             android:orientation="vertical">
+
         </LinearLayout>
-    </ScrollView>
+
+<!--        &lt;!&ndash;第三行,包括所有的账单信息&ndash;&gt;-->
+<!--        <ScrollView-->
+<!--            android:layout_width="match_parent"-->
+<!--            android:layout_height="wrap_content">-->
+<!--            <LinearLayout-->
+<!--                android:layout_width="match_parent"-->
+<!--                android:layout_height="wrap_content"-->
+<!--                android:id="@+id/ll_allOrderItemLimit"-->
+<!--                android:orientation="vertical">-->
+<!--            </LinearLayout>-->
+<!--        </ScrollView>-->
+    </LinearLayout>
+
 </LinearLayout>

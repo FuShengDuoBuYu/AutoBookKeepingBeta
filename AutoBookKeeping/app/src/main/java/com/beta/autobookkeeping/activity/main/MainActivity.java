@@ -11,6 +11,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 import androidx.viewpager2.widget.ViewPager2;
 
+import android.animation.Animator;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
@@ -44,6 +45,10 @@ import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.tabs.TabLayoutMediator;
 import com.hss01248.dialog.StyledDialog;
 import com.hss01248.dialog.interfaces.MyDialogListener;
+import com.willowtreeapps.spruce.Spruce;
+import com.willowtreeapps.spruce.SpruceAnimator;
+import com.willowtreeapps.spruce.animation.DefaultAnimations;
+import com.willowtreeapps.spruce.sort.DefaultSort;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -60,7 +65,7 @@ public class MainActivity extends AppCompatActivity {
     private TabOrderDetailFragmentPagerAdapter tabOrderDetailFragmentPagerAdapter;
     private Button btnPlusNewOrder,btnSettings,btnSearchMonthlyReport;
     private TextView tvAllTodayOrder,tvAllMonthOrder,tv_title;
-    private LinearLayout lvOrderDetail;
+    private LinearLayout lvOrderDetail,llCostTitle;
     private ScrollView svOrderDetail;
     Bundle bundle;
     int currentViewPageFragmentIndex = 0;
@@ -186,6 +191,7 @@ public class MainActivity extends AppCompatActivity {
         lvOrderDetail = findViewById(R.id.lvOrderDetail);
         svOrderDetail = findViewById(R.id.svOrderDetail);
         tv_title = findViewById(R.id.tv_title);
+        llCostTitle = findViewById(R.id.ll_cost_title);
         //找到新增和设置两个按钮
         btnPlusNewOrder = findViewById(R.id.btnPlusNewOrder);
         btnSettings = findViewById(R.id.btnSettings);
@@ -295,10 +301,20 @@ public class MainActivity extends AppCompatActivity {
         //重新给月和日开销赋值
         tvAllMonthOrder.setText(String .format("%.2f",ProjectUtil.getMonthMoney(this)));
         tvAllTodayOrder.setText(String .format("%.2f",ProjectUtil.getDayMoney(getCurrentYear(),getCurrentMonth(),getCurrentDay(),this)));
+        SpruceAnimator spruceAnimator = new Spruce
+                .SpruceBuilder(llCostTitle)
+                .sortWith(new DefaultSort(/*interObjectDelay=*/50L))
+                .animateWith(new Animator[] {DefaultAnimations.fadeInAnimator(llCostTitle, /*duration=*/1500)})
+                .start();
     }
 
     public void showDayAndMonthMoney(String dayMoney,String monthMoney){
         tvAllTodayOrder.setText(dayMoney);
         tvAllMonthOrder.setText(monthMoney);
+        SpruceAnimator spruceAnimator = new Spruce
+                .SpruceBuilder(llCostTitle)
+                .sortWith(new DefaultSort(/*interObjectDelay=*/50L))
+                .animateWith(new Animator[] {DefaultAnimations.fadeInAnimator(llCostTitle, /*duration=*/1500)})
+                .start();
     }
 }

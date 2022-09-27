@@ -2,6 +2,7 @@ package com.beta.autobookkeeping.fragment.orderDetail;
 
 import static Util.ConstVariable.IP;
 
+import android.animation.Animator;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.graphics.drawable.BitmapDrawable;
@@ -23,6 +24,10 @@ import android.widget.TextView;
 import com.beta.autobookkeeping.R;
 import com.beta.autobookkeeping.activity.main.MainActivity;
 import com.hss01248.dialog.StyledDialog;
+import com.willowtreeapps.spruce.Spruce;
+import com.willowtreeapps.spruce.SpruceAnimator;
+import com.willowtreeapps.spruce.animation.DefaultAnimations;
+import com.willowtreeapps.spruce.sort.DefaultSort;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -93,19 +98,15 @@ public class FamilyOrderDetailFragment extends Fragment {
     public void onResume() {
         getFamilyOrders();
         //更新头部信息
-        if(activity instanceof MainActivity){
-            ((MainActivity) activity).showDayAndMonthMoney(String .format("%.2f",dayMoney),String .format("%.2f",monthMoney));
-        }
+
         super.onResume();
     }
 
     @Override
     public void onStart() {
         getFamilyOrders();
-        //更新头部信息
-        if(activity instanceof MainActivity){
-            ((MainActivity) activity).showDayAndMonthMoney(String .format("%.2f",dayMoney),String .format("%.2f",monthMoney));
-        }
+
+
         super.onStart();
     }
 
@@ -241,6 +242,16 @@ public class FamilyOrderDetailFragment extends Fragment {
                     catch (JSONException e) {
                         e.printStackTrace();
                     }
+                }
+                //设置动画
+                SpruceAnimator spruceAnimator = new Spruce
+                        .SpruceBuilder(ll_FamilyOrders)
+                        .sortWith(new DefaultSort(/*interObjectDelay=*/50L))
+                        .animateWith(new Animator[] {DefaultAnimations.shrinkAnimator(ll_FamilyOrders, /*duration=*/800)})
+                        .start();
+                //配置日收支
+                if(activity instanceof MainActivity){
+                    ((MainActivity) activity).showDayAndMonthMoney(String .format("%.2f",dayMoney),String .format("%.2f",monthMoney));
                 }
             }
         });

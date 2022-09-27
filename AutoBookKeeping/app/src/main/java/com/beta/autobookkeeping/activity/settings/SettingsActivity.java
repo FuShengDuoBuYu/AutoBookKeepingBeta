@@ -21,6 +21,7 @@ import android.widget.SimpleAdapter;
 import android.widget.TextView;
 
 import com.beta.autobookkeeping.R;
+import com.beta.autobookkeeping.activity.orderItemSearch.OrderItemSearchActivity;
 import com.beta.autobookkeeping.activity.presonalInfo.PersonlInfoActivity;
 import com.beta.autobookkeeping.activity.settings.items.BankNumbers;
 import com.hss01248.dialog.StyledDialog;
@@ -46,7 +47,7 @@ import okhttp3.Response;
 public class SettingsActivity extends AppCompatActivity {
 
     TextView tvUserPhoneNum;
-    LinearLayout personalCenter;
+    LinearLayout personalCenter,llSearchOrders;
     ImageView userPortrait;
     GridLayout glBankNum;
     BankNumbers bankNumbers = null;
@@ -65,6 +66,7 @@ public class SettingsActivity extends AppCompatActivity {
         userPortrait = findViewById(R.id.iv_portrait);
         btnAddBankNumber = findViewById(R.id.btn_add_bank_number);
         glBankNum = findViewById(R.id.gl_bank_num);
+        llSearchOrders = findViewById(R.id.ll_search_orders);
     }
 
     private void initViews(){
@@ -108,6 +110,14 @@ public class SettingsActivity extends AppCompatActivity {
         for(int i = 0;i < bankNumbers.getBankNumbersViews().size();i++){
             glBankNum.addView(bankNumbers.getBankNumbersViews().get(i));
         }
+        //跳转到订单查询
+        llSearchOrders.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(SettingsActivity.this, OrderItemSearchActivity.class);
+                startActivity(intent);
+            }
+        });
     }
 
     //添加一个银行号码

@@ -78,7 +78,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="50dp"
                 android:orientation="horizontal"
-                android:gravity="center_vertical">
+                android:gravity="center_vertical"
+                android:foreground="?selectableItemBackground">
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -108,11 +109,39 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:columnCount="2"
-
+                android:foreground="?selectableItemBackground"
                 android:id="@+id/gl_bank_num">
             </GridLayout>
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1px"
+                android:background="@color/primary_font"
+                android:layout_marginTop="10dp">
+            </View>
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="70dp"
+                android:foreground="?selectableItemBackground"
+                android:id="@+id/ll_search_orders"
+                android:orientation="horizontal">
+                <ImageView
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:layout_gravity="center_vertical"
+                    android:src="@drawable/ic_search_orders">
 
-<!--            目标支出-->
+                </ImageView>
+                <TextView
+                    android:layout_marginStart="20dp"
+                    android:gravity="center_vertical"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:text="查找我的账单"
+                    android:textColor="@color/primary_font"
+                    android:textSize="18sp">
+
+                </TextView>
+            </LinearLayout>
 
         </LinearLayout>
     </ScrollView>
