@@ -37,6 +37,6 @@ public class DropDownMenuItem {
     }
 
     private static void searchOrders(){
-        StyledDialog.buildLoading().show();
+//        StyledDialog.buildLoading().show();
     }
 }

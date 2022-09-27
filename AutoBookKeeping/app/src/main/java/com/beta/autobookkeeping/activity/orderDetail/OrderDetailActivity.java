@@ -1,6 +1,9 @@
 package com.beta.autobookkeeping.activity.orderDetail;
 
+import static Util.ConstVariable.COST_TYPE;
 import static Util.ConstVariable.IP;
+import static Util.ConstVariable.ORDER_TYPE;
+import static Util.ConstVariable.PAY_WAY;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
@@ -56,9 +59,9 @@ public class OrderDetailActivity extends AppCompatActivity {
     String[] msgContent;
     //如果是点击修改,则bundle不为null
     Bundle bundle;
-    final String[] costTypes = {"消费","饮食","交通","体育","聚会","娱乐","购物","通讯","红包","医疗","一卡通","学习","其他"};
-    final String[] payWays = {"银行卡","支付宝","微信","现金"};
-    final String[] orderType = {"支出","收入"};
+    final String[] costTypes = COST_TYPE;
+    final String[] payWays = PAY_WAY;
+    final String[] orderType = ORDER_TYPE;
     private int orderYear = ProjectUtil.getCurrentYear(),orderMonth = ProjectUtil.getCurrentMonth(),orderDay = ProjectUtil.getCurrentDay(),orderHour = ProjectUtil.getCurrentHour(),orderMin = ProjectUtil.getCurrentMinute();
     private String orderTime = orderMonth+"月"+orderDay+"日"+" "+orderHour+ ":"+orderMin;
     @Override

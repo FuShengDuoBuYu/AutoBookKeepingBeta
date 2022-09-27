@@ -1,14 +1,11 @@
 package com.beta.autobookkeeping.activity.orderItemSearch.items;
 
-import static Util.ConstVariable.FAMILY_MODE;
 import static Util.ConstVariable.PERSONAL_MODE;
 
 import android.content.Context;
 import android.view.View;
-import android.widget.Button;
-import android.widget.LinearLayout;
 
-import com.beta.autobookkeeping.activity.orderItemSearch.OrderItemSearchActivity;
+import com.beta.autobookkeeping.activity.orderItemSearch.items.otherDescriptionView.OtherDescriptionView;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,41 +20,14 @@ public class SearchConditionEntity {
     private Integer month = ProjectUtil.getCurrentMonth();
     private Integer day = ProjectUtil.getCurrentDay();
     private String searchOrderRemark = "";
-    private String searchCostType = "";
-    private String user = "";
-
-    public boolean isIfIgnoreYear() {
-        return ifIgnoreYear;
-    }
-
-    public void setIfIgnoreYear(boolean ifIgnoreYear) {
-        this.ifIgnoreYear = ifIgnoreYear;
-    }
-
-    public boolean isIfIgnoreMonth() {
-        return ifIgnoreMonth;
-    }
-
-    public void setIfIgnoreMonth(boolean ifIgnoreMonth) {
-        this.ifIgnoreMonth = ifIgnoreMonth;
-    }
-
-    public boolean isIfIgnoreDay() {
-        return ifIgnoreDay;
-    }
-
-    public void setIfIgnoreDay(boolean ifIgnoreDay) {
-        this.ifIgnoreDay = ifIgnoreDay;
-    }
-
+    private String[] searchCostType = {};
     private boolean ifIgnoreYear = false,ifIgnoreMonth = false,ifIgnoreDay = false;
+
     public List<View> getPopupViews() {
         List<View> popupViews = new ArrayList<>();
         popupViews.add(new VersionItemView(context).getVersionItemView());
-        LinearLayout linearLayout1 = new LinearLayout(context);
-        linearLayout1.addView(new Button(context));
         popupViews.add(new DatePickView(context).getDatePickView());
-        popupViews.add(linearLayout1);
+        popupViews.add(new OtherDescriptionView(context).getDescriptionView());
         return popupViews;
     }
 
@@ -105,20 +75,12 @@ public class SearchConditionEntity {
         this.searchOrderRemark = searchOrderRemark;
     }
 
-    public String getSearchCostType() {
+    public String[] getSearchCostType() {
         return searchCostType;
     }
 
-    public void setSearchCostType(String searchCostType) {
+    public void setSearchCostType(String[] searchCostType) {
         this.searchCostType = searchCostType;
-    }
-
-    public String getUser() {
-        return user;
-    }
-
-    public void setUser(String user) {
-        this.user = user;
     }
 
     public static SearchConditionEntity getINSTANCE() {
@@ -131,5 +93,29 @@ public class SearchConditionEntity {
 
     public void setMode(String mode) {
         this.mode = mode;
+    }
+
+    public boolean isIfIgnoreYear() {
+        return ifIgnoreYear;
+    }
+
+    public void setIfIgnoreYear(boolean ifIgnoreYear) {
+        this.ifIgnoreYear = ifIgnoreYear;
+    }
+
+    public boolean isIfIgnoreMonth() {
+        return ifIgnoreMonth;
+    }
+
+    public void setIfIgnoreMonth(boolean ifIgnoreMonth) {
+        this.ifIgnoreMonth = ifIgnoreMonth;
+    }
+
+    public boolean isIfIgnoreDay() {
+        return ifIgnoreDay;
+    }
+
+    public void setIfIgnoreDay(boolean ifIgnoreDay) {
+        this.ifIgnoreDay = ifIgnoreDay;
     }
 }
