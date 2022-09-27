@@ -43,7 +43,29 @@
             android:layout_height="match_parent"
             android:id="@+id/ll_down_menu"
             android:orientation="vertical">
+            <com.wdeo3601.dropdownmenu.DropDownMenu
+                android:id="@+id/drop_down_menu"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                app:ddFrameContentView="@id/content_container"
+                app:ddMenuSelectedIcon="@drawable/brush_ic_drop_up"
+                app:ddMenuUnselectedIcon="@drawable/brush_ic_drop_down"
+                app:ddMenuHeightPercent="0.5"
+                app:ddMenuIconPadding="8dp"
+                app:ddMenuTextSize="14dp"
+                app:ddTextPadding="12dp"
+                app:ddTextSelectedColor="@color/blue"
+                app:ddTextUnselectedColor="@color/primary_font"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/tv_title">
 
+                <LinearLayout
+                    android:id="@+id/content_container"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:orientation="vertical">
+                </LinearLayout>
+            </com.wdeo3601.dropdownmenu.DropDownMenu>
         </LinearLayout>
 
 <!--        &lt;!&ndash;第三行,包括所有的账单信息&ndash;&gt;-->

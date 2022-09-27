@@ -15,6 +15,9 @@ import com.beta.autobookkeeping.activity.orderItemSearch.items.SearchConditionEn
 import com.qmuiteam.qmui.widget.roundwidget.QMUIRoundButton;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+
+import Util.ProjectUtil;
 
 public class OtherDescriptionView {
     private Context context;
@@ -25,7 +28,7 @@ public class OtherDescriptionView {
     private GridView gvOrderType;
     private EditText etSearchOrderRemark;
     private String[] orderTypes = new String[COST_TYPE.length+2];
-    private ArrayList<String> searchCostType = new ArrayList<>();
+    private ArrayList<String> searchOrderTypes = new ArrayList<>();
     private QMUIRoundButton btnConfirm;
     public OtherDescriptionView(Context context) {
         this.context = context;
@@ -39,13 +42,14 @@ public class OtherDescriptionView {
         initGridView();
         initEditText();
         initConfirmButton();
+        recoverFromSearchConditionEntity();
         return linearLayout;
     }
 
     private void findViewsById(){
         gvOrderType = linearLayout.findViewById(R.id.gv_order_type);
         etSearchOrderRemark = linearLayout.findViewById(R.id.et_search_order_remark);
-        btnConfirm = linearLayout.findViewById(R.id.btn_confirm);
+        btnConfirm = linearLayout.findViewById(R.id.btn_description_confirm);
     }
 
     private void initData(){
@@ -57,41 +61,24 @@ public class OtherDescriptionView {
     }
 
     private void initGridView(){
-
-        GridViewAdapter adapter = new GridViewAdapter(context,orderTypes);
+        GridViewAdapter adapter = new GridViewAdapter(context,orderTypes,searchConditionEntity.getSearchCostType());
         gvOrderType.setAdapter(adapter);
         gvOrderType.setOnItemClickListener((parent, view, position, id) -> {
             //如果数组里有这个账单,代表已经被选择了,那么就取消选择
-            if (searchCostType.contains(orderTypes[position])){
-                if(position== 0){
-                    searchCostType.clear();
-                }else{
-                    searchCostType.remove(orderTypes[position]);
-                    //同时修改边框和颜色
-                    QMUIRoundButton button = (QMUIRoundButton) ((LinearLayout)view).getChildAt(0);
-                    button.setBackgroundColor(context.getResources().getColor(R.color.item_background));
-                    button.setTextColor(context.getResources().getColor(R.color.primary_font));
-                }
+            if (searchOrderTypes.contains(orderTypes[position])){
+                searchOrderTypes.remove(orderTypes[position]);
+                //同时修改边框和颜色
+                QMUIRoundButton button = (QMUIRoundButton) ((LinearLayout)view).getChildAt(0);
+                button.setBackgroundColor(context.getResources().getColor(R.color.item_background));
+                button.setTextColor(context.getResources().getColor(R.color.primary_font));
             }
             //如果数组里没有这个账单,代表没有被选择,那么就添加到数组里
             else {
-                //如果是不限,把所有类型都添加进去
-                if (position == 0){
-                    searchCostType.clear();
-                    for (int i = 1; i < orderTypes.length; i++) {
-                        searchCostType.add(orderTypes[i]);
-                    }
-                    //同时修改边框和颜色
-                    QMUIRoundButton button = (QMUIRoundButton) ((LinearLayout)view).getChildAt(0);
-                    button.setBackgroundColor(context.getResources().getColor(R.color.blue));
-                    button.setTextColor(context.getResources().getColor(R.color.white));
-                }else{
-                    searchCostType.add(orderTypes[position]);
-                    //同时修改边框和颜色
-                    QMUIRoundButton button = (QMUIRoundButton) ((LinearLayout)view).getChildAt(0);
-                    button.setBackgroundColor(context.getResources().getColor(R.color.blue));
-                    button.setTextColor(context.getResources().getColor(R.color.white));
-                }
+                searchOrderTypes.add(orderTypes[position]);
+                //同时修改边框和颜色
+                QMUIRoundButton button = (QMUIRoundButton) ((LinearLayout)view).getChildAt(0);
+                button.setBackgroundColor(context.getResources().getColor(R.color.blue));
+                button.setTextColor(context.getResources().getColor(R.color.white));
             }
         });
     }
@@ -106,9 +93,21 @@ public class OtherDescriptionView {
 
     private void initConfirmButton(){
         btnConfirm.setOnClickListener(v -> {
-            searchConditionEntity.setSearchCostType(searchCostType.toArray(new String[searchCostType.size()]));
+            searchConditionEntity.setSearchCostType(searchOrderTypes.toArray(new String[searchOrderTypes.size()]));
+            searchOrderRemark = etSearchOrderRemark.getText().toString();
             searchConditionEntity.setSearchOrderRemark(searchOrderRemark);
+            ProjectUtil.toastMsg(context,"进行多项查询");
+            activity.closeMenu();
         });
-        activity.closeMenu();
+    }
+
+    private void recoverFromSearchConditionEntity(){
+        //恢复账单类型
+        String[] originSearchOrderType = searchConditionEntity.getSearchCostType();
+        searchOrderTypes.addAll(Arrays.asList(originSearchOrderType));
+        String searchOrderRemark = searchConditionEntity.getSearchOrderRemark();
+        if (searchOrderRemark != null){
+            etSearchOrderRemark.setText(searchOrderRemark);
+        }
     }
 }

@@ -204,4 +204,13 @@ public class MonthReportActivity extends AppCompatActivity {
         tv_month_report_money.setText(String.format("%.1f", money));
         tv_month_report_time.setText(String.valueOf(year)+"年"+String.valueOf(month)+"月");
     }
+
+    public String getCurrentMode(){
+        if(currentMode==FAMILY_MODE){
+            return "家庭版";
+        }
+        else{
+            return "个人版";
+        }
+    }
 }

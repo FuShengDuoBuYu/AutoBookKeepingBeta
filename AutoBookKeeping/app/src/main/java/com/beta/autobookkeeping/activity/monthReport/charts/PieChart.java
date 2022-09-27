@@ -20,6 +20,7 @@ import com.beta.autobookkeeping.R;
 import com.beta.autobookkeeping.activity.main.entity.OrderInfo;
 import com.beta.autobookkeeping.activity.monthReport.MonthReportActivity;
 import com.beta.autobookkeeping.activity.orderItemSearch.OrderItemSearchActivity;
+import com.beta.autobookkeeping.activity.orderItemSearch.items.SearchConditionEntity;
 import com.github.mikephil.charting.components.Description;
 import com.github.mikephil.charting.components.Legend;
 import com.github.mikephil.charting.data.Entry;
@@ -247,15 +248,18 @@ public class PieChart {
 
     //点击进度条进入页面
     public void showCostItems(String itemName,int recordYear,int recordMonth){
-        //放入数据
-        Bundle bundle = new Bundle();
-        bundle.putInt("year",recordYear);
-        bundle.putInt("month",recordMonth);
-        bundle.putString("itemName",itemName);
-        //此处架构不好,但是懒得优化了,这个项是不必要的
-        bundle.putString("noMeaning","noMeaning");
+        //配置搜索条件
+        SearchConditionEntity searchConditionEntity = SearchConditionEntity.getINSTANCE();
+        searchConditionEntity.setMode(((MonthReportActivity)activity).getCurrentMode());
+        searchConditionEntity.setYear(recordYear);
+        searchConditionEntity.setMonth(recordMonth);
+        searchConditionEntity.setDay(0);
+        searchConditionEntity.setIfIgnoreDay(true);
+        searchConditionEntity.setIfIgnoreMonth(false);
+        searchConditionEntity.setIfIgnoreYear(false);
+        searchConditionEntity.setSearchCostType(new String[]{itemName});
+        searchConditionEntity.setSearchOrderRemark("");
         Intent intent = new Intent(context, OrderItemSearchActivity.class);
-        intent.putExtras(bundle);
         context.startActivity(intent);
     }
 }

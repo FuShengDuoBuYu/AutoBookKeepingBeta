@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@color/white">
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <com.qmuiteam.qmui.widget.roundwidget.QMUIRoundButton
+            android:layout_margin="10dp"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="40dp"
+            android:gravity="center_vertical|center_horizontal"
+            android:id="@+id/btn_personal_version"
+            app:qmui_backgroundColor="@color/item_background"
+            android:textColor="@color/primary_font"
+            app:qmui_radius="10dp"
+            android:text="个人版">
+        </com.qmuiteam.qmui.widget.roundwidget.QMUIRoundButton>
+        <com.qmuiteam.qmui.widget.roundwidget.QMUIRoundButton
+            android:layout_margin="10dp"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="40dp"
+            android:gravity="center_vertical|center_horizontal"
+            android:id="@+id/btn_family_version"
+            app:qmui_backgroundColor="@color/item_background"
+            android:textColor="@color/primary_font"
+            app:qmui_radius="10dp"
+            android:text="家庭版">
+        </com.qmuiteam.qmui.widget.roundwidget.QMUIRoundButton>
+    </LinearLayout>
+</LinearLayout>

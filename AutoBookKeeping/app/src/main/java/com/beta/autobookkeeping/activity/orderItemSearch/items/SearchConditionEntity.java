@@ -3,11 +3,13 @@ package com.beta.autobookkeeping.activity.orderItemSearch.items;
 import static Util.ConstVariable.PERSONAL_MODE;
 
 import android.content.Context;
+import android.util.Log;
 import android.view.View;
 
 import com.beta.autobookkeeping.activity.orderItemSearch.items.otherDescriptionView.OtherDescriptionView;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import Util.ProjectUtil;
@@ -29,6 +31,20 @@ public class SearchConditionEntity {
         popupViews.add(new DatePickView(context).getDatePickView());
         popupViews.add(new OtherDescriptionView(context).getDescriptionView());
         return popupViews;
+    }
+
+    //打印搜索条件
+    public void printSearchCondition(){
+        Log.d("SearchConditionEntity", "printSearchCondition: mode = " + mode);
+        Log.d("SearchConditionEntity", "printSearchCondition: year = " + year);
+        Log.d("SearchConditionEntity", "printSearchCondition: month = " + month);
+        Log.d("SearchConditionEntity", "printSearchCondition: day = " + day);
+        Log.d("SearchConditionEntity", "printSearchCondition: searchOrderRemark = " + searchOrderRemark);
+        Log.d("SearchConditionEntity", "printSearchCondition: searchCostType = " + Arrays.toString(searchCostType));
+        Log.d("SearchConditionEntity", "printSearchCondition: ifIgnoreYear = " + ifIgnoreYear);
+        Log.d("SearchConditionEntity", "printSearchCondition: ifIgnoreMonth = " + ifIgnoreMonth);
+        Log.d("SearchConditionEntity", "printSearchCondition: ifIgnoreDay = " + ifIgnoreDay);
+
     }
 
     public Context getContext() {

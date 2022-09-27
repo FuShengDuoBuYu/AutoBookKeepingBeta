@@ -4,10 +4,11 @@
     android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical"
-    android:layout_margin="10dp">
+    android:layout_margin="10dp"
+    android:background="@color/white">
     <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="350dp">
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -40,16 +41,14 @@
                     android:text="账单备注"
                     android:textColor="@color/primary_font"
                     android:textFontWeight="20"
-                    android:textSize="22sp"
-                    android:layout_margin="10dp">
+                    android:textSize="22sp">
                 </TextView>
             </LinearLayout>
             <EditText
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:textColor="@color/primary_font"
-                android:padding="10dp"
-                android:layout_margin="15dp"
+                android:layout_margin="10dp"
                 android:id="@+id/et_search_order_remark"
                 android:hint="请输入要查找备注的关键字"
                 android:inputType="text"
@@ -60,13 +59,14 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:gravity="end"
+                android:layout_marginBottom="10dp"
                 android:layout_marginEnd="10dp">
                 <com.qmuiteam.qmui.widget.roundwidget.QMUIRoundButton
                     android:layout_marginLeft="5dp"
                     android:layout_width="120dp"
                     android:layout_height="30dp"
                     android:gravity="center_vertical|center_horizontal"
-                    android:id="@+id/btn_confirm"
+                    android:id="@+id/btn_description_confirm"
                     app:qmui_backgroundColor="@color/blue"
                     android:textColor="@color/white"
                     app:qmui_radius="10dp"

@@ -12,6 +12,7 @@ import android.widget.TextView;
 
 import com.beta.autobookkeeping.R;
 import com.beta.autobookkeeping.activity.orderItemSearch.OrderItemSearchActivity;
+import com.qmuiteam.qmui.widget.roundwidget.QMUIRoundButton;
 
 import Util.ProjectUtil;
 
@@ -19,14 +20,51 @@ public class VersionItemView {
     private Context context;
     private OrderItemSearchActivity activity;
     private LinearLayout versionItemView;
+    QMUIRoundButton btnPersonalVersion,btnFamilyVersion;
     SearchConditionEntity searchConditionEntity = SearchConditionEntity.getINSTANCE();
+
     public LinearLayout getVersionItemView(){
-        versionItemView = new LinearLayout(context);
-        versionItemView.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
-        versionItemView.setOrientation(LinearLayout.VERTICAL);
-        versionItemView.addView(initItem("个人版"));
-        versionItemView.addView(initItem("家庭版"));
+        versionItemView = (LinearLayout) View.inflate(context, R.layout.item_activity_order_search_version_item, null);
+        findViewsById();
+        initBtns();
+        recoverFromSearchConditionEntity();
         return versionItemView;
+    }
+
+    private void findViewsById(){
+        btnPersonalVersion = versionItemView.findViewById(R.id.btn_personal_version);
+        btnFamilyVersion = versionItemView.findViewById(R.id.btn_family_version);
+    }
+
+    private void initBtns(){
+        btnPersonalVersion.setOnClickListener(new View.OnClickListener() {
+        @Override
+            public void onClick(View v) {
+                //修改按钮样式
+                btnPersonalVersion.setBackgroundColor(context.getResources().getColor(R.color.blue));
+                btnPersonalVersion.setTextColor(context.getResources().getColor(R.color.white));
+                btnFamilyVersion.setBackgroundColor(context.getResources().getColor(R.color.item_background));
+                btnFamilyVersion.setTextColor(context.getResources().getColor(R.color.primary_font));
+                //将搜索条件存入实体类
+                searchConditionEntity.setMode(PERSONAL_MODE);
+                ProjectUtil.toastMsg(context,"您选择了"+PERSONAL_MODE+"模式");
+                activity.closeMenu();
+            }
+        });
+        btnFamilyVersion.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                //修改按钮样式
+                btnFamilyVersion.setBackgroundColor(context.getResources().getColor(R.color.blue));
+                btnFamilyVersion.setTextColor(context.getResources().getColor(R.color.white));
+                btnPersonalVersion.setBackgroundColor(context.getResources().getColor(R.color.item_background));
+                btnPersonalVersion.setTextColor(context.getResources().getColor(R.color.primary_font));
+                //将搜索条件存入实体类
+                searchConditionEntity.setMode(FAMILY_MODE);
+                ProjectUtil.toastMsg(context,"您选择了"+FAMILY_MODE+"模式");
+                activity.closeMenu();
+            }
+        });
     }
 
     private LinearLayout initItem(String text){
@@ -66,9 +104,22 @@ public class VersionItemView {
         return item;
     }
 
-
     public VersionItemView(Context context) {
         this.context = context;
         this.activity = (OrderItemSearchActivity) context;
+    }
+
+    private void recoverFromSearchConditionEntity(){
+        if(searchConditionEntity.getMode().equals(PERSONAL_MODE)){
+            btnPersonalVersion.setBackgroundColor(context.getResources().getColor(R.color.blue));
+            btnPersonalVersion.setTextColor(context.getResources().getColor(R.color.white));
+            btnFamilyVersion.setBackgroundColor(context.getResources().getColor(R.color.item_background));
+            btnFamilyVersion.setTextColor(context.getResources().getColor(R.color.primary_font));
+        }else{
+            btnFamilyVersion.setBackgroundColor(context.getResources().getColor(R.color.blue));
+            btnFamilyVersion.setTextColor(context.getResources().getColor(R.color.white));
+            btnPersonalVersion.setBackgroundColor(context.getResources().getColor(R.color.item_background));
+            btnPersonalVersion.setTextColor(context.getResources().getColor(R.color.primary_font));
+        }
     }
 }

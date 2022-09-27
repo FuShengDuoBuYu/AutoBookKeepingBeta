@@ -206,7 +206,7 @@ public class FamilyMonthReportFragment extends Fragment {
 
                 if(pieChart == null){
                         pieChart = new com.beta.autobookkeeping.activity.monthReport.charts.PieChart(
-                        monthMoneyPieChart,getContext(),activity.recordMonth,activity.recordYear, orderInfos
+                        monthMoneyPieChart,activity,activity.recordMonth,activity.recordYear, orderInfos
                         ,costRankingProcessBar
                     );
                     pieChart.showPieChart();

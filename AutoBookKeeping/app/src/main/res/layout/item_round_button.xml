@@ -7,7 +7,7 @@
     <com.qmuiteam.qmui.widget.roundwidget.QMUIRoundButton
         android:layout_margin="5dp"
         android:layout_width="match_parent"
-        android:layout_height="40dp"
+        android:layout_height="30dp"
         android:gravity="center_vertical|center_horizontal"
         android:id="@+id/btn_round"
         app:qmui_backgroundColor="@color/item_background"
