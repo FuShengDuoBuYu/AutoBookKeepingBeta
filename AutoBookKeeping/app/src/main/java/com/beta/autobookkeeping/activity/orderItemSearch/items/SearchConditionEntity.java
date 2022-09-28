@@ -147,4 +147,16 @@ public class SearchConditionEntity {
         String dayStr = day == 0 ? "" : day + "日";
         return mode + " " + yearStr + monthStr + dayStr  + " " + Arrays.toString(searchCostType)+ " " + searchOrderRemark;
     }
+
+    public String getDate(){
+        //年月日为0则不显示
+        String yearStr = year == 0 ? "" : year + "年";
+        String monthStr = month == 0 ? "" : month + "月";
+        String dayStr = day == 0 ? "" : day + "日";
+        return yearStr + monthStr + dayStr;
+    }
+
+    public String getOtherDescription(){
+        return Arrays.toString(searchCostType)+ " 关键字:" + searchOrderRemark;
+    }
 }

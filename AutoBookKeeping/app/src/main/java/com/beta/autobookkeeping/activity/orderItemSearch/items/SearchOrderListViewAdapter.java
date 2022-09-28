@@ -57,7 +57,8 @@ public class SearchOrderListViewAdapter extends BaseAdapter {
         String category = orderInfoList.get(position).getCostType()  + (orderInfoList.get(position).getOrderRemark().equals("")?"":"-"+orderInfoList.get(position).getOrderRemark());
         String payWay = orderInfoList.get(position).getBankName();
         String dayMoney = String.format("%.1f",orderInfoList.get(position).getMoney())+"元";
-        String time = orderInfoList.get(position).getClock();
+        //年月日
+        String time = orderInfoList.get(position).getYear()+"-"+orderInfoList.get(position).getMonth()+"-"+orderInfoList.get(position).getDay();
         //获取头像
         ImageView imageView = new ImageView(context);
         Drawable drawable = new BitmapDrawable(ImageUtil.base642bitmap(userIdMapPortrait.get(orderInfoList.get(position).getUser())));

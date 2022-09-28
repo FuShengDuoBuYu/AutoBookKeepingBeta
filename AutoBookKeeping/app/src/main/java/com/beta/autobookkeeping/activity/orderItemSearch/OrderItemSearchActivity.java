@@ -6,6 +6,7 @@ import static Util.ProjectUtil.setDayOrderItem;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.annotation.SuppressLint;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Looper;
 import android.util.Log;
@@ -48,7 +49,8 @@ public class OrderItemSearchActivity extends AppCompatActivity {
     private SearchConditionEntity searchConditionEntity = SearchConditionEntity.getINSTANCE();
     private DropDownMenu dropDownMenu = null;
     private ListView lvSearchOrders = null;
-    private TextView tvSearchCost,tvSearchMoney,tvSearchIncome,tvSearchCondition;
+    private TextView tvSearchCost,tvSearchMoney,tvSearchIncome;
+    private TextView tvSearchConditionVersion,tvSearchConditionDate,tvSearchConditionOtherDescription;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -76,7 +78,9 @@ public class OrderItemSearchActivity extends AppCompatActivity {
         tvSearchCost = ll_search_order_list.findViewById(R.id.tv_search_cost);
         tvSearchMoney = ll_search_order_list.findViewById(R.id.tv_search_money);
         tvSearchIncome = ll_search_order_list.findViewById(R.id.tv_search_income);
-        tvSearchCondition = ll_search_order_list.findViewById(R.id.tv_search_condition);
+        tvSearchConditionVersion = findViewById(R.id.tv_search_condition_version);
+        tvSearchConditionDate = findViewById(R.id.tv_search_condition_date);
+        tvSearchConditionOtherDescription = findViewById(R.id.tv_search_condition_other_description);
     }
 
     private void initDropDownMenu(){
@@ -215,10 +219,16 @@ public class OrderItemSearchActivity extends AppCompatActivity {
                 lvSearchOrders.setAdapter(new SearchOrderListViewAdapter(ordersInfo,OrderItemSearchActivity.this,userInfo));
                 //设置总支出、总收入、总金额,一位小数
                 tvSearchCost.setText(String.format("%.1f", finalCost));
+                tvSearchCost.setTextColor(Color.GREEN);
                 tvSearchIncome.setText(String.format("%.1f", finalIncome));
+                tvSearchIncome.setTextColor(Color.RED);
                 tvSearchMoney.setText(String.format("%.1f", finalIncome+finalCost));
+                tvSearchMoney.setTextColor(finalCost+finalIncome>0?Color.RED:Color.GREEN);
                 //设置搜索条件
-                tvSearchCondition.setText(searchConditionEntity.toString());
+                tvSearchConditionVersion.setText(searchConditionEntity.getMode());
+                tvSearchConditionDate.setText(searchConditionEntity.getDate());
+                tvSearchConditionOtherDescription.setText(searchConditionEntity.getOtherDescription());
+
             }
         });
         StyledDialog.dismissLoading(this);

@@ -6,11 +6,14 @@ import android.content.Context;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.GridView;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 
 import com.beta.autobookkeeping.R;
 import com.beta.autobookkeeping.activity.orderItemSearch.OrderItemSearchActivity;
 import com.beta.autobookkeeping.activity.orderItemSearch.items.SearchConditionEntity;
+import com.hss01248.dialog.StyledDialog;
+import com.hss01248.dialog.interfaces.MyDialogListener;
 import com.qmuiteam.qmui.widget.roundwidget.QMUIRoundButton;
 
 import java.util.ArrayList;
@@ -26,6 +29,7 @@ public class OtherDescriptionView {
     private LinearLayout linearLayout;
     private GridView gvOrderType;
     private EditText etSearchOrderRemark;
+    private ImageView ivSearchOtherDescriptionQuestion;
     private String[] orderTypes = new String[COST_TYPE.length+2];
     private ArrayList<String> searchOrderTypes = new ArrayList<>();
     private QMUIRoundButton btnConfirm;
@@ -41,6 +45,7 @@ public class OtherDescriptionView {
         initGridView();
         initEditText();
         initConfirmButton();
+        initQuestionIcon();
         recoverFromSearchConditionEntity();
         return linearLayout;
     }
@@ -49,6 +54,7 @@ public class OtherDescriptionView {
         gvOrderType = linearLayout.findViewById(R.id.gv_order_type);
         etSearchOrderRemark = linearLayout.findViewById(R.id.et_search_order_remark);
         btnConfirm = linearLayout.findViewById(R.id.btn_description_confirm);
+        ivSearchOtherDescriptionQuestion = linearLayout.findViewById(R.id.iv_search_other_description_question);
     }
 
     private void initData(){
@@ -97,6 +103,19 @@ public class OtherDescriptionView {
             searchConditionEntity.setSearchOrderRemark(searchOrderRemark);
             ProjectUtil.toastMsg(context,"进行多项查询");
             activity.closeMenu();
+        });
+    }
+
+    private void initQuestionIcon(){
+        ivSearchOtherDescriptionQuestion.setOnClickListener(v -> {
+            StyledDialog.buildIosAlert("使用帮助",
+                    "1.选择账单类型,可以选择多个,不选择则默认为全部类型\n" +
+                            "2.选择不限后,将默认搜索所有类型,其他类型的选择与否将会失效", new MyDialogListener() {
+                        @Override
+                        public void onFirst() {}
+                        @Override
+                        public void onSecond() {}
+                    }).show();
         });
     }
 
