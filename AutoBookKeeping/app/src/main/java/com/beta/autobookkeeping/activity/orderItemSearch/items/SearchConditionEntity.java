@@ -6,7 +6,9 @@ import android.content.Context;
 import android.util.Log;
 import android.view.View;
 
-import com.beta.autobookkeeping.activity.orderItemSearch.items.otherDescriptionView.OtherDescriptionView;
+import com.beta.autobookkeeping.activity.orderItemSearch.items.dropdownViews.DatePickView;
+import com.beta.autobookkeeping.activity.orderItemSearch.items.dropdownViews.VersionItemView;
+import com.beta.autobookkeeping.activity.orderItemSearch.items.dropdownViews.otherDescriptionView.OtherDescriptionView;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -92,6 +94,8 @@ public class SearchConditionEntity {
     }
 
     public String[] getSearchCostType() {
+        //转为String
+//        Log.d("SearchConditionEntity", "getSearchCostType: " + Arrays.toString(searchCostType));
         return searchCostType;
     }
 
@@ -133,5 +137,14 @@ public class SearchConditionEntity {
 
     public void setIfIgnoreDay(boolean ifIgnoreDay) {
         this.ifIgnoreDay = ifIgnoreDay;
+    }
+
+    @Override
+    public String toString() {
+        //年月日为0则不显示
+        String yearStr = year == 0 ? "" : year + "年";
+        String monthStr = month == 0 ? "" : month + "月";
+        String dayStr = day == 0 ? "" : day + "日";
+        return mode + " " + yearStr + monthStr + dayStr  + " " + Arrays.toString(searchCostType)+ " " + searchOrderRemark;
     }
 }
