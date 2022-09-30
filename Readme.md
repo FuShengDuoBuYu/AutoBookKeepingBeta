@@ -78,11 +78,12 @@
 1. 由于本软件是基于读取银行短信账单实现,因此**请务必开启银行的短信通知**
 2. 为了让该软件能够正常运行,请开启本软件的**获取短信**和**后台弹出**权限,在首次启动app时,会对这些权限进行申请(由于国内UI定制,可能会出现不弹窗等问题,请手动赋予权限)
 	<div style="display:flex;">
-    <img src="http://106.15.35.61:81/markdown_pic/auto_bookkeeping_beta/permission/permission1.jpg" style="width:24%"/>
-    <img src="http://106.15.35.61:81/markdown_pic/auto_bookkeeping_beta/permission/permission2.jpg" style="width:24%;margin-left:1%"/>
-    <img src="http://106.15.35.61:81/markdown_pic/auto_bookkeeping_beta/permission/permission3.jpg" style="width:24%;margin-left:1%" /><img src="http://106.15.35.61:81/markdown_pic/auto_bookkeeping_beta/permission/permission4.jpg" style="width:24%;margin-left:1%" />
+    <img src="https://github.com/FuShengDuoBuYu/AutoBookKeepingBeta/raw/master/ReadmeImage/permission/permission1.jpg" style="width:24%"/>
+    <img src="https://github.com/FuShengDuoBuYu/AutoBookKeepingBeta/raw/master/ReadmeImage/permission/permission2.jpg" style="width:24%;margin-left:1%"/>
+    <img src="https://github.com/FuShengDuoBuYu/AutoBookKeepingBeta/raw/master/ReadmeImage/permission/permission3.jpg" style="width:24%;margin-left:1%" />
+   <img src="https://github.com/FuShengDuoBuYu/AutoBookKeepingBeta/raw/master/ReadmeImage/permission/permission4.jpg" style="width:24%;margin-left:1%" />
   </div>
-
+	
 3. 由于该app并非系统应用,所以请在后台设置其**锁住不被内存清理**,同时设置电量限制为**无限制**
 4. 目前已经适配的银行:农业银行,建设银行,工商银行,招商银行,郑州银行等
 ---
@@ -94,17 +95,17 @@
   - 每一条记录项目,可以进行单击进入**编辑页面**,对金额,时间等一系列信息重新编辑
   - 每一条记录项目可以**长按**,进行**删除该项目**,删除的同时页面会进行同步刷新
   <div style="display:flex;">
-    <img src="http://106.15.35.61:81/markdown_pic/auto_bookkeeping_beta/main_activity/1.gif" style="width:30%"/>
-    <img src="http://106.15.35.61:81/markdown_pic/auto_bookkeeping_beta/main_activity/2.gif" style="width:30%;margin-left:5%"/>
-    <img src="http://106.15.35.61:81/markdown_pic/auto_bookkeeping_beta/main_activity/3.gif" style="width:30%;margin-left:5%" />
+    <img src="https://github.com/FuShengDuoBuYu/AutoBookKeepingBeta/raw/master/ReadmeImage/main_activity/1.gif" style="width:30%"/>
+    <img src="https://github.com/FuShengDuoBuYu/AutoBookKeepingBeta/raw/master/ReadmeImage/main_activity/2.gif" style="width:30%;margin-left:5%"/>
+    <img src="https://github.com/FuShengDuoBuYu/AutoBookKeepingBeta/raw/master/ReadmeImage/main_activity/3.gif" style="width:30%;margin-left:5%" />
   </div>
 - **添加账单页**:
 	
 	- 每一个**按钮**,**点击后都可以进行相对选项的选择**,如时间,支付方式,消费类型,支出/消费等等
   <div style="display:flex;">
-    <img src="http://106.15.35.61:81/markdown_pic/auto_bookkeeping_beta/add_order_activity/1.jpg" style="width:30%"/>
-    <img src="http://106.15.35.61:81/markdown_pic/auto_bookkeeping_beta/add_order_activity/2.jpg" style="width:30%;margin-left:5%"/>
-    <img src="http://106.15.35.61:81/markdown_pic/auto_bookkeeping_beta/add_order_activity/3.jpg" style="width:30%;margin-left:5%" />
+    <img src="https://github.com/FuShengDuoBuYu/AutoBookKeepingBeta/raw/master/ReadmeImage/add_order_activity/1.jpg" style="width:30%"/>
+    <img src="https://github.com/FuShengDuoBuYu/AutoBookKeepingBeta/raw/master/ReadmeImage/add_order_activity/2.jpg" style="width:30%;margin-left:5%"/>
+    <img src="https://github.com/FuShengDuoBuYu/AutoBookKeepingBeta/raw/master/ReadmeImage/add_order_activity/3.jpg" style="width:30%;margin-left:5%" />
   </div>
 - **月度报告页**
 
@@ -120,17 +121,17 @@
   	- 根据各项目在本月中的花费,会有一个进度条形式的排行榜在显示,他们的**内条颜色与饼状图的饼块颜色对应**.其所有内条的总和,即为100％
   	- 同时支持点击条柱后查看具体详情(进入详情搜索页面)
   <div style="display:flex;">
-    <img src="http://106.15.35.61:81/markdown_pic/auto_bookkeeping_beta/month_report_activity/1.jpg" style="width:30%"/>
-    <img src="http://106.15.35.61:81/markdown_pic/auto_bookkeeping_beta/month_report_activity/2.jpg" style="width:30%;margin-left:5%"/>
-    <img src="http://106.15.35.61:81/markdown_pic/auto_bookkeeping_beta/month_report_activity/3.jpg" style="width:30%;margin-left:5%" />
+    <img src="https://github.com/FuShengDuoBuYu/AutoBookKeepingBeta/raw/master/ReadmeImage/month_report_activity/1.jpg" style="width:30%"/>
+    <img src="https://github.com/FuShengDuoBuYu/AutoBookKeepingBeta/raw/master/ReadmeImage/month_report_activity/2.jpg" style="width:30%;margin-left:5%"/>
+    <img src="https://github.com/FuShengDuoBuYu/AutoBookKeepingBeta/raw/master/ReadmeImage/month_report_activity/3.jpg" style="width:30%;margin-left:5%" />
   </div>
 - **设置页**
 	- **进入个人中心**
   	- 在个人中心页面里可以设置昵称,家庭id,头像等个人信息
   <div style="display:flex;">
-    <img src="http://106.15.35.61:81/markdown_pic/auto_bookkeeping_beta/settings_activity/personal_activity/2.gif" style="width:30%"/>
-    <img src="http://106.15.35.61:81/markdown_pic/auto_bookkeeping_beta/settings_activity/personal_activity/1.jpg" style="width:30%;margin-left:5%"/>
-    <img src="http://106.15.35.61:81/markdown_pic/auto_bookkeeping_beta/settings_activity/personal_activity/3.jpg" style="width:30%;margin-left:5%" />
+    <img src="https://github.com/FuShengDuoBuYu/AutoBookKeepingBeta/raw/master/ReadmeImage/settings_activity/personal_activity/2.gif" style="width:30%"/>
+    <img src="https://github.com/FuShengDuoBuYu/AutoBookKeepingBeta/raw/master/ReadmeImage/settings_activity/personal_activity/1.jpg" style="width:30%;margin-left:5%"/>
+    <img src="https://github.com/FuShengDuoBuYu/AutoBookKeepingBeta/raw/master/ReadmeImage/settings_activity/personal_activity/3.jpg" style="width:30%;margin-left:5%" />
   </div>
 
 
@@ -138,18 +139,20 @@
   - 银行号码输入后可以根据**号码进行过滤银行短信**,提高短信读取的准确性
   - 如果没有设置,默认是**所有号码都会被放行**
   <div style="display:flex;">
-    <img src="http://106.15.35.61:81/markdown_pic/auto_bookkeeping_beta/settings_activity/1.jpg" style="width:40%"/>
-    <img src="http://106.15.35.61:81/markdown_pic/auto_bookkeeping_beta/settings_activity/2.jpg" style="width:40%;margin-left:20%"/>
+    <img src="https://github.com/FuShengDuoBuYu/AutoBookKeepingBeta/raw/master/ReadmeImage/settings_activity/1.jpg" style="width:40%"/>
+    <img src="https://github.com/FuShengDuoBuYu/AutoBookKeepingBeta/raw/master/ReadmeImage/settings_activity/2.jpg" style="width:40%;margin-left:20%"/>
   </div>
+
 
   - **查找账单**
 	  - 用户可以根据模式,账单时间,账单类别,关键字等信息进行账单的查询
 	  - 在账单查询顶部,会给出用户查到的所有数据的**支出,收入和收支**
   <div style="display:flex;">
-    <img src="http://106.15.35.61:81/markdown_pic/auto_bookkeeping_beta/settings_activity/search_order_activity/1.gif" style="width:30%"/>
-    <img src="http://106.15.35.61:81/markdown_pic/auto_bookkeeping_beta/settings_activity/search_order_activity/2.gif" style="width:30%;margin-left:5%"/>
-    <img src="http://106.15.35.61:81/markdown_pic/auto_bookkeeping_beta/widget/1.jpg" style="width:30%;margin-left:5%" />
+    <img src="https://github.com/FuShengDuoBuYu/AutoBookKeepingBeta/raw/master/ReadmeImage/settings_activity/search_order_activity/1.gif" style="width:30%"/>
+    <img src="https://github.com/FuShengDuoBuYu/AutoBookKeepingBeta/raw/master/ReadmeImage/settings_activity/search_order_activity/2.gif" style="width:30%;margin-left:5%"/>
+    <img src="https://github.com/FuShengDuoBuYu/AutoBookKeepingBeta/raw/master/ReadmeImage/widget/1.jpg" style="width:30%;margin-left:5%" />
   </div>
+
 
 - **小组件**
 	- 该小组件可以在桌面中的小组件设置添加,其依旧是包含了**本日的总收支**和**本月的总收支**
