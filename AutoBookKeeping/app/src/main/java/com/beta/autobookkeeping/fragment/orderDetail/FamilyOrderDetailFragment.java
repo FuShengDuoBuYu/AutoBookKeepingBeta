@@ -191,6 +191,11 @@ public class FamilyOrderDetailFragment extends Fragment {
                         if(finalFamilyOrders.getJSONObject(i).getInt("day")== finalFamilyOrders.getJSONObject(i+1).getInt("day")){
                             money+= finalFamilyOrders.getJSONObject(i).getDouble("money");
                             nums++;
+                            //如果是最后一个,就也要加上
+                            if(i==finalFamilyOrders.length()-2){
+                                nums++;
+                                money+= finalFamilyOrders.getJSONObject(i+1).getDouble("money");
+                            }
                         }
                         else{
                             nums++;
@@ -206,6 +211,7 @@ public class FamilyOrderDetailFragment extends Fragment {
                         e.printStackTrace();
                     }
                 }
+                Log.d("test",String.valueOf(nums));
                 daysCount.add(nums);
                 dayCost.add(money);
                 monthMoney+=money;
@@ -234,7 +240,7 @@ public class FamilyOrderDetailFragment extends Fragment {
                                     getContext(),
                                     imageView
                             );
-
+                            Log.d("123","123");
                             linearLayout.addView(familyOrderItem);
                             orderIndex++;
                         }
@@ -244,11 +250,11 @@ public class FamilyOrderDetailFragment extends Fragment {
                     }
                 }
                 //设置动画
-                SpruceAnimator spruceAnimator = new Spruce
-                        .SpruceBuilder(ll_FamilyOrders)
-                        .sortWith(new DefaultSort(/*interObjectDelay=*/50L))
-                        .animateWith(new Animator[] {DefaultAnimations.shrinkAnimator(ll_FamilyOrders, /*duration=*/800)})
-                        .start();
+//                SpruceAnimator spruceAnimator = new Spruce
+//                        .SpruceBuilder(ll_FamilyOrders)
+//                        .sortWith(new DefaultSort(/*interObjectDelay=*/50L))
+//                        .animateWith(new Animator[] {DefaultAnimations.shrinkAnimator(ll_FamilyOrders, /*duration=*/800)})
+//                        .start();
                 //配置日收支
                 if(activity instanceof MainActivity){
                     ((MainActivity) activity).showDayAndMonthMoney(String .format("%.2f",dayMoney),String .format("%.2f",monthMoney));

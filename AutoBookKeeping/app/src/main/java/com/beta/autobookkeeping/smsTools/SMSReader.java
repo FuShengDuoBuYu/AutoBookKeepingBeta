@@ -1,5 +1,7 @@
 package com.beta.autobookkeeping.smsTools;
 
+import static Util.ProjectUtil.getBankOrderInfo;
+
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -11,6 +13,7 @@ import android.util.Log;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.beta.autobookkeeping.BaseApplication;
+import com.beta.autobookkeeping.activity.orderDetail.OrderDetailActivity;
 
 import java.util.List;
 
@@ -28,17 +31,22 @@ public class SMSReader extends AppCompatActivity {
     private Handler handler =new Handler(){
         public void handleMessage(android.os.Message msg) {
 
-            Bundle bundle=msg.getData();
-            body=bundle.getString("body");
-            sender=bundle.getString("sender");
+            Bundle msgBundle=msg.getData();
+            body=msgBundle.getString("body");
+            sender=msgBundle.getString("sender");
             //如果短信是银行账单短信且和本地新信息不一致,就调开app并进行下一步操作
             if(isBankOrderMsg(body)&&isSavedMsg(body)&&isUserInputBankNumber(sender)){
                 ProjectUtil.toastMsg(context,"读取到银行账单!");
-                Intent intent = context.getPackageManager().getLaunchIntentForPackage(context.getPackageName());
-                intent.putExtras(bundle);
-                baseApplication = (BaseApplication) context.getApplicationContext();
-                baseApplication.setSMSMsg(body);
-                context.startActivity(intent);
+                Intent orderDetail = new Intent();
+                orderDetail.setClassName(context, OrderDetailActivity.class.getName());
+                orderDetail.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                orderDetail.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                String[] orderDetailMsg = getBankOrderInfo(body);
+                Bundle bundle = new Bundle();
+                bundle.putString("payWay",orderDetailMsg[0]);
+                bundle.putString("orderType",orderDetailMsg[1]);
+                bundle.putDouble("money",Double.parseDouble(orderDetailMsg[2]));
+                orderDetail.putExtras(bundle);
             }
         };
     };
@@ -56,7 +64,7 @@ public class SMSReader extends AppCompatActivity {
 
     //判断短信是否是银行发的账单短信
     public boolean isBankOrderMsg(String msg){
-        String[] msgInfo = ProjectUtil.getBankOrderInfo(msg);
+        String[] msgInfo = getBankOrderInfo(msg);
         //如果三个银行信息中有一个为空,就说明不是银行信息
         if(msgInfo[0].equals("")||msgInfo[1].equals("")||msgInfo[2].equals("")){
             return false;

@@ -228,11 +228,11 @@ public class PersonalOrderDetailFragment extends Fragment {
     @Override
     public void onStart() {
         addViewByData(getContext());
-        SpruceAnimator spruceAnimator = new Spruce
-                .SpruceBuilder(lvOrderDetail)
-                .sortWith(new DefaultSort(/*interObjectDelay=*/50L))
-                .animateWith(new Animator[] {DefaultAnimations.shrinkAnimator(lvOrderDetail, /*duration=*/800)})
-                .start();
+//        SpruceAnimator spruceAnimator = new Spruce
+//                .SpruceBuilder(lvOrderDetail)
+//                .sortWith(new DefaultSort(/*interObjectDelay=*/50L))
+//                .animateWith(new Animator[] {DefaultAnimations.shrinkAnimator(lvOrderDetail, /*duration=*/800)})
+//                .start();
         super.onStart();
     }
 

@@ -39,6 +39,7 @@ import com.beta.autobookkeeping.fragment.orderDetail.FamilyOrderDetailFragment;
 import com.beta.autobookkeeping.fragment.orderDetail.PersonalOrderDetailFragment;
 import com.beta.autobookkeeping.fragment.orderDetail.TabOrderDetailFragmentPagerAdapter;
 import com.beta.autobookkeeping.BaseApplication;
+import com.beta.autobookkeeping.receiver.NotificationReceiver;
 import com.beta.autobookkeeping.smsTools.SMSDataBase;
 import com.beta.autobookkeeping.smsTools.SMSService;
 import com.google.android.material.tabs.TabLayout;
@@ -86,6 +87,7 @@ public class MainActivity extends AppCompatActivity {
         initFragmentAndViewPage();
         //开启读取短信线程
         startService(new Intent(MainActivity.this, SMSService.class));
+        startService(new Intent(MainActivity.this, NotificationReceiver.class));
         //设置手机号
         setPhoneNum();
         FamilyChecking.checkFamily(this);
@@ -281,14 +283,6 @@ public class MainActivity extends AppCompatActivity {
     protected void onStart() {
         //显示账单状态
         tv_title.setText("我的收支");
-        //检测Application中是否有短信数据
-        BaseApplication baseApplication = new BaseApplication();
-        baseApplication = (BaseApplication)getApplication();
-        if(baseApplication.getSMSMsg()!=null){
-            //跳转到新增界面
-            Intent intent = new Intent(MainActivity.this,OrderDetailActivity.class);
-            startActivity(intent);
-        }
         //获取本日和本月累计收支
         showDayAndMonthMoney();
         //获取并显示所有账单详情
@@ -301,20 +295,20 @@ public class MainActivity extends AppCompatActivity {
         //重新给月和日开销赋值
         tvAllMonthOrder.setText(String .format("%.2f",ProjectUtil.getMonthMoney(this)));
         tvAllTodayOrder.setText(String .format("%.2f",ProjectUtil.getDayMoney(getCurrentYear(),getCurrentMonth(),getCurrentDay(),this)));
-        SpruceAnimator spruceAnimator = new Spruce
-                .SpruceBuilder(llCostTitle)
-                .sortWith(new DefaultSort(/*interObjectDelay=*/50L))
-                .animateWith(new Animator[] {DefaultAnimations.fadeInAnimator(llCostTitle, /*duration=*/1500)})
-                .start();
+//        SpruceAnimator spruceAnimator = new Spruce
+//                .SpruceBuilder(llCostTitle)
+//                .sortWith(new DefaultSort(/*interObjectDelay=*/50L))
+//                .animateWith(new Animator[] {DefaultAnimations.fadeInAnimator(llCostTitle, /*duration=*/1500)})
+//                .start();
     }
 
     public void showDayAndMonthMoney(String dayMoney,String monthMoney){
         tvAllTodayOrder.setText(dayMoney);
         tvAllMonthOrder.setText(monthMoney);
-        SpruceAnimator spruceAnimator = new Spruce
-                .SpruceBuilder(llCostTitle)
-                .sortWith(new DefaultSort(/*interObjectDelay=*/50L))
-                .animateWith(new Animator[] {DefaultAnimations.fadeInAnimator(llCostTitle, /*duration=*/1500)})
-                .start();
+//        SpruceAnimator spruceAnimator = new Spruce
+//                .SpruceBuilder(llCostTitle)
+//                .sortWith(new DefaultSort(/*interObjectDelay=*/50L))
+//                .animateWith(new Animator[] {DefaultAnimations.fadeInAnimator(llCostTitle, /*duration=*/1500)})
+//                .start();
     }
 }

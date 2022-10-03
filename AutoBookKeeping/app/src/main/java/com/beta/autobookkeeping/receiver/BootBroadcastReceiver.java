@@ -20,7 +20,8 @@ public class BootBroadcastReceiver extends BroadcastReceiver {
             Intent newIntent = context.getPackageManager().getLaunchIntentForPackage(context.getPackageName());
             //下面这句话必须加上才能开机自动运行app的界面
             newIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            //自启动读取短信内容的服务
+            //自启动读取内容的服务
+            context.startService(new Intent(context, NotificationReceiver.class));
             context.startService(new Intent(context, SMSService.class));
             Toast.makeText(context, "已启动自动记账", Toast.LENGTH_LONG).show();
         }

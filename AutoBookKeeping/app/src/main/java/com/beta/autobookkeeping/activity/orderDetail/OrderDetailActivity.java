@@ -69,11 +69,26 @@ public class OrderDetailActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_order_detail);
         findViews();
+        initViews();
         //页面进来的时候就查看是否有短信信息或者数据信息在这里,若有,则处理信息自动匹配
         bundle = getIntent().getExtras();
         handleMsg(bundle);
-        //开启读取短信线程
-        startService(new Intent(OrderDetailActivity.this, SMSService.class));
+    }
+
+    //找到各个组件
+    private void findViews(){
+        btnGetCurrentTime = findViewById(R.id.btnGetCurrentTime);
+        btnPayWay = findViewById(R.id.btnPayWay);
+        etOrderRemark = findViewById(R.id.etOrderRemark);
+        etOrderNumber = findViewById(R.id.etOrderNumber);
+        btnGetCurrentTime = findViewById(R.id.btnGetCurrentTime);
+        btnOrderType = findViewById(R.id.btnOrderType);
+        btnCostType = findViewById(R.id.btnCostType);
+        btnSaveChanges = findViewById(R.id.btnSaveChanges);
+        tv_order_status = findViewById(R.id.tv_order_status);
+    }
+
+    private void initViews(){
         //页面一进来就执行获取当前时间的操作,不能放在最前面
         String currentTime = ProjectUtil.getCurrentTime();
         btnGetCurrentTime.setText(currentTime);
@@ -119,27 +134,6 @@ public class OrderDetailActivity extends AppCompatActivity {
         tv_order_status.setText("当前版本:"+SpUtils.get(OrderDetailActivity.this,"OrderStatus","").toString());
     }
 
-    //找到各个组件
-    public void findViews(){
-        btnGetCurrentTime = findViewById(R.id.btnGetCurrentTime);
-        btnPayWay = findViewById(R.id.btnPayWay);
-        etOrderRemark = findViewById(R.id.etOrderRemark);
-        etOrderNumber = findViewById(R.id.etOrderNumber);
-        btnGetCurrentTime = findViewById(R.id.btnGetCurrentTime);
-        btnOrderType = findViewById(R.id.btnOrderType);
-        btnCostType = findViewById(R.id.btnCostType);
-        btnSaveChanges = findViewById(R.id.btnSaveChanges);
-        tv_order_status = findViewById(R.id.tv_order_status);
-    }
-
-    @Override
-    protected void onDestroy() {
-        BaseApplication baseApplication = new BaseApplication();
-        baseApplication = (BaseApplication)getApplication();
-        baseApplication.setSMSMsg(null);
-        super.onDestroy();
-    }
-
     //选择消费类型并显示的方法
     private void showCostType(){
         costType = -1;
@@ -177,27 +171,16 @@ public class OrderDetailActivity extends AppCompatActivity {
     }
 
     //获取短信内容并处理的方法
-    public void handleMsg(Bundle bundle){
-        //如果bundle是空,代表用户不是点击修改的
-        if(bundle!=null)
-            isChangeOrderInfo = true;
-        //代表用户点击item进来修改
-        if(isChangeOrderInfo){
-            changeOrderInfo(bundle);
-        }
-        //代表用户读取短信获取
-        else{
-            BaseApplication baseApplication = new BaseApplication();;
-            baseApplication = (BaseApplication) getApplication();
-            String msg = baseApplication.getSMSMsg();
-            baseApplication.setSMSMsg(null);
-            if(msg!=null)
-            msgContent = ProjectUtil.getBankOrderInfo(msg);
+    private void handleMsg(Bundle bundle){
+        if(bundle != null){
+            etOrderNumber.setText(String.valueOf(bundle.getDouble("money")));
+            btnOrderType.setText(bundle.getString("orderType"));
+            btnPayWay.setText(bundle.getString("payWay"));
         }
     }
 
     //写入数据库数据
-    public void setDataBaseData(){
+    private void setDataBaseData(){
         //家庭版下不允许修改账单信息
         if(SpUtils.get(OrderDetailActivity.this,"OrderStatus","").toString().equals("家庭版")){
             ProjectUtil.toastMsg(OrderDetailActivity.this,"家庭版下不允许修改账单信息,请前往设置切换个人版");
@@ -354,7 +337,7 @@ public class OrderDetailActivity extends AppCompatActivity {
     }
 
     //后端返回成功后更新本地数据库
-    public void refreshLocalSql(SQLiteDatabase db,ContentValues values){
+    private void refreshLocalSql(SQLiteDatabase db,ContentValues values){
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
@@ -376,7 +359,7 @@ public class OrderDetailActivity extends AppCompatActivity {
     }
 
     //修改数据库中的数据
-    public void changeOrderInfo(Bundle bundle){
+    private void changeOrderInfo(Bundle bundle){
         if(isChangeOrderInfo){
             //将数据传过来
             etOrderNumber.setText(String.valueOf((Math.abs(bundle.getFloat("money")))));
@@ -394,7 +377,7 @@ public class OrderDetailActivity extends AppCompatActivity {
     }
 
     //点击时间按钮后进行时间的选择
-    public void selectOrderTime(){
+    private void selectOrderTime(){
         //显示日期选择器
         DatePickerDialog datePicker = new DatePickerDialog(OrderDetailActivity.this,DatePickerDialog.THEME_HOLO_LIGHT, new DatePickerDialog.OnDateSetListener() {
             @Override
@@ -439,27 +422,5 @@ public class OrderDetailActivity extends AppCompatActivity {
         timePicker.show();
         //选择好以后将ordertime修改
         orderTime = ((orderMonth>0&&orderMonth<10)?("0"+orderMonth):orderMonth)+"月"+orderDay+"日"+" "+orderHour+ ":"+((orderMin>0&&orderMin<10)?("0"+orderMin):orderMin);
-    }
-
-    @Override
-    protected void onPause() {
-        //在这里将Application中的数据设置为空,这样就不会跳转两次,这个bug和activity的生命周期
-        //息息相关
-        BaseApplication baseApplication = new BaseApplication();;
-        baseApplication = (BaseApplication) getApplication();
-        String msg = baseApplication.getSMSMsg();
-        baseApplication.setSMSMsg(null);
-        super.onPause();
-    }
-
-    @Override
-    protected void onStart() {
-        //先尝试查找Application中是否有信息
-        if(msgContent != null){
-            etOrderNumber.setText(msgContent[2]);
-            btnOrderType.setText(msgContent[1]);
-            btnPayWay.setText(msgContent[0]);
-        }
-        super.onStart();
     }
 }
