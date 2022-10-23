@@ -26,8 +26,6 @@ public class OrderWidget extends AppWidgetProvider {
             context.startActivity(intent2);
         }
         super.onReceive(context, intent);
-
-
     }
     /**
      * 每次窗口小部件被更新都调用一次该方法
@@ -55,40 +53,4 @@ public class OrderWidget extends AppWidgetProvider {
 
         appWidgetManager.updateAppWidget(appWidgetIds,remoteViews);
     }
-    /**
-     * 每删除一次窗口小部件就调用一次
-     */
-    @Override
-    public void onDeleted(Context context, int[] appWidgetIds) {
-        super.onDeleted(context, appWidgetIds);
-    }
-    /**
-     * 当该窗口小部件第一次添加到桌面时调用该方法
-     */
-    @Override
-    public void onEnabled(Context context) {
-        super.onEnabled(context);
-    }
-    /**
-     * 当最后一个该窗口小部件删除时调用该方法
-     */
-    @Override
-    public void onDisabled(Context context) {
-        super.onDisabled(context);
-    }
-    /**
-     * 当小部件大小改变时
-     */
-    @Override
-    public void onAppWidgetOptionsChanged(Context context, AppWidgetManager appWidgetManager, int appWidgetId, Bundle newOptions) {
-        super.onAppWidgetOptionsChanged(context, appWidgetManager, appWidgetId, newOptions);
-    }
-    /**
-     * 当小部件从备份恢复时调用该方法
-     */
-    @Override
-    public void onRestored(Context context, int[] oldWidgetIds, int[] newWidgetIds) {
-        super.onRestored(context, oldWidgetIds, newWidgetIds);
-    }
-
 }

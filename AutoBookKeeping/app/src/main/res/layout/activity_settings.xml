@@ -9,7 +9,6 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:id="@+id/theFirstLine"
-        android:layout_marginTop="10dp"
         android:orientation="horizontal">
         <!-- 我的收支-->
         <TextView
@@ -71,9 +70,22 @@
                 android:layout_width="match_parent"
                 android:layout_height="1px"
                 android:background="@color/primary_font"
+                android:layout_marginTop="10dp"
+                android:layout_marginBottom="10dp">
+            </View>
+            <fragment
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:name="com.beta.autobookkeeping.fragment.Settings.TargetCostWaterFragment"
+                android:id="@+id/fragment_target_cost_water">
+            </fragment>
+<!--            银行号码设置-->
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1px"
+                android:background="@color/primary_font"
                 android:layout_marginTop="10dp">
             </View>
-<!--            银行号码设置-->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="50dp"
@@ -142,7 +154,36 @@
 
                 </TextView>
             </LinearLayout>
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1px"
+                android:background="@color/primary_font"
+                android:layout_marginTop="10dp">
+            </View>
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="70dp"
+                android:foreground="?selectableItemBackground"
+                android:id="@+id/ll_order_map"
+                android:orientation="horizontal">
+                <ImageView
+                    android:layout_width="35dp"
+                    android:layout_height="35dp"
+                    android:layout_gravity="center_vertical"
+                    android:src="@drawable/ic_order_map">
 
+                </ImageView>
+                <TextView
+                    android:layout_marginStart="20dp"
+                    android:gravity="center_vertical"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:text="查看账单地图"
+                    android:textColor="@color/primary_font"
+                    android:textSize="18sp">
+
+                </TextView>
+            </LinearLayout>
         </LinearLayout>
     </ScrollView>
 

@@ -5,13 +5,21 @@ import static Util.ConstVariable.IP;
 import android.animation.Animator;
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.app.ActivityOptions;
+import android.app.AlertDialog;
+import android.app.Dialog;
+import android.content.Context;
+import android.content.Intent;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 
+import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
 import android.os.Looper;
+import android.transition.Fade;
+import android.transition.TransitionManager;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -22,8 +30,11 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.beta.autobookkeeping.R;
+import com.beta.autobookkeeping.activity.main.DialogActivity;
 import com.beta.autobookkeeping.activity.main.MainActivity;
 import com.hss01248.dialog.StyledDialog;
+import com.hss01248.dialog.adapter.SuperLvHolder;
+import com.hss01248.dialog.config.ConfigBean;
 import com.willowtreeapps.spruce.Spruce;
 import com.willowtreeapps.spruce.SpruceAnimator;
 import com.willowtreeapps.spruce.animation.DefaultAnimations;
@@ -240,7 +251,12 @@ public class FamilyOrderDetailFragment extends Fragment {
                                     getContext(),
                                     imageView
                             );
-                            Log.d("123","123");
+                            familyOrderItem.setTransitionName("familyOrderItem"+orderIndex);
+                            //设置点击事件
+                            familyOrderItem.setOnClickListener(v->{
+//                                ProjectUtil.toastMsg(getActivity(),"弹出");
+                                showDialog(v);
+                            });
                             linearLayout.addView(familyOrderItem);
                             orderIndex++;
                         }
@@ -249,12 +265,6 @@ public class FamilyOrderDetailFragment extends Fragment {
                         e.printStackTrace();
                     }
                 }
-                //设置动画
-//                SpruceAnimator spruceAnimator = new Spruce
-//                        .SpruceBuilder(ll_FamilyOrders)
-//                        .sortWith(new DefaultSort(/*interObjectDelay=*/50L))
-//                        .animateWith(new Animator[] {DefaultAnimations.shrinkAnimator(ll_FamilyOrders, /*duration=*/800)})
-//                        .start();
                 //配置日收支
                 if(activity instanceof MainActivity){
                     ((MainActivity) activity).showDayAndMonthMoney(String .format("%.2f",dayMoney),String .format("%.2f",monthMoney));
@@ -262,5 +272,16 @@ public class FamilyOrderDetailFragment extends Fragment {
             }
         });
         StyledDialog.dismissLoading(getActivity());
+    }
+
+    private void showDialog(View v){
+        v.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                Intent i = new Intent(new Intent(getContext(), DialogActivity.class));
+                getActivity().startActivity(i, ActivityOptions.makeSceneTransitionAnimation(getActivity(),v,"familyOrderItem1").toBundle());
+            }
+        });
     }
 }

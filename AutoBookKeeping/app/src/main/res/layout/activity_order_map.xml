@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".activity.orderMap.OrderMapActivity"
+    android:orientation="vertical">
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/theFirstLine"
+        android:orientation="horizontal">
+        <!-- 我的收支-->
+        <TextView
+            android:background="@drawable/blue_background"
+            android:layout_width="match_parent"
+            android:layout_height="55dp"
+            android:text="账单地图"
+            android:textColor="@color/white"
+            android:textSize="20sp"
+            android:gravity="center">
+        </TextView>
+    </LinearLayout>
+    <com.amap.api.maps2d.MapView
+        android:id="@+id/mv_order_map"
+        android:layout_width="match_parent"
+        android:layout_height="400dp" />
+</LinearLayout>

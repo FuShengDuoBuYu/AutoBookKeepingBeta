@@ -4,7 +4,10 @@ import static Util.ProjectUtil.getCurrentMonth;
 import static Util.ProjectUtil.getCurrentYear;
 import static Util.ProjectUtil.setDayOrderItem;
 
+import android.app.Activity;
+import android.app.ActivityOptions;
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.util.Log;
@@ -16,6 +19,7 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 
+import com.beta.autobookkeeping.activity.main.DialogActivity;
 import com.beta.autobookkeeping.activity.main.entity.OrderInfo;
 
 import java.util.Date;
@@ -68,6 +72,14 @@ public class SearchOrderListViewAdapter extends BaseAdapter {
         imageView.setForegroundGravity(Gravity.VERTICAL_GRAVITY_MASK);
         String portrait = userIdMapPortrait.get(orderInfoList.get(position).getUser());
         LinearLayout orderItem = ProjectUtil.setDayOrderItem(category,payWay,dayMoney,time,context,imageView);
+        orderItem.setOnClickListener(v->{
+            Intent i = new Intent(new Intent(context, DialogActivity.class));
+//                i.putExtra("position", position);
+
+            ActivityOptions options = ActivityOptions
+                    .makeSceneTransitionAnimation((Activity) context, v, "transition");
+            ((Activity)context).startActivity(i, options.toBundle());
+        });
         return orderItem;
     }
 }

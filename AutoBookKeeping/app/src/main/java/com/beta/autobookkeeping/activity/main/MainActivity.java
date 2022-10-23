@@ -16,6 +16,9 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.graphics.BitmapFactory;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.text.InputType;
 import android.view.View;
@@ -26,6 +29,7 @@ import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.amap.api.location.AMapLocationClient;
 import com.beta.autobookkeeping.activity.main.checking.FamilyChecking;
 import com.beta.autobookkeeping.activity.main.checking.PermissonChecking;
 import com.beta.autobookkeeping.activity.main.checking.UserRegister;
@@ -44,6 +48,7 @@ import com.beta.autobookkeeping.smsTools.SMSDataBase;
 import com.beta.autobookkeeping.smsTools.SMSService;
 import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.tabs.TabLayoutMediator;
+import com.gyf.immersionbar.ImmersionBar;
 import com.hss01248.dialog.StyledDialog;
 import com.hss01248.dialog.interfaces.MyDialogListener;
 import com.willowtreeapps.spruce.Spruce;
@@ -57,6 +62,9 @@ import java.util.List;
 
 import Util.ProjectUtil;
 import Util.SpUtils;
+import site.gemus.openingstartanimation.LineDrawStrategy;
+import site.gemus.openingstartanimation.NormalDrawStrategy;
+import site.gemus.openingstartanimation.OpeningStartAnimation;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -76,7 +84,9 @@ public class MainActivity extends AppCompatActivity {
     private List<OrderInfo> orderInfos = new ArrayList<>();
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
+        //高德隐私政策
+        AMapLocationClient.updatePrivacyAgree(this,true);
+        AMapLocationClient.updatePrivacyShow(this,true,true);
         setContentView(R.layout.activity_main);
         //设置初始偏好数据
         initSpAndSqlLiteData();
@@ -91,6 +101,9 @@ public class MainActivity extends AppCompatActivity {
         //设置手机号
         setPhoneNum();
         FamilyChecking.checkFamily(this);
+        //设置开屏动画
+        setOpeningAnimation();
+        super.onCreate(savedInstanceState);
     }
     //初始化fragment和viewpage
     private void initFragmentAndViewPage(){
@@ -295,20 +308,24 @@ public class MainActivity extends AppCompatActivity {
         //重新给月和日开销赋值
         tvAllMonthOrder.setText(String .format("%.2f",ProjectUtil.getMonthMoney(this)));
         tvAllTodayOrder.setText(String .format("%.2f",ProjectUtil.getDayMoney(getCurrentYear(),getCurrentMonth(),getCurrentDay(),this)));
-//        SpruceAnimator spruceAnimator = new Spruce
-//                .SpruceBuilder(llCostTitle)
-//                .sortWith(new DefaultSort(/*interObjectDelay=*/50L))
-//                .animateWith(new Animator[] {DefaultAnimations.fadeInAnimator(llCostTitle, /*duration=*/1500)})
-//                .start();
     }
 
     public void showDayAndMonthMoney(String dayMoney,String monthMoney){
         tvAllTodayOrder.setText(dayMoney);
         tvAllMonthOrder.setText(monthMoney);
-//        SpruceAnimator spruceAnimator = new Spruce
-//                .SpruceBuilder(llCostTitle)
-//                .sortWith(new DefaultSort(/*interObjectDelay=*/50L))
-//                .animateWith(new Animator[] {DefaultAnimations.fadeInAnimator(llCostTitle, /*duration=*/1500)})
-//                .start();
+    }
+
+    private void setOpeningAnimation(){
+        OpeningStartAnimation openingStartAnimation = new OpeningStartAnimation.Builder(MainActivity.this)
+                .setDrawStategy(new LineDrawStrategy()) //设置动画效果
+                //将图标转为drawable
+                .setAppName("自动记账")
+                .setColorOfAppName(this.getResources().getColor(R.color.blue))
+                .setColorOfAppStatement(this.getResources().getColor(R.color.blue))
+                .setAppStatement("美好的事情即将发生!")
+                .setAnimationInterval(2000)
+                .setAnimationFinishTime(500)
+                .create();
+        openingStartAnimation.show(MainActivity.this);
     }
 }

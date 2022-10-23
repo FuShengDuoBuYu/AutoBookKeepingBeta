@@ -3,14 +3,13 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:forceDarkAllowed="true"
+
     >
     <!-- 第一行,包含新增,我的支出和设置图标-->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="55dp"
         android:id="@+id/theFirstLine"
-        android:layout_marginTop="10dp"
         android:background="@drawable/blue_background"
         android:orientation="horizontal">
         <!-- 新增按钮-->

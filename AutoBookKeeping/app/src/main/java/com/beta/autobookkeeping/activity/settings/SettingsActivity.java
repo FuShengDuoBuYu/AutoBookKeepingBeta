@@ -5,23 +5,23 @@ import static Util.ImageUtil.base642bitmap;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
 
 import android.content.Intent;
 import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
 import android.os.Looper;
-import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.GridLayout;
-import android.widget.GridView;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.SimpleAdapter;
 import android.widget.TextView;
 
 import com.beta.autobookkeeping.R;
 import com.beta.autobookkeeping.activity.orderItemSearch.OrderItemSearchActivity;
+import com.beta.autobookkeeping.activity.orderMap.OrderMapActivity;
 import com.beta.autobookkeeping.activity.presonalInfo.PersonlInfoActivity;
 import com.beta.autobookkeeping.activity.settings.items.BankNumbers;
 import com.hss01248.dialog.StyledDialog;
@@ -32,7 +32,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
 import Util.ProjectUtil;
@@ -47,15 +46,16 @@ import okhttp3.Response;
 public class SettingsActivity extends AppCompatActivity {
 
     TextView tvUserPhoneNum;
-    LinearLayout personalCenter,llSearchOrders;
+    LinearLayout personalCenter,llSearchOrders,llOrderMap;
     ImageView userPortrait;
     GridLayout glBankNum;
     BankNumbers bankNumbers = null;
     QMUIRoundButton btnAddBankNumber;
+    Fragment fragmentTargetCostWater;
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
-        setContentView(R.layout.activity_settings);
         super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_settings);
         findViewById();
         initViews();
     }
@@ -67,6 +67,9 @@ public class SettingsActivity extends AppCompatActivity {
         btnAddBankNumber = findViewById(R.id.btn_add_bank_number);
         glBankNum = findViewById(R.id.gl_bank_num);
         llSearchOrders = findViewById(R.id.ll_search_orders);
+        llOrderMap = findViewById(R.id.ll_order_map);
+        FragmentManager fragmentManager = getSupportFragmentManager();
+        fragmentTargetCostWater = fragmentManager.findFragmentById(R.id.fragment_target_cost_water);
     }
 
     private void initViews(){
@@ -115,6 +118,14 @@ public class SettingsActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(SettingsActivity.this, OrderItemSearchActivity.class);
+                startActivity(intent);
+            }
+        });
+
+        llOrderMap.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(SettingsActivity.this, OrderMapActivity.class);
                 startActivity(intent);
             }
         });

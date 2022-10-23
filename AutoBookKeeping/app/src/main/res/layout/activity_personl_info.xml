@@ -9,7 +9,6 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:id="@+id/theFirstLine"
-        android:layout_marginTop="10dp"
         android:orientation="horizontal">
         <!-- 标题 -->
         <TextView

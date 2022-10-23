@@ -2,12 +2,12 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:forceDarkAllowed="true"
     android:orientation="vertical">
     <LinearLayout
         android:background="@drawable/blue_background"
         android:layout_width="match_parent"
         android:layout_height="55dp"
-        android:layout_marginTop="10dp"
         android:orientation="horizontal">
         <!-- 月度报告-->
         <TextView

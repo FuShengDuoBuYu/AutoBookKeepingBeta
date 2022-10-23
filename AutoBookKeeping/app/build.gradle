@@ -51,4 +51,9 @@ dependencies {
     implementation 'com.wdeo3601:drop-down-menu:1.0.5'
     implementation 'com.willowtreeapps.spruce:spruce-android:1.1.0'
     implementation 'com.github.limxing:DatePickerView:1.1.0'
+    implementation 'site.gemus:openingstartanimation:1.0.0'
+    implementation 'com.geyifeng.immersionbar:immersionbar:3.2.2'
+    implementation 'com.amap.api:map2d:latest.integration'
+    implementation 'com.amap.api:location:latest.integration'
+    implementation 'com.amap.api:location:latest.integration'
 }

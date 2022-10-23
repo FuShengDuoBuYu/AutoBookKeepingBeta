@@ -18,6 +18,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Looper;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.DatePicker;
@@ -85,7 +86,6 @@ public class OrderDetailActivity extends AppCompatActivity {
         btnOrderType = findViewById(R.id.btnOrderType);
         btnCostType = findViewById(R.id.btnCostType);
         btnSaveChanges = findViewById(R.id.btnSaveChanges);
-        tv_order_status = findViewById(R.id.tv_order_status);
     }
 
     private void initViews(){
@@ -130,8 +130,6 @@ public class OrderDetailActivity extends AppCompatActivity {
                 showPayWay();
             }
         });
-        //显示当前的账单状态
-        tv_order_status.setText("当前版本:"+SpUtils.get(OrderDetailActivity.this,"OrderStatus","").toString());
     }
 
     //选择消费类型并显示的方法
@@ -172,10 +170,18 @@ public class OrderDetailActivity extends AppCompatActivity {
 
     //获取短信内容并处理的方法
     private void handleMsg(Bundle bundle){
+        //不是手动添加
         if(bundle != null){
-            etOrderNumber.setText(String.valueOf(bundle.getDouble("money")));
-            btnOrderType.setText(bundle.getString("orderType"));
-            btnPayWay.setText(bundle.getString("payWay"));
+            //修改账单
+            if(bundle.getInt("id")!=0){
+                isChangeOrderInfo = true;
+                changeOrderInfo(bundle);
+            }
+            else{
+                etOrderNumber.setText(String.valueOf(bundle.getDouble("money")));
+                btnOrderType.setText(bundle.getString("orderType"));
+                btnPayWay.setText(bundle.getString("payWay"));
+            }
         }
     }
 

@@ -2,10 +2,17 @@ package com.beta.autobookkeeping;
 
 import android.app.Activity;
 import android.app.Application;
+import android.graphics.Color;
 import android.os.Bundle;
+import android.util.Log;
 
+import com.beta.autobookkeeping.activity.main.MainActivity;
+import com.gyf.immersionbar.ImmersionBar;
 import com.hss01248.dialog.ActivityStackManager;
 import com.hss01248.dialog.StyledDialog;
+
+import site.gemus.openingstartanimation.NormalDrawStrategy;
+import site.gemus.openingstartanimation.OpeningStartAnimation;
 
 public class BaseApplication extends Application {
 
@@ -17,6 +24,18 @@ public class BaseApplication extends Application {
         registerActivityLifecycleCallbacks(new ActivityLifecycleCallbacks() {
             @Override
             public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
+                if(activity instanceof MainActivity){
+                    ImmersionBar.with(activity)
+                            .statusBarColor(R.color.blue)
+//                            .statusBarDarkFont(true)
+                            .init();
+                }
+                else {
+                    ImmersionBar.with(activity)
+                            .fitsSystemWindows(true)
+                            .statusBarColor(R.color.blue)
+                            .init();
+                }
                 ActivityStackManager.getInstance().addActivity(activity);
             }
 
