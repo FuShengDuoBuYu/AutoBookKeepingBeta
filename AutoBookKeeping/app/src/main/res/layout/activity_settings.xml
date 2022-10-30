@@ -184,6 +184,36 @@
 
                 </TextView>
             </LinearLayout>
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1px"
+                android:background="@color/primary_font"
+                android:layout_marginTop="10dp">
+            </View>
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="70dp"
+                android:foreground="?selectableItemBackground"
+                android:id="@+id/ll_family_todo"
+                android:orientation="horizontal">
+                <ImageView
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:layout_gravity="center_vertical"
+                    android:src="@drawable/ic_family_todo">
+
+                </ImageView>
+                <TextView
+                    android:layout_marginStart="20dp"
+                    android:gravity="center_vertical"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:text="查看家庭待办"
+                    android:textColor="@color/primary_font"
+                    android:textSize="18sp">
+
+                </TextView>
+            </LinearLayout>
         </LinearLayout>
     </ScrollView>
 

@@ -67,6 +67,7 @@
         <entry key="..\:/Users/fengchuiyusan/Desktop/mySoftwares/AutoBookKeepingBeta/AutoBookKeeping/app/src/main/res/drawable/up_corner_btn.xml" value="0.1" />
         <entry key="..\:/Users/fengchuiyusan/Desktop/mySoftwares/AutoBookKeepingBeta/AutoBookKeeping/app/src/main/res/layout-v29/activity_main.xml" value="0.17239583333333333" />
         <entry key="..\:/Users/fengchuiyusan/Desktop/mySoftwares/AutoBookKeepingBeta/AutoBookKeeping/app/src/main/res/layout-v31/fragment_target_cost_water.xml" value="0.3333333333333333" />
+        <entry key="..\:/Users/fengchuiyusan/Desktop/mySoftwares/AutoBookKeepingBeta/AutoBookKeeping/app/src/main/res/layout/activity_family_todo.xml" value="0.13333333333333333" />
         <entry key="..\:/Users/fengchuiyusan/Desktop/mySoftwares/AutoBookKeepingBeta/AutoBookKeeping/app/src/main/res/layout/activity_main.xml" value="0.6666666666666666" />
         <entry key="..\:/Users/fengchuiyusan/Desktop/mySoftwares/AutoBookKeepingBeta/AutoBookKeeping/app/src/main/res/layout/activity_main_dialog.xml" value="0.1" />
         <entry key="..\:/Users/fengchuiyusan/Desktop/mySoftwares/AutoBookKeepingBeta/AutoBookKeeping/app/src/main/res/layout/activity_month_report.xml" value="0.11145833333333334" />
@@ -84,6 +85,7 @@
         <entry key="..\:/Users/fengchuiyusan/Desktop/mySoftwares/AutoBookKeepingBeta/AutoBookKeeping/app/src/main/res/layout/fragment_order_detail.xml" value="0.1734375" />
         <entry key="..\:/Users/fengchuiyusan/Desktop/mySoftwares/AutoBookKeepingBeta/AutoBookKeeping/app/src/main/res/layout/fragment_target_cost_water.xml" value="0.22" />
         <entry key="..\:/Users/fengchuiyusan/Desktop/mySoftwares/AutoBookKeepingBeta/AutoBookKeeping/app/src/main/res/layout/item.xml" value="0.10778985507246377" />
+        <entry key="..\:/Users/fengchuiyusan/Desktop/mySoftwares/AutoBookKeepingBeta/AutoBookKeeping/app/src/main/res/layout/item_activity_familyt_todo.xml" value="0.22" />
         <entry key="..\:/Users/fengchuiyusan/Desktop/mySoftwares/AutoBookKeepingBeta/AutoBookKeeping/app/src/main/res/layout/item_activity_order_search_date_pick_item.xml" value="0.22" />
         <entry key="..\:/Users/fengchuiyusan/Desktop/mySoftwares/AutoBookKeepingBeta/AutoBookKeeping/app/src/main/res/layout/item_activity_order_search_drop_down_menu_item.xml" value="0.2984375" />
         <entry key="..\:/Users/fengchuiyusan/Desktop/mySoftwares/AutoBookKeepingBeta/AutoBookKeeping/app/src/main/res/layout/item_activity_order_search_order_list_item.xml" value="0.15625" />

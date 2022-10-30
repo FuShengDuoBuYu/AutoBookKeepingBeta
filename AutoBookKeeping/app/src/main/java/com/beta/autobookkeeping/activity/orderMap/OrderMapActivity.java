@@ -1,9 +1,14 @@
 package com.beta.autobookkeeping.activity.orderMap;
 
+import static Util.ConstVariable.IP;
+
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.os.Bundle;
+import android.os.Looper;
 import android.util.Log;
+import android.view.View;
+import android.widget.Toast;
 
 import com.amap.api.location.AMapLocation;
 import com.amap.api.location.AMapLocationClient;
@@ -14,109 +19,72 @@ import com.amap.api.maps2d.CameraUpdateFactory;
 import com.amap.api.maps2d.MapView;
 import com.amap.api.maps2d.model.LatLngBounds;
 import com.beta.autobookkeeping.R;
+import com.beta.autobookkeeping.activity.orderDetail.OrderDetailActivity;
+import com.hss01248.dialog.StyledDialog;
+import com.qmuiteam.qmui.widget.roundwidget.QMUIRoundButton;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.IOException;
+
+import Util.ProjectUtil;
+import Util.SpUtils;
+import okhttp3.MediaType;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
 
 public class OrderMapActivity extends AppCompatActivity {
 
     private MapView mvOrderMap;
     private AMap aMap;
+
+    private QMUIRoundButton btnPersonalVersion,btnFamilyVersion;
+    private View.OnClickListener btnPersonalVersionListener = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            //修改按钮样式
+            btnPersonalVersion.setBackgroundColor(getResources().getColor(R.color.blue));
+            btnPersonalVersion.setTextColor(getResources().getColor(R.color.white));
+            btnFamilyVersion.setBackgroundColor(getResources().getColor(R.color.item_background));
+            btnFamilyVersion.setTextColor(getResources().getColor(R.color.primary_font));
+        }
+    };
+    private View.OnClickListener btnFamilyVersionListener = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            //修改按钮样式
+            btnFamilyVersion.setBackgroundColor(getResources().getColor(R.color.blue));
+            btnFamilyVersion.setTextColor(getResources().getColor(R.color.white));
+            btnPersonalVersion.setBackgroundColor(getResources().getColor(R.color.item_background));
+            btnPersonalVersion.setTextColor(getResources().getColor(R.color.primary_font));
+        }
+    };
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_order_map);
-        mvOrderMap = findViewById(R.id.mv_order_map);
+        findViewByIdAndInit();
         mvOrderMap.onCreate(savedInstanceState);
-        //设置基准位置在上海
-        aMap = mvOrderMap.getMap();
-        aMap.moveCamera(com.amap.api.maps2d.CameraUpdateFactory.newLatLngZoom(new com.amap.api.maps2d.model.LatLng(31.230416, 121.473701), 12));
-        //在地图上标注当前位置
-        AMapLocationClient mLocationClient = null;
-        try {
-            mLocationClient = new AMapLocationClient(getApplicationContext());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        mLocationClient.setLocationListener(new AMapLocationListener() {
-            @Override
-            public void onLocationChanged(AMapLocation aMapLocation) {
-                if (aMapLocation != null) {
-                    if (aMapLocation.getErrorCode() == 0) {
-                        //定位成功回调信息，设置相关消息
-                        aMapLocation.getLocationType();//获取当前定位结果来源，如网络定位结果，详见定位类型表
-                        double latitude = aMapLocation.getLatitude();//获取纬度
-                        double longitude = aMapLocation.getLongitude();//获取经度
-                        aMapLocation.getAccuracy();//获取精度信息
-                        com.amap.api.maps2d.model.LatLng latLng = new com.amap.api.maps2d.model.LatLng(latitude, longitude);
-                        aMap.addMarker(new com.amap.api.maps2d.model.MarkerOptions().position(latLng).title("当前位置"));
-                        aMap.moveCamera(com.amap.api.maps2d.CameraUpdateFactory.newLatLngZoom(latLng, 12));
-                        Log.i("OrderMapActivity", "onLocationChanged: " + latitude + " " + longitude);
-                    } else {
-                        //显示错误信息ErrCode是错误码，errInfo是错误信息，详见错误码表。
-                        Log.e("AmapError", "location Error, ErrCode:"
-                                + aMapLocation.getErrorCode() + ", errInfo:"
-                                + aMapLocation.getErrorInfo());
-                    }
-                }
-            }
-        });
-        //初始化定位参数
-        AMapLocationClientOption mLocationOption = new AMapLocationClientOption();
-        //设置定位模式为AMapLocationMode.Hight_Accuracy，高精度模式。
-        mLocationOption.setLocationMode(AMapLocationClientOption.AMapLocationMode.Hight_Accuracy);
-        //获取一次定位结果：
-        //该方法默认为false。
-        mLocationOption.setOnceLocation(true);
-        //获取最近3s内精度最高的一次定位结果：
-        mLocationOption.setOnceLocationLatest(true);
-        //设置定位参数
-        mLocationClient.setLocationOption(mLocationOption);
-        //启动定位
-        mLocationClient.startLocation();
-
-        //在地图上标注10个订单位置,堆叠显示
-
-        com.amap.api.maps2d.model.LatLng latLng1 = new com.amap.api.maps2d.model.LatLng(31.230416, 121.49);
-        com.amap.api.maps2d.model.LatLng latLng2 = new com.amap.api.maps2d.model.LatLng(31.230416, 121.433701);
-        com.amap.api.maps2d.model.LatLng latLng3 = new com.amap.api.maps2d.model.LatLng(31.230416, 121.473701);
-        com.amap.api.maps2d.model.LatLng latLng4 = new com.amap.api.maps2d.model.LatLng(31.230416, 121.401);
-        com.amap.api.maps2d.model.LatLng latLng5 = new com.amap.api.maps2d.model.LatLng(31.230416, 121.4301);
-        com.amap.api.maps2d.model.LatLng latLng6 = new com.amap.api.maps2d.model.LatLng(31.20416, 121.473701);
-        com.amap.api.maps2d.model.LatLng latLng7 = new com.amap.api.maps2d.model.LatLng(31.2416, 121.473701);
-        com.amap.api.maps2d.model.LatLng latLng8 = new com.amap.api.maps2d.model.LatLng(31.216, 121.473701);
-        com.amap.api.maps2d.model.LatLng latLng9 = new com.amap.api.maps2d.model.LatLng(31.2316, 121.473701);
-        com.amap.api.maps2d.model.LatLng latLng10 = new com.amap.api.maps2d.model.LatLng(31.230, 121.473701);
-        aMap.addMarker(new com.amap.api.maps2d.model.MarkerOptions().position(latLng1).title("订单1"));
-        aMap.addMarker(new com.amap.api.maps2d.model.MarkerOptions().position(latLng2).title("订单2"));
-        aMap.addMarker(new com.amap.api.maps2d.model.MarkerOptions().position(latLng3).title("订单3"));
-        aMap.addMarker(new com.amap.api.maps2d.model.MarkerOptions().position(latLng4).title("订单4"));
-        aMap.addMarker(new com.amap.api.maps2d.model.MarkerOptions().position(latLng5).title("订单5"));
-        aMap.addMarker(new com.amap.api.maps2d.model.MarkerOptions().position(latLng6).title("订单6"));
-        aMap.addMarker(new com.amap.api.maps2d.model.MarkerOptions().position(latLng7).title("订单7"));
-        aMap.addMarker(new com.amap.api.maps2d.model.MarkerOptions().position(latLng8).title("订单8"));
-        aMap.addMarker(new com.amap.api.maps2d.model.MarkerOptions().position(latLng9).title("订单9"));
-        aMap.addMarker(new com.amap.api.maps2d.model.MarkerOptions().position(latLng10).title("订单10"));
-
-        //显示地图上所有的marker
-        LatLngBounds.Builder builder = new LatLngBounds.Builder();
-        builder.include(latLng1);
-        builder.include(latLng2);
-        builder.include(latLng3);
-        builder.include(latLng4);
-        builder.include(latLng5);
-        builder.include(latLng6);
-        builder.include(latLng7);
-        builder.include(latLng8);
-        builder.include(latLng9);
-        builder.include(latLng10);
-        LatLngBounds bounds = builder.build();
-        aMap.moveCamera(CameraUpdateFactory.newLatLngBounds(bounds, 10));
-
-        //设置地图的缩放级别
-        aMap.moveCamera(CameraUpdateFactory.zoomTo(10));
-
-        //设置地图的中心点
-        aMap.moveCamera(CameraUpdateFactory.changeLatLng(latLng1));
-
+        initOrderMap();
     }
+
+
+    private void findViewByIdAndInit() {
+        mvOrderMap = findViewById(R.id.mv_order_map);
+        aMap = mvOrderMap.getMap();
+        //移动到上海
+        aMap.moveCamera(com.amap.api.maps2d.CameraUpdateFactory.newLatLngZoom(new com.amap.api.maps2d.model.LatLng(31.230416, 121.473701), 12));
+        btnPersonalVersion = findViewById(R.id.btn_personal_version);
+        btnPersonalVersion.setOnClickListener(btnPersonalVersionListener);
+        btnFamilyVersion = findViewById(R.id.btn_family_version);
+        btnFamilyVersion.setOnClickListener(btnFamilyVersionListener);
+    }
+
+
 
     @Override
     protected void onDestroy() {
@@ -124,5 +92,62 @@ public class OrderMapActivity extends AppCompatActivity {
         mvOrderMap.onDestroy();
     }
 
+    //初始化账单地图
+    private void initOrderMap() {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                //上传后端
+                String url = IP + "/findTopNPersonalOrderMapPlace/"+ SpUtils.get(OrderMapActivity.this,"phoneNum","")+ "/10";
+                OkHttpClient client = new OkHttpClient();
+                Request requst = new Request.Builder()
+                        .url(url)
+                        .get()
+                        .build();
+                try {
+                    Response response = client.newCall(requst).execute();
+                    if (response.code() == 200) {
+                        JSONObject jsonResponse = new JSONObject(response.body().string());
+                        if (jsonResponse.getBoolean("success")) {
+                            //转为JsonArray
+                            JSONArray jsonArray = jsonResponse.getJSONArray("data");
+                            renderOrderMapMarks(jsonArray);
+                        }
+                    } else {
+                        Looper.prepare();
+                        ProjectUtil.toastMsg(OrderMapActivity.this, "服务器出错");
+                        Looper.loop();
+                    }
+                } catch (IOException | JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+        }).start();
+    }
+
+    private void renderOrderMapMarks(JSONArray jsonArray) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                for (int i = 0; i < jsonArray.length(); i++) {
+                    try {
+                        JSONObject jsonObject = jsonArray.getJSONObject(i);
+                        double latitude = jsonObject.getDouble("latitude");
+                        double longitude = jsonObject.getDouble("longitude");
+                        double money = jsonObject.getDouble("money");
+                        String userId = jsonObject.getString("userId");
+                        Log.d("OrderMapActivity", "renderOrderMapMarks: " + latitude + " " + longitude + " " + money + " " + userId);
+                        aMap.addMarker(new com.amap.api.maps2d.model.MarkerOptions()
+                                .position(new com.amap.api.maps2d.model.LatLng(latitude, longitude))
+                                .title("金额：" + money)
+                                .snippet("用户：" + userId)
+                                .draggable(true));
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        });
+    }
 
 }

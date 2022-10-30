@@ -20,6 +20,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.beta.autobookkeeping.R;
+import com.beta.autobookkeeping.activity.familyTodo.FamilyTodoActivity;
 import com.beta.autobookkeeping.activity.orderItemSearch.OrderItemSearchActivity;
 import com.beta.autobookkeeping.activity.orderMap.OrderMapActivity;
 import com.beta.autobookkeeping.activity.presonalInfo.PersonlInfoActivity;
@@ -46,7 +47,7 @@ import okhttp3.Response;
 public class SettingsActivity extends AppCompatActivity {
 
     TextView tvUserPhoneNum;
-    LinearLayout personalCenter,llSearchOrders,llOrderMap;
+    LinearLayout personalCenter,llSearchOrders,llOrderMap,llFamilyTodo;
     ImageView userPortrait;
     GridLayout glBankNum;
     BankNumbers bankNumbers = null;
@@ -68,6 +69,7 @@ public class SettingsActivity extends AppCompatActivity {
         glBankNum = findViewById(R.id.gl_bank_num);
         llSearchOrders = findViewById(R.id.ll_search_orders);
         llOrderMap = findViewById(R.id.ll_order_map);
+        llFamilyTodo = findViewById(R.id.ll_family_todo);
         FragmentManager fragmentManager = getSupportFragmentManager();
         fragmentTargetCostWater = fragmentManager.findFragmentById(R.id.fragment_target_cost_water);
     }
@@ -126,6 +128,14 @@ public class SettingsActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(SettingsActivity.this, OrderMapActivity.class);
+                startActivity(intent);
+            }
+        });
+
+        llFamilyTodo.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(SettingsActivity.this, FamilyTodoActivity.class);
                 startActivity(intent);
             }
         });

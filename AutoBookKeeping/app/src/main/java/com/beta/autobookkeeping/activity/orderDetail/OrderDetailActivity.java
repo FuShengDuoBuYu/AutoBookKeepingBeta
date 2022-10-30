@@ -26,6 +26,12 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.TimePicker;
 
+import com.amap.api.location.AMapLocation;
+import com.amap.api.location.AMapLocationClient;
+import com.amap.api.location.AMapLocationClientOption;
+import com.amap.api.location.AMapLocationListener;
+import com.amap.api.maps2d.AMap;
+import com.amap.api.maps2d.MapView;
 import com.beta.autobookkeeping.R;
 import com.beta.autobookkeeping.BaseApplication;
 import com.beta.autobookkeeping.smsTools.SMSDataBase;
@@ -187,11 +193,7 @@ public class OrderDetailActivity extends AppCompatActivity {
 
     //写入数据库数据
     private void setDataBaseData(){
-        //家庭版下不允许修改账单信息
-        if(SpUtils.get(OrderDetailActivity.this,"OrderStatus","").toString().equals("家庭版")){
-            ProjectUtil.toastMsg(OrderDetailActivity.this,"家庭版下不允许修改账单信息,请前往设置切换个人版");
-            return;
-        }
+        StyledDialog.buildLoading().show();
         SMSDataBase smsDb = new SMSDataBase(OrderDetailActivity.this, "orderInfo", null, 1);
         SQLiteDatabase db = smsDb.getWritableDatabase();
         //执行更新数据库操作
@@ -229,11 +231,6 @@ public class OrderDetailActivity extends AppCompatActivity {
                             if(jsonResponse.getBoolean("success")){
                                 refreshLocalSql(db,null);
                             }
-                            else{
-                                Looper.prepare();
-                                ProjectUtil.toastMsg(OrderDetailActivity.this,jsonResponse.getString("message"));
-                                Looper.loop();
-                            }
                         }
                         else{
                             Looper.prepare();
@@ -255,46 +252,23 @@ public class OrderDetailActivity extends AppCompatActivity {
             values.put("month",orderMonth);
             values.put("day",orderDay);
             values.put("clock",btnGetCurrentTime.getText().toString());
-            //根据内容确定写入数组的金额还是用户的金额,根据支出还是收入记录正负号
-            //根据内容确定写入数组还是用户默认
-            //用户手动添加的账单信息
-            if(msgContent == null){
-                if(btnOrderType.getText().toString().equals("收入")){
-                    //收入记正数
-                    values.put("money",Double.valueOf(etOrderNumber.getText().toString()));
-                    //costType记收入
-                    values.put("costType","收入");
-                }
-                else{
-                    //支出记负数
-                    values.put("money",0.0-(Double.parseDouble(etOrderNumber.getText().toString())));
-                    //获取支出的类型
-                    values.put("costType",btnCostType.getText().toString());
-                }
-                values.put("bankName",btnPayWay.getText().toString());
-
+            if(btnOrderType.getText().toString().equals("收入")){
+                //收入记正数
+                values.put("money",Double.valueOf(etOrderNumber.getText().toString()));
+                //costType记收入
+                values.put("costType","收入");
             }
-            //短信自动读取的账单信息
             else{
-                if(msgContent[1].equals("收入")){
-                    //收入记正数
-                    values.put("money",Double.parseDouble(msgContent[2]));
-                    //costType记收入
-                    values.put("costType","收入");
-                }
-                else{
-                    //支出记负数
-                    values.put("money",0.0-Double.parseDouble(msgContent[2]));
-                    //costType获取用户支出类型
-                    values.put("costType",btnCostType.getText().toString());
-                }
-                if(!msgContent[0].equals("")){
-                    values.put("bankName",msgContent[0]);
-                }
+                //支出记负数
+                values.put("money",0.0-(Double.parseDouble(etOrderNumber.getText().toString())));
+                //获取支出的类型
+                values.put("costType",btnCostType.getText().toString());
             }
+            values.put("bankName",btnPayWay.getText().toString());
             //写入账单备注
             values.put("orderRemark",etOrderRemark.getText().toString());
             values.put("userId",(String) SpUtils.get(OrderDetailActivity.this,"phoneNum",""));
+
             //传递给后端
             new Thread(new Runnable() {
                 @Override
@@ -321,12 +295,8 @@ public class OrderDetailActivity extends AppCompatActivity {
                             JSONObject jsonResponse = new JSONObject(response.body().string());
                             if(jsonResponse.getBoolean("success")){
                                 values.put("id",Integer.valueOf(jsonResponse.getString("data")));
+                                uploadLBSData(values);
                                 refreshLocalSql(db,values);
-                            }
-                            else{
-                                Looper.prepare();
-                                ProjectUtil.toastMsg(OrderDetailActivity.this,jsonResponse.getString("message"));
-                                Looper.loop();
                             }
                         }
                         else{
@@ -342,6 +312,102 @@ public class OrderDetailActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * 上传LBS数据
+     * 删除v1.3
+     * @param values
+     */
+    private void uploadLBSData(ContentValues values) {
+        final double[] latitude = new double[1];
+        final double[] longitude = new double[1];
+        //上传后端
+        Thread t = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                String url = IP+"/addLBSOrder";
+                OkHttpClient client = new OkHttpClient();
+                JSONObject jsonObject = new JSONObject();
+                try {
+                    jsonObject.put("latitude",latitude[0]);
+                    jsonObject.put("longitude",longitude[0]);
+                    jsonObject.put("money",values.get("money"));
+                    jsonObject.put("userId",values.get("userId"));
+                    jsonObject.put("orderId",values.get("id"));
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                RequestBody body = RequestBody.create(jsonObject.toString(), MediaType.parse("application/json;charset=utf-8"));
+                Request requst = new Request.Builder()
+                        .url(url)
+                        .post(body)
+                        .build();
+                try {
+                    Response response = client.newCall(requst).execute();
+                    if(response.code()==200){
+                        JSONObject jsonResponse = new JSONObject(response.body().string());
+                        if(jsonResponse.getBoolean("success")){
+                            Looper.prepare();
+                            StyledDialog.dismiss();
+                            ProjectUtil.toastMsg(OrderDetailActivity.this,"保存成功");
+                            finish();
+                            Looper.loop();
+                        }
+                    }
+                    else{
+                        Looper.prepare();
+                        ProjectUtil.toastMsg(OrderDetailActivity.this,"服务器出错");
+                        Looper.loop();
+                    }
+                } catch (IOException | JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+
+        //利用高德获取经纬度
+        AMapLocationClient mLocationClient = null;
+        try {
+            mLocationClient = new AMapLocationClient(getApplicationContext());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        mLocationClient.setLocationListener(new AMapLocationListener() {
+            @Override
+            public void onLocationChanged(AMapLocation aMapLocation) {
+                if (aMapLocation != null) {
+                    if (aMapLocation.getErrorCode() == 0) {
+                        //定位成功回调信息，设置相关消息
+                        aMapLocation.getLocationType();//获取当前定位结果来源，如网络定位结果，详见定位类型表
+                        latitude[0] = aMapLocation.getLatitude();//获取纬度
+                        longitude[0] = aMapLocation.getLongitude();//获取经度
+                        Log.d("经纬度", latitude[0] +","+ longitude[0]);
+                        t.start();
+                    } else {
+                        //显示错误信息ErrCode是错误码，errInfo是错误信息，详见错误码表。
+                        Log.e("AmapError", "location Error, ErrCode:"
+                                + aMapLocation.getErrorCode() + ", errInfo:"
+                                + aMapLocation.getErrorInfo());
+                    }
+                }
+            }
+        });
+        //初始化定位参数
+        AMapLocationClientOption mLocationOption = new AMapLocationClientOption();
+        //设置定位模式为AMapLocationMode.Hight_Accuracy，高精度模式。
+        mLocationOption.setLocationMode(AMapLocationClientOption.AMapLocationMode.Hight_Accuracy);
+        //获取一次定位结果：
+        //该方法默认为false。
+        mLocationOption.setOnceLocation(true);
+        //获取最近3s内精度最高的一次定位结果：
+        mLocationOption.setOnceLocationLatest(true);
+        //设置定位参数
+        mLocationClient.setLocationOption(mLocationOption);
+        //启动定位
+        mLocationClient.startLocation();
+
+
+    }
+
     //后端返回成功后更新本地数据库
     private void refreshLocalSql(SQLiteDatabase db,ContentValues values){
         runOnUiThread(new Runnable() {
@@ -353,13 +419,11 @@ public class OrderDetailActivity extends AppCompatActivity {
                             "',orderRemark='"+etOrderRemark.getText()+"',costType='"+(btnOrderType.getText().toString().equals("收入")?"收入":btnCostType.getText().toString())+"' where id="+
                             bundle.getInt("id");
                     db.execSQL(sql);
-                    ProjectUtil.toastMsg(OrderDetailActivity.this,"保存成功");
+                    finish();
                 }
                 else{
                     db.insert("orderInfo",null,values);
-                    ProjectUtil.toastMsg(OrderDetailActivity.this,"保存成功");
                 }
-                finish();
             }
         });
     }
