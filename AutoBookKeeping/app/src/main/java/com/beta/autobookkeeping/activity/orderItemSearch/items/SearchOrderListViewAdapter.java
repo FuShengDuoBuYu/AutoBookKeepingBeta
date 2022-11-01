@@ -71,15 +71,6 @@ public class SearchOrderListViewAdapter extends BaseAdapter {
         imageView.setLayoutParams(new ViewGroup.LayoutParams(DensityUtil.dpToPx(context,38f), DensityUtil.dpToPx(context,38f)));
         imageView.setForegroundGravity(Gravity.VERTICAL_GRAVITY_MASK);
         String portrait = userIdMapPortrait.get(orderInfoList.get(position).getUser());
-        LinearLayout orderItem = ProjectUtil.setDayOrderItem(category,payWay,dayMoney,time,context,imageView);
-        orderItem.setOnClickListener(v->{
-            Intent i = new Intent(new Intent(context, DialogActivity.class));
-//                i.putExtra("position", position);
-
-            ActivityOptions options = ActivityOptions
-                    .makeSceneTransitionAnimation((Activity) context, v, "transition");
-            ((Activity)context).startActivity(i, options.toBundle());
-        });
-        return orderItem;
+        return ProjectUtil.setDayOrderItem(category,payWay,dayMoney,time,context,imageView);
     }
 }

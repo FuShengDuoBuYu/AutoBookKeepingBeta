@@ -21,6 +21,7 @@ import com.amap.api.maps2d.model.LatLngBounds;
 import com.beta.autobookkeeping.R;
 import com.beta.autobookkeeping.activity.orderDetail.OrderDetailActivity;
 import com.hss01248.dialog.StyledDialog;
+import com.hss01248.dialog.interfaces.MyItemDialogListener;
 import com.qmuiteam.qmui.widget.roundwidget.QMUIRoundButton;
 
 import org.json.JSONArray;
@@ -28,6 +29,8 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import Util.ProjectUtil;
 import Util.SpUtils;
@@ -41,8 +44,9 @@ public class OrderMapActivity extends AppCompatActivity {
 
     private MapView mvOrderMap;
     private AMap aMap;
-
-    private QMUIRoundButton btnPersonalVersion,btnFamilyVersion;
+    private String currentVersion = "Personal";
+    private Integer searchItems = 10;
+    private QMUIRoundButton btnPersonalVersion,btnFamilyVersion,btnConfirmSearch,btnChooseItem;
     private View.OnClickListener btnPersonalVersionListener = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
@@ -51,6 +55,7 @@ public class OrderMapActivity extends AppCompatActivity {
             btnPersonalVersion.setTextColor(getResources().getColor(R.color.white));
             btnFamilyVersion.setBackgroundColor(getResources().getColor(R.color.item_background));
             btnFamilyVersion.setTextColor(getResources().getColor(R.color.primary_font));
+            currentVersion = "Personal";
         }
     };
     private View.OnClickListener btnFamilyVersionListener = new View.OnClickListener() {
@@ -61,6 +66,33 @@ public class OrderMapActivity extends AppCompatActivity {
             btnFamilyVersion.setTextColor(getResources().getColor(R.color.white));
             btnPersonalVersion.setBackgroundColor(getResources().getColor(R.color.item_background));
             btnPersonalVersion.setTextColor(getResources().getColor(R.color.primary_font));
+            currentVersion = "Family";
+        }
+    };
+    private View.OnClickListener btnConfirmSearchListener = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            //清除所有已有mark
+            aMap.clear();
+            initOrderMap();
+        }
+    };
+    private View.OnClickListener btnChooseItemListener = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            List<String> items = new ArrayList<>();
+            items.add("10");
+            items.add("20");
+            items.add("30");
+            items.add("40");
+            items.add("50");
+            StyledDialog.buildIosSingleChoose(items, new MyItemDialogListener() {
+                @Override
+                public void onItemClick(CharSequence text, int position) {
+                    searchItems = Integer.parseInt(text.toString());
+                    btnChooseItem.setText(text);
+                }
+            }).show();
         }
     };
     @Override
@@ -82,6 +114,10 @@ public class OrderMapActivity extends AppCompatActivity {
         btnPersonalVersion.setOnClickListener(btnPersonalVersionListener);
         btnFamilyVersion = findViewById(R.id.btn_family_version);
         btnFamilyVersion.setOnClickListener(btnFamilyVersionListener);
+        btnConfirmSearch = findViewById(R.id.btn_confirm_search);
+        btnConfirmSearch.setOnClickListener(btnConfirmSearchListener);
+        btnChooseItem = findViewById(R.id.btn_choose_items);
+        btnChooseItem.setOnClickListener(btnChooseItemListener);
     }
 
 
@@ -94,11 +130,12 @@ public class OrderMapActivity extends AppCompatActivity {
 
     //初始化账单地图
     private void initOrderMap() {
+        StyledDialog.buildLoading().show();
         new Thread(new Runnable() {
             @Override
             public void run() {
                 //上传后端
-                String url = IP + "/findTopNPersonalOrderMapPlace/"+ SpUtils.get(OrderMapActivity.this,"phoneNum","")+ "/10";
+                String url = IP + "/findTopN"+currentVersion+"OrderMapPlace/"+ SpUtils.get(OrderMapActivity.this,"phoneNum","")+ "/"+searchItems;
                 OkHttpClient client = new OkHttpClient();
                 Request requst = new Request.Builder()
                         .url(url)
@@ -148,6 +185,7 @@ public class OrderMapActivity extends AppCompatActivity {
                 }
             }
         });
+        StyledDialog.dismiss();
     }
 
 }

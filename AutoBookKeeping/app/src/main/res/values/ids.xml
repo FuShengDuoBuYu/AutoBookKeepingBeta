@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <item name="order_item_portrait_id" type="id"/>
+    <item name="order_item_category_id" type="id"/>
+    <item name="order_item_remark_id" type="id"/>
+    <item name="order_item_payway_id" type="id"/>
+    <item name="order_item_price_id" type="id"/>
+    <item name="order_item_time_id" type="id"/>
+    <item name="order_item_category_image_id" type="id"/>
+</resources>

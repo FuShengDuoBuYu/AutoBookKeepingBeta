@@ -8,6 +8,9 @@ import static Util.ProjectUtil.toastMsg;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityOptionsCompat;
+import androidx.core.util.Pair;
+import androidx.core.view.ViewCompat;
 import androidx.fragment.app.Fragment;
 import androidx.viewpager2.widget.ViewPager2;
 
@@ -16,14 +19,18 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.text.InputType;
+import android.transition.Fade;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
@@ -56,10 +63,12 @@ import com.willowtreeapps.spruce.SpruceAnimator;
 import com.willowtreeapps.spruce.animation.DefaultAnimations;
 import com.willowtreeapps.spruce.sort.DefaultSort;
 
+import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
+import Util.ImageUtil;
 import Util.ProjectUtil;
 import Util.SpUtils;
 import site.gemus.openingstartanimation.LineDrawStrategy;
@@ -187,7 +196,7 @@ public class MainActivity extends AppCompatActivity {
                     dayMoney>0?"收入":"支出",
                     orderNums,
                     dayMoney
-                    ));
+            ));
         }
         res.add(orderDayItems);
         res.add(orders);
@@ -271,7 +280,7 @@ public class MainActivity extends AppCompatActivity {
         //用户设置电话号码和昵称
         if(
                 SpUtils.get(this,"phoneNum","")==null ||
-                SpUtils.get(this,"phoneNum","").equals("")
+                        SpUtils.get(this,"phoneNum","").equals("")
         ){
             StyledDialog.buildNormalInput("用户注册", "请输入手机号", "请输入密码", "确定", "取消", new MyDialogListener() {
                 @Override
@@ -327,5 +336,26 @@ public class MainActivity extends AppCompatActivity {
                 .setAnimationFinishTime(500)
                 .create();
         openingStartAnimation.show(MainActivity.this);
+    }
+
+    public void clickFamilyItemToShowDetail(View v, Pair<View, String>... pairs){
+
+
+        Intent intent = new Intent(MainActivity.this, DialogActivity.class);
+
+        ActivityOptionsCompat options = ActivityOptionsCompat.makeSceneTransitionAnimation(this, pairs);
+        intent.putExtra(pairs[0].second,ImageUtil.drawableToBitamp(((ImageView)pairs[0].first).getDrawable()));
+        intent.putExtra(pairs[1].second, ImageUtil.drawableToBitamp(((ImageView)pairs[1].first).getDrawable()));
+        intent.putExtra(pairs[2].second, ((TextView)pairs[2].first).getText().toString());
+        intent.putExtra(pairs[3].second, ((TextView)pairs[3].first).getText().toString());
+        intent.putExtra(pairs[4].second, ((TextView)pairs[4].first).getText().toString());
+        intent.putExtra(pairs[5].second, ((TextView)pairs[5].first).getText().toString());
+        //获取截图
+        Bitmap bitmap = ImageUtil.getWindowScreenShot(MainActivity.this);
+        ByteArrayOutputStream stream = new ByteArrayOutputStream();
+        bitmap.compress(Bitmap.CompressFormat.PNG, 1, stream);
+        byte[] byteArray = stream.toByteArray();
+        intent.putExtra("background",byteArray);
+        startActivity(intent, options.toBundle());
     }
 }

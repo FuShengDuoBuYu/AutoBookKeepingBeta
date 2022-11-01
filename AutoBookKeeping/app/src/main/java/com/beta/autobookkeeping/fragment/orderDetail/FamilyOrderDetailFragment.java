@@ -15,6 +15,7 @@ import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 
 import androidx.annotation.Nullable;
+import androidx.core.util.Pair;
 import androidx.fragment.app.Fragment;
 
 import android.os.Looper;
@@ -238,7 +239,8 @@ public class FamilyOrderDetailFragment extends Fragment {
 
                             JSONObject order = finalFamilyOrders.getJSONObject(orderIndex);
                             ImageView imageView = new ImageView(getContext());
-                            imageView.setBackground(userPortrait.get(order.getString("userId")));
+                            Drawable portrait = userPortrait.get(order.getString("userId"));
+                            imageView.setImageDrawable(userPortrait.get(order.getString("userId")));
                             imageView.setPadding(0,0,20,0);
                             imageView.setLayoutParams(new ViewGroup.LayoutParams(DensityUtil.dpToPx(getContext(),38f), DensityUtil.dpToPx(getContext(),38f)));
                             imageView.setForegroundGravity(Gravity.VERTICAL_GRAVITY_MASK);
@@ -254,7 +256,6 @@ public class FamilyOrderDetailFragment extends Fragment {
                             familyOrderItem.setTransitionName("familyOrderItem"+orderIndex);
                             //设置点击事件
                             familyOrderItem.setOnClickListener(v->{
-//                                ProjectUtil.toastMsg(getActivity(),"弹出");
                                 showDialog(v);
                             });
                             linearLayout.addView(familyOrderItem);
@@ -275,13 +276,32 @@ public class FamilyOrderDetailFragment extends Fragment {
     }
 
     private void showDialog(View v){
-        v.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
+        //消费图标
+        ImageView costTypeIcon = v.findViewById(R.id.order_item_category_image_id);
+        Drawable costTypeIconDrawable = costTypeIcon.getDrawable();
+        //头像
+        ImageView imageView = v.findViewById(R.id.order_item_portrait_id);
+        Drawable portraitDrawable = imageView.getDrawable();
+        //消费类型
+        TextView costType = v.findViewById(R.id.order_item_category_id);
+        //消费方式
+        TextView payWay = v.findViewById(R.id.order_item_payway_id);
+        //消费金额
+        TextView money = v.findViewById(R.id.order_item_price_id);
+        //时间
+        TextView time = v.findViewById(R.id.order_item_time_id);
 
-                Intent i = new Intent(new Intent(getContext(), DialogActivity.class));
-                getActivity().startActivity(i, ActivityOptions.makeSceneTransitionAnimation(getActivity(),v,"familyOrderItem1").toBundle());
-            }
-        });
+        //构造pair
+        Pair<View, String> pair1 = Pair.create((View)costTypeIcon, costTypeIcon.getTransitionName());
+        Pair<View, String> pair2 = Pair.create((View)imageView, imageView.getTransitionName());
+        Pair<View, String> pair3 = Pair.create((View)costType, "category");
+        Pair<View, String> pair4 = Pair.create((View)payWay, "payway");
+        Pair<View, String> pair5 = Pair.create((View)money, "money");
+        Pair<View, String> pair6 = Pair.create((View)time, "time");
+
+
+        MainActivity activity = (MainActivity) getActivity();
+        activity.clickFamilyItemToShowDetail(v,pair1,pair2,pair3,pair4,pair5,pair6);
+
     }
 }

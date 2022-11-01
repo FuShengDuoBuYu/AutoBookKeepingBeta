@@ -503,8 +503,13 @@ public class ProjectUtil {
         linearLayoutRightImagePart.setOrientation(LinearLayout.VERTICAL);
         //再设置图片
         ImageView categoryImage = new ImageView(context);
+        categoryImage.setId(R.id.order_item_category_image_id);
+        categoryImage.setTransitionName("categoryImage");
         Drawable image = getIconByCategory(category, context);
         categoryImage.setImageDrawable(image);
+        //头像
+        imageView.setTransitionName("portrait");
+        imageView.setId(R.id.order_item_portrait_id);
         linearLayoutRightImagePart.addView(imageView);
         //设置子布局格式
         linearLayoutLeftPart.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT, 1.0f));
@@ -525,9 +530,17 @@ public class ProjectUtil {
         TextView tvTime = new TextView(context);
         //设置每个textview
         tvCategory.setText(category);
+        tvCategory.setId(R.id.order_item_category_id);
+        tvCategory.setTransitionName("category");
         tvPayWay.setText(payWay);
+        tvPayWay.setId(R.id.order_item_payway_id);
+        tvPayWay.setTransitionName("payway");
         tvMoney.setText(money);
+        tvMoney.setId(R.id.order_item_price_id);
+        tvMoney.setTransitionName("money");
         tvTime.setText(time);
+        tvTime.setId(R.id.order_item_time_id);
+        tvTime.setTransitionName("time");
         //设置textView格式
         tvCategory.setTextColor(context.getResources().getColor(R.color.primary_font));
         tvCategory.setTextSize(18);
