@@ -21,6 +21,9 @@ import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
+import androidx.dynamicanimation.animation.DynamicAnimation;
+import androidx.dynamicanimation.animation.SpringAnimation;
+import androidx.dynamicanimation.animation.SpringForce;
 import androidx.fragment.app.Fragment;
 
 import android.os.Looper;
@@ -233,6 +236,7 @@ public class PersonalOrderDetailFragment extends Fragment {
 //                .sortWith(new DefaultSort(/*interObjectDelay=*/50L))
 //                .animateWith(new Animator[] {DefaultAnimations.shrinkAnimator(lvOrderDetail, /*duration=*/800)})
 //                .start();
+
         super.onStart();
     }
 

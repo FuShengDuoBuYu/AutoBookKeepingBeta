@@ -1,7 +1,16 @@
 package com.beta.autobookkeeping.activity.familyTodo;
 
+import static androidx.appcompat.content.res.AppCompatResources.getDrawable;
+import static Util.ConstVariable.IP;
+
+import android.app.Activity;
+import android.content.Context;
+import android.graphics.drawable.Drawable;
+import android.util.TypedValue;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -9,43 +18,98 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.beta.autobookkeeping.R;
+import com.beta.autobookkeeping.activity.familyTodo.Entity.TodoItem;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.IOException;
 import java.util.List;
 
-public class FamilyTodoRecycleViewAdapter extends RecyclerView.Adapter<FamilyTodoRecycleViewAdapter.InnerHolder> {
-    private List<String> strings;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
 
+public class FamilyTodoRecycleViewAdapter extends RecyclerView.Adapter<FamilyTodoRecycleViewAdapter.InnerHolder> {
+    private List<TodoItem> todoItems;
+    private Context context;
+    private Activity activity;
+    private Drawable statusIcon;
     @NonNull
     @Override
     public FamilyTodoRecycleViewAdapter.InnerHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = View.inflate(parent.getContext(), R.layout.item_activity_family_todo, null);
-        //view设置波纹效果
+        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_activity_family_todo,parent,false);
+        TypedValue outValue = new TypedValue();
+        context.getTheme().resolveAttribute(
+                android.R.attr.selectableItemBackground, outValue, true);
+        view.setForeground(getDrawable(context, outValue.resourceId));
         return new InnerHolder(view);
     }
 
     @Override
     public void onBindViewHolder(@NonNull FamilyTodoRecycleViewAdapter.InnerHolder holder, int position) {
-        holder.textView.setText(strings.get(position));
-        holder.itemView.setOnClickListener(v -> {
-            Toast.makeText(holder.itemView.getContext(), "点击了" + position, Toast.LENGTH_SHORT).show();
+        holder.tvItemTitle.setText(todoItems.get(position).getTitle());
+        holder.ivConfirmBtn.setImageDrawable(statusIcon);
+        holder.tvPostItemTime.setText("↑ "+todoItems.get(position).getPostTime());
+        holder.tvDoneItemTime.setText(todoItems.get(position).getHandleTime().equals("")?"":"√ "+todoItems.get(position).getHandleTime());
+        holder.ivPosterPortrait.setImageDrawable(todoItems.get(position).getPosterPortrait());
+        holder.ivHandlerPortrait.setImageDrawable(todoItems.get(position).getHandlerPortrait());
+        holder.todoItemId = todoItems.get(position).getId();
+        holder.ivConfirmBtn.setOnClickListener(v -> {
+            if(holder.tvDoneItemTime.getText().toString().equals("")){
+                finishTodoItem(holder.todoItemId);
+            }
+            else {
+                Toast.makeText(context,"该事项已完成",Toast.LENGTH_SHORT).show();
+            }
         });
     }
 
     @Override
     public int getItemCount() {
-        return strings.size();
+        return todoItems.size();
     }
 
-    public FamilyTodoRecycleViewAdapter(List<String> strings) {
-        this.strings = strings;
+    public FamilyTodoRecycleViewAdapter(List<TodoItem> todoItems,Context context,Drawable statusIcon) {
+        this.todoItems = todoItems;
+        this.context = context;
+        this.activity = (Activity) context;
+        this.statusIcon = statusIcon;
     }
 
     public class InnerHolder extends RecyclerView.ViewHolder {
-        TextView textView;
-
+        TextView tvItemTitle,tvPostItemTime,tvDoneItemTime;
+        ImageView ivPosterPortrait,ivHandlerPortrait,ivConfirmBtn;
+        Integer todoItemId;
         public InnerHolder(@NonNull View itemView) {
             super(itemView);
-//            textView = itemView.findViewById(R.id.t1);
+            tvItemTitle = itemView.findViewById(R.id.tv_item_title);
+            tvPostItemTime = itemView.findViewById(R.id.tv_post_item_time);
+            ivConfirmBtn = itemView.findViewById(R.id.iv_confirm_btn);
+            tvDoneItemTime = itemView.findViewById(R.id.tv_done_item_time);
+            ivPosterPortrait = itemView.findViewById(R.id.iv_poster_portrait);
+            ivHandlerPortrait = itemView.findViewById(R.id.iv_handler_portrait);
         }
+    }
+
+    private void finishTodoItem(Integer itemId){
+        new Thread(() -> {
+            String url = IP+"/todoItem/finishTodoItem/"+itemId;
+            OkHttpClient client = new OkHttpClient();
+            Request request = new Request.Builder().url(url).get().build();
+            try{
+                Response response = client.newCall(request).execute();
+                JSONObject jsonResponse = new JSONObject(response.body().string());
+                if(jsonResponse.getBoolean("success")){
+                    activity.runOnUiThread(()->{
+                        Toast.makeText(context,"已完成",Toast.LENGTH_SHORT).show();
+                        FamilyTodoActivity familyTodoActivity = (FamilyTodoActivity) context;
+                        familyTodoActivity.findFamilyTodoItem();
+                    });
+               }
+            } catch (JSONException | IOException e) {
+                e.printStackTrace();
+            }
+        }).start();
     }
 }

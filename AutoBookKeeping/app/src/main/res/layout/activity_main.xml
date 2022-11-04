@@ -13,15 +13,16 @@
         android:background="@drawable/blue_background"
         android:orientation="horizontal">
         <!-- 新增按钮-->
-        <Button
+        <ImageView
             android:layout_width="30dp"
             android:layout_height="30dp"
             android:id="@+id/btnPlusNewOrder"
-            android:background="@drawable/plus_new_order"
+            android:background="@drawable/ic_plus"
             android:gravity="start"
+            android:layout_marginTop="20dp"
             android:layout_marginStart="10dp"
             >
-        </Button>
+        </ImageView>
         <!-- 我的收支-->
         <TextView
             android:id="@+id/tv_title"

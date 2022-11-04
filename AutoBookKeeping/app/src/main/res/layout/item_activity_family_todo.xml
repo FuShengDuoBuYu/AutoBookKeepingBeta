@@ -1,37 +1,100 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="60dp"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    app:cardCornerRadius="20dp"
-    android:background="@color/blue">
-    <LinearLayout
+    <androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="horizontal">
-        <ImageView
-            android:layout_gravity="center_vertical"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:src="@drawable/ic_family_todo"
-            android:layout_marginStart="10dp">
-        </ImageView>
+        android:layout_height="100dp"
+        android:layout_margin="5dp"
+        android:foreground="?selectableItemBackground"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        app:cardCornerRadius="20dp"
+        android:background="@color/blue">
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:orientation="vertical">
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:id="@+id/tv_item_title">
+            android:foreground="?selectableItemBackground"
+            android:orientation="horizontal">
+            <!--        点击按钮-->
+            <ImageView
+                android:layout_gravity="center_vertical"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:id="@+id/iv_confirm_btn"
+                android:foreground="?selectableItemBackground"
+                android:layout_marginStart="10dp">
+            </ImageView>
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="match_parent"
+                android:foreground="?selectableItemBackground"
+                android:orientation="vertical">
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="2"
+                    android:text="暂无内容"
+                    android:textColor="@color/primary_font"
+                    android:textSize="20sp"
+                    android:textStyle="bold"
+                    android:gravity="center_vertical"
+                    android:layout_marginStart="10dp"
+                    android:id="@+id/tv_item_title">
+                </TextView>
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="1"
+                    android:orientation="horizontal">
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:text="暂无时间"
+                        android:textSize="10sp"
+                        android:layout_marginStart="10dp"
+                        android:gravity="center_vertical"
+                        android:id="@+id/tv_post_item_time">
+                    </TextView>
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:text="暂无时间"
+                        android:textSize="10sp"
+                        android:layout_marginStart="10dp"
+                        android:gravity="center_vertical"
+                        android:id="@+id/tv_done_item_time">
+                    </TextView>
+                </LinearLayout>
+            </LinearLayout>
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:orientation="vertical"
+                android:gravity="center_vertical"
+                android:foreground="?selectableItemBackground"
+                android:layout_weight="0.3">
+                <ImageView
+                    android:layout_gravity="center_horizontal"
+                    android:layout_width="30dp"
+                    android:layout_height="30dp"
+                    android:id="@+id/iv_poster_portrait"
+                    android:src="@drawable/ic_family_todo">
+                </ImageView>
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_height="20dp"
+                    android:src="@drawable/ic_arrow_down">
 
-            </TextView>
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:id="@+id/tv_item_time">
-
-            </TextView>
+                </ImageView>
+                <!--        处理人-->
+                <ImageView
+                    android:layout_width="30dp"
+                    android:layout_height="30dp"
+                    android:src="@drawable/ic_family_todo"
+                    android:layout_gravity="center_horizontal"
+                    android:id="@+id/iv_handler_portrait">
+                </ImageView>
+            </LinearLayout>
         </LinearLayout>
-    </LinearLayout>
-</androidx.cardview.widget.CardView>
+    </androidx.cardview.widget.CardView>

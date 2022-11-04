@@ -4,6 +4,7 @@ import static Util.ConstVariable.IP;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.os.Looper;
 import android.util.Log;
@@ -17,7 +18,9 @@ import com.amap.api.location.AMapLocationListener;
 import com.amap.api.maps2d.AMap;
 import com.amap.api.maps2d.CameraUpdateFactory;
 import com.amap.api.maps2d.MapView;
+import com.amap.api.maps2d.model.BitmapDescriptorFactory;
 import com.amap.api.maps2d.model.LatLngBounds;
+import com.amap.api.maps2d.model.MarkerOptions;
 import com.beta.autobookkeeping.R;
 import com.beta.autobookkeeping.activity.orderDetail.OrderDetailActivity;
 import com.hss01248.dialog.StyledDialog;
@@ -111,6 +114,9 @@ public class OrderMapActivity extends AppCompatActivity {
         //移动到上海
         aMap.moveCamera(com.amap.api.maps2d.CameraUpdateFactory.newLatLngZoom(new com.amap.api.maps2d.model.LatLng(31.230416, 121.473701), 12));
         btnPersonalVersion = findViewById(R.id.btn_personal_version);
+        //初始在个人版
+        btnPersonalVersion.setBackgroundColor(getResources().getColor(R.color.blue));
+        btnPersonalVersion.setTextColor(getResources().getColor(R.color.white));
         btnPersonalVersion.setOnClickListener(btnPersonalVersionListener);
         btnFamilyVersion = findViewById(R.id.btn_family_version);
         btnFamilyVersion.setOnClickListener(btnFamilyVersionListener);
@@ -130,12 +136,12 @@ public class OrderMapActivity extends AppCompatActivity {
 
     //初始化账单地图
     private void initOrderMap() {
-        StyledDialog.buildLoading().show();
         new Thread(new Runnable() {
             @Override
             public void run() {
+                String idInfo = (String) (currentVersion.equals("Personal") ? SpUtils.get(OrderMapActivity.this, "phoneNum", "") : SpUtils.get(OrderMapActivity.this, "familyId", ""));
                 //上传后端
-                String url = IP + "/findTopN"+currentVersion+"OrderMapPlace/"+ SpUtils.get(OrderMapActivity.this,"phoneNum","")+ "/"+searchItems;
+                String url = IP + "/findTopN"+currentVersion+"OrderMapPlace/"+ idInfo+ "/"+searchItems;
                 OkHttpClient client = new OkHttpClient();
                 Request requst = new Request.Builder()
                         .url(url)
@@ -173,19 +179,18 @@ public class OrderMapActivity extends AppCompatActivity {
                         double longitude = jsonObject.getDouble("longitude");
                         double money = jsonObject.getDouble("money");
                         String userId = jsonObject.getString("userId");
-                        Log.d("OrderMapActivity", "renderOrderMapMarks: " + latitude + " " + longitude + " " + money + " " + userId);
-                        aMap.addMarker(new com.amap.api.maps2d.model.MarkerOptions()
+                        MarkerOptions markerOptions = new MarkerOptions()
                                 .position(new com.amap.api.maps2d.model.LatLng(latitude, longitude))
                                 .title("金额：" + money)
                                 .snippet("用户：" + userId)
-                                .draggable(true));
+                                .icon(BitmapDescriptorFactory.fromBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.order_map_marker)));
+                        aMap.addMarker(markerOptions);
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }
                 }
             }
         });
-        StyledDialog.dismiss();
     }
 
 }
