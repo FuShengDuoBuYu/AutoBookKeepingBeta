@@ -13,6 +13,7 @@ import android.content.Context;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.os.Looper;
 import android.view.View;
 import android.view.animation.RotateAnimation;
 import android.widget.EditText;
@@ -33,8 +34,11 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+import Util.ImageUtil;
 import Util.SpUtils;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
@@ -48,6 +52,7 @@ public class FamilyTodoActivity extends AppCompatActivity {
     private RecyclerView rvFamilyUndo,rvFamilyDone;
     private ImageView ivAddTodo,ivUndoItem,ivDoneItem;
     private JSONArray familyMembers;
+    private Map<String,Drawable> familyInfo = new HashMap<>();
     private Integer chooseFamilyMemberIndex = -1;
     private LinearLayout llUndoItem,llDoneItem;
     private List<TodoItem> undoItems = new ArrayList<>();
@@ -119,16 +124,22 @@ public class FamilyTodoActivity extends AppCompatActivity {
             String familyId = (String) SpUtils.get(FamilyTodoActivity.this,"familyId","");
             String url = IP+"/user/getFamilyMembers/"+familyId;
             OkHttpClient client = new OkHttpClient();
-            JSONObject jsonObject = new JSONObject();
             Request request = new Request.Builder().url(url).get().build();
             try{
                 Response response = client.newCall(request).execute();
                 JSONObject jsonResponse = new JSONObject(response.body().string());
-                if(jsonResponse.getBoolean("success")){
-                    familyMembers = jsonResponse.getJSONArray("data");
+                familyMembers = jsonResponse.getJSONArray("data");
+                for(int i=0;i<familyMembers.length();i++){
+                    JSONObject familyMember = familyMembers.getJSONObject(i);
+                    String portrait = familyMember.getString("portrait");
+                    String userId = familyMember.getString("phoneNum");
+                    familyInfo.put(userId, new BitmapDrawable(ImageUtil.base642bitmap(portrait)));
                 }
+                findFamilyTodoItem();
             } catch (JSONException | IOException e) {
-                e.printStackTrace();
+                Looper.prepare();
+                Toast.makeText(FamilyTodoActivity.this,e.getMessage(),Toast.LENGTH_SHORT).show();
+                Looper.loop();
             }
         });
 
@@ -138,7 +149,7 @@ public class FamilyTodoActivity extends AppCompatActivity {
         setContentView(R.layout.activity_family_todo);
         findViewByIdAndInit();
         findFamilyMemberThread.start();
-        findFamilyTodoItem();
+
     }
 
     private void findViewByIdAndInit() {
@@ -164,9 +175,7 @@ public class FamilyTodoActivity extends AppCompatActivity {
                 jsonObject.put("itemTitle",itemTitle);
                 jsonObject.put("familyId",SpUtils.get(this,"familyId",""));
                 jsonObject.put("posterId",SpUtils.get(this,"phoneNum",""));
-                jsonObject.put("posterPortrait",SpUtils.get(this,"portrait",""));
                 jsonObject.put("handlerId",familyMembers.getJSONObject(chooseFamilyMemberIndex).getString("phoneNum"));
-                jsonObject.put("handlerPortrait",familyMembers.getJSONObject(chooseFamilyMemberIndex).getString("portrait"));
                 RequestBody requestBody = RequestBody.create(MediaType.parse("application/json"),jsonObject.toString());
                 Request request = new Request.Builder().url(url).post(requestBody).build();
                 Response response = client.newCall(request).execute();
@@ -175,6 +184,7 @@ public class FamilyTodoActivity extends AppCompatActivity {
                     runOnUiThread(()->{
                         StyledDialog.dismissLoading(FamilyTodoActivity.this);
                         Toast.makeText(this,"添加成功",Toast.LENGTH_SHORT).show();
+                        findFamilyTodoItem();
                     });
                 }
             } catch (JSONException | IOException e) {
@@ -243,8 +253,8 @@ public class FamilyTodoActivity extends AppCompatActivity {
                         String itemTitle = familyTodoItem.getString("itemTitle");
                         String postTime = familyTodoItem.getString("postTime");
                         String handleTime = familyTodoItem.getString("handleTime");
-                        Drawable posterPortrait = new BitmapDrawable(base642bitmap(familyTodoItem.getString("posterPortrait")));
-                        Drawable handlerPortrait = new BitmapDrawable(base642bitmap(familyTodoItem.getString("handlerPortrait")));
+                        Drawable posterPortrait = familyInfo.get(familyTodoItem.getString("posterId"));
+                        Drawable handlerPortrait = familyInfo.get(familyTodoItem.getString("handlerId"));
                         TodoItem todoItem = new TodoItem(familyTodoItem.getInt("id"),itemTitle,postTime,handleTime,posterPortrait,handlerPortrait);
                         //设置待办事项状态
                         if (familyTodoItem.getBoolean("isFinished")) {

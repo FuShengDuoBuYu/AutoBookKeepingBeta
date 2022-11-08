@@ -101,8 +101,11 @@
         </activity>
 
         <service android:name=".smsTools.SMSService" />
+
+        <service android:name=".service.TodoNotificationSender"
+            android:exported="true" />
         <service
-            android:name=".receiver.NotificationReceiver"
+            android:name=".service.NotificationReceiver"
             android:exported="true"
             android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE">
             <intent-filter>
@@ -110,6 +113,7 @@
             </intent-filter>
         </service>
         <service android:name="com.amap.api.location.APSService" />
+
 
         <receiver
             android:name=".widget.OrderWidget"
@@ -125,7 +129,7 @@
                 android:resource="@xml/order_widget_info" />
         </receiver>
         <receiver
-            android:name=".receiver.BootBroadcastReceiver"
+            android:name=".service.BootBroadcastReceiver"
             android:enabled="true"
             android:exported="true"
             android:permission="android.permission.RECEIVE_BOOT_COMPLETED">

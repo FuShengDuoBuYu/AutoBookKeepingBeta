@@ -6,27 +6,17 @@ import static Util.ProjectUtil.getCurrentYear;
 import static Util.ProjectUtil.toastMsg;
 
 import androidx.annotation.NonNull;
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityOptionsCompat;
 import androidx.core.util.Pair;
-import androidx.core.view.ViewCompat;
 import androidx.fragment.app.Fragment;
 import androidx.viewpager2.widget.ViewPager2;
 
-import android.animation.Animator;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.drawable.BitmapDrawable;
-import android.graphics.drawable.Drawable;
 import android.os.Bundle;
-import android.text.InputType;
-import android.transition.Fade;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -34,7 +24,6 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.amap.api.location.AMapLocationClient;
 import com.beta.autobookkeeping.activity.main.checking.FamilyChecking;
@@ -49,19 +38,14 @@ import com.beta.autobookkeeping.R;
 import com.beta.autobookkeeping.fragment.orderDetail.FamilyOrderDetailFragment;
 import com.beta.autobookkeeping.fragment.orderDetail.PersonalOrderDetailFragment;
 import com.beta.autobookkeeping.fragment.orderDetail.TabOrderDetailFragmentPagerAdapter;
-import com.beta.autobookkeeping.BaseApplication;
-import com.beta.autobookkeeping.receiver.NotificationReceiver;
+import com.beta.autobookkeeping.service.NotificationReceiver;
+import com.beta.autobookkeeping.service.TodoNotificationSender;
 import com.beta.autobookkeeping.smsTools.SMSDataBase;
 import com.beta.autobookkeeping.smsTools.SMSService;
 import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.tabs.TabLayoutMediator;
-import com.gyf.immersionbar.ImmersionBar;
 import com.hss01248.dialog.StyledDialog;
 import com.hss01248.dialog.interfaces.MyDialogListener;
-import com.willowtreeapps.spruce.Spruce;
-import com.willowtreeapps.spruce.SpruceAnimator;
-import com.willowtreeapps.spruce.animation.DefaultAnimations;
-import com.willowtreeapps.spruce.sort.DefaultSort;
 
 import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
@@ -72,7 +56,6 @@ import Util.ImageUtil;
 import Util.ProjectUtil;
 import Util.SpUtils;
 import site.gemus.openingstartanimation.LineDrawStrategy;
-import site.gemus.openingstartanimation.NormalDrawStrategy;
 import site.gemus.openingstartanimation.OpeningStartAnimation;
 
 public class MainActivity extends AppCompatActivity {
@@ -108,6 +91,7 @@ public class MainActivity extends AppCompatActivity {
         //开启读取短信线程
         startService(new Intent(MainActivity.this, SMSService.class));
         startService(new Intent(MainActivity.this, NotificationReceiver.class));
+        startService(new Intent(MainActivity.this, TodoNotificationSender.class));
         //设置手机号
         setPhoneNum();
         FamilyChecking.checkFamily(this);
