@@ -2,8 +2,10 @@ package com.beta.autobookkeeping.service;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.service.notification.NotificationListenerService;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.beta.autobookkeeping.activity.orderDetail.OrderDetailActivity;
 
@@ -68,4 +70,5 @@ public class NotificationReceiver extends NotificationListenerService {
 //        Double money = Double.valueOf(msg.substring(0,msg.indexOf("元")));
         return bundle;
     }
+
 }

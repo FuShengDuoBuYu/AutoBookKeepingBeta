@@ -55,4 +55,5 @@ dependencies {
     implementation 'com.geyifeng.immersionbar:immersionbar:3.2.2'
     implementation 'com.amap.api:map2d:6.0.0'
     implementation 'com.amap.api:location:6.2.0'
+    implementation 'com.gelitenight.waveview:waveview:1.0.0'
 }

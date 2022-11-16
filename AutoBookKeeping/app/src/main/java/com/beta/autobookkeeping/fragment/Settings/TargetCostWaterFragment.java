@@ -2,8 +2,12 @@ package com.beta.autobookkeeping.fragment.Settings;
 
 import static Util.ConstVariable.IP;
 
+import android.animation.Animator;
+import android.animation.ObjectAnimator;
+import android.animation.ValueAnimator;
 import android.app.Activity;
 import android.content.Context;
+import android.graphics.Color;
 import android.os.Bundle;
 
 import androidx.cardview.widget.CardView;
@@ -17,6 +21,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.view.animation.AnimationSet;
+import android.view.animation.DecelerateInterpolator;
+import android.view.animation.LinearInterpolator;
 import android.view.animation.RotateAnimation;
 import android.view.animation.TranslateAnimation;
 import android.widget.Button;
@@ -26,6 +32,7 @@ import android.widget.Toast;
 
 import com.beta.autobookkeeping.R;
 import com.beta.autobookkeeping.activity.main.entity.OrderInfo;
+import com.gelitenight.waveview.library.WaveView;
 import com.hss01248.dialog.StyledDialog;
 import com.hss01248.dialog.interfaces.MyDialogListener;
 import com.qmuiteam.qmui.widget.roundwidget.QMUIRoundLinearLayout;
@@ -37,6 +44,7 @@ import org.json.JSONObject;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import Util.ProjectUtil;
@@ -46,18 +54,15 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 
-/**
- * A simple {@link Fragment} subclass.
- * Use the {@link TargetCostWaterFragment#newInstance} factory method to
- * create an instance of this fragment.
- */
 public class TargetCostWaterFragment extends Fragment {
     private Context context;
     private Activity activity;
     private Button btnPersonalCostTarget,btnFamilyCostTarget;
+    private WaveView personalWaveView,familyWaveView;
     private Boolean ifAnimationRunning = false;
     private float rotationAngle = 0.0f;
     private int currentRotation = 0;
+    WaveHelper personalWaveHelper,familyWaveHelper;
     private CardView cvPersonalTarget,cvFamilyTarget;
     private TextView tvPersonalTargetCostNumber,tvPersonalCostNumber,tvFamilyTargetCostNumber,tvFamilyCostNumber;
     final double[] familyMonthCost = {0.0};
@@ -134,7 +139,20 @@ public class TargetCostWaterFragment extends Fragment {
         activity = getActivity();
         btnPersonalCostTarget = v.findViewById(R.id.btn_personal_target_cost);
         btnFamilyCostTarget = v.findViewById(R.id.btn_family_target_cost);
-        initPersonalBtn();
+        personalWaveView = v.findViewById(R.id.wv_personal_target_cost);
+        familyWaveView = v.findViewById(R.id.wv_family_target_cost);
+        personalWaveView.setWaveColor(getResources().getColor(R.color.blue),getResources().getColor(R.color.blue));
+        familyWaveView.setWaveColor(getResources().getColor(R.color.blue),getResources().getColor(R.color.blue));
+        personalWaveView.setShapeType(WaveView.ShapeType.SQUARE);
+        familyWaveView.setShapeType(WaveView.ShapeType.SQUARE);
+        personalWaveView.setShowWave(true);
+        familyWaveView.setShowWave(true);
+        personalWaveHelper = new WaveHelper(personalWaveView,btnPersonalCostTarget);
+        familyWaveHelper = new WaveHelper(familyWaveView,btnFamilyCostTarget);
+        personalWaveHelper.initAnimator(0f,0.3f);
+
+
+//        initPersonalBtn();
         getSomeMonthMoney();
         cvPersonalTarget = v.findViewById(R.id.cv_personal_target);
         cvFamilyTarget = v.findViewById(R.id.cv_family_target);
@@ -234,7 +252,6 @@ public class TargetCostWaterFragment extends Fragment {
         //手机右转
         if(orientation>0&&orientation<90){
             RotateAnimation rotateAnimation = new RotateAnimation(rotationAngle,-orientation/3f,Animation.RELATIVE_TO_SELF, 0.5f, Animation.RELATIVE_TO_SELF, 0.5f);
-            RotateAnimation rotateAnimation1 = new RotateAnimation(rotationAngle,-orientation/3f,Animation.RELATIVE_TO_SELF, 0.5f, Animation.RELATIVE_TO_SELF, 0.5f);
 
             rotationAngle = -orientation/3f;
             rotateAnimation.setFillAfter(true);
@@ -242,23 +259,6 @@ public class TargetCostWaterFragment extends Fragment {
             rotateAnimation.setAnimationListener(listener);
             btnPersonalCostTarget.startAnimation(rotateAnimation);
             btnFamilyCostTarget.startAnimation(rotateAnimation);
-
-
-
-//            //让波浪也旋转,同时平移
-//            rotateAnimation1.setFillAfter(true);
-//            rotateAnimation1.setDuration(3000);
-//            //平移整个长度
-//            TranslateAnimation translateAnimation = new TranslateAnimation(0,-ivWaveWater.getWidth()+cvPersonalTarget.getWidth(),0,0);
-//            translateAnimation.setDuration(3000);
-//            translateAnimation.setFillAfter(false);
-//            //不重复
-//            translateAnimation.setRepeatCount(0);
-//            AnimationSet animationSet = new AnimationSet(true);
-//            animationSet.addAnimation(rotateAnimation1);
-//            animationSet.addAnimation(translateAnimation);
-//            animationSet.setAnimationListener(listener);
-//            ivWaveWater.startAnimation(animationSet);
         }
         //左转
         else if (orientation>=270&& orientation<=360){
@@ -306,7 +306,7 @@ public class TargetCostWaterFragment extends Fragment {
                                     familyMonthCost[0] += jsonArray.getJSONObject(i).getDouble("money");
                                 }
                             }
-                            initFamilyBtn((int)familyMonthCost[0]);
+//                            initFamilyBtn((int)familyMonthCost[0]);
                         }
                     }
                 } catch (JSONException | IOException e) {
