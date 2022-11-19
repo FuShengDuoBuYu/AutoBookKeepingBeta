@@ -5,7 +5,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical"
     android:layout_margin="10dp"
-    android:background="@color/white">
+    android:background="@color/reverse_primary_font">
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="350dp">
@@ -51,6 +51,7 @@
                     android:text="账单备注"
                     android:textColor="@color/primary_font"
                     android:textFontWeight="20"
+                    android:layout_margin="10dp"
                     android:textSize="22sp">
                 </TextView>
             </LinearLayout>

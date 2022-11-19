@@ -124,44 +124,19 @@ public class OrderItemSearchActivity extends AppCompatActivity {
                     jsonObject.put("ifIgnoreYear",searchConditionEntity.isIfIgnoreYear());
                     jsonObject.put("ifIgnoreMonth",searchConditionEntity.isIfIgnoreMonth());
                     jsonObject.put("ifIgnoreDay",searchConditionEntity.isIfIgnoreDay());
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-                RequestBody body = RequestBody.create(jsonObject.toString(), MediaType.parse("application/json;charset=utf-8"));
-                Request request = new Request.Builder()
-                        .url(url)
-                        .post(body)
-                        .build();
-                try {
+                    RequestBody body = RequestBody.create(jsonObject.toString(), MediaType.parse("application/json;charset=utf-8"));
+                    Request request = new Request.Builder().url(url).post(body).build();
                     Response response = client.newCall(request).execute();
-                    if(response.code()==200){
-                        JSONObject jsonResponse = new JSONObject(response.body().string());
-                        if(jsonResponse.getBoolean("success")){
-                            Log.d("OrderItemSearchActivity","成功拿到数据");
-                            Log.d("OrderItemSearchActivity",jsonResponse.toString());
-                            Map<String,Object> map = StringUtil.Json2Map(jsonResponse.getJSONObject("data").toString());
-                            afterSearchOrders(map);
-                        }
-                        else{
-                            Looper.prepare();
-                            ProjectUtil.toastMsg(OrderItemSearchActivity.this,jsonResponse.getString("message"));
-                            Looper.loop();
-                        }
+                    JSONObject jsonResponse = new JSONObject(response.body().string());
+                    if(jsonResponse.getBoolean("success")){
+                        Map<String,Object> map = StringUtil.Json2Map(jsonResponse.getJSONObject("data").toString());
+                        afterSearchOrders(map);
                     }
-                    else{
-                        Looper.prepare();
-                        ProjectUtil.toastMsg(OrderItemSearchActivity.this,"服务器出错");
-                        Looper.loop();
-                    }
-                    // str为json字符串
                 } catch (IOException | JSONException e) {
                     e.printStackTrace();
                 }
             }
         }).start();
-
-
-
     }
 
     private void afterSearchOrders(Map<String,Object> map){

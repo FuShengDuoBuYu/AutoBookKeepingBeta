@@ -33,33 +33,13 @@ public class DatePickView {
     private void findViewsById() {
         datePickerView = datePickView.findViewById(R.id.date_picker_view);
         btnIgnoreYear = datePickView.findViewById(R.id.btn_ignore_year);
-        btnIgnoreYear.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                setYearIgnoreOrNot();
-            }
-        });
+        btnIgnoreYear.setOnClickListener(v->setYearIgnoreOrNot());
         btnIgnoreMonth = datePickView.findViewById(R.id.btn_ignore_month);
-        btnIgnoreMonth.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                setMonthIgnoreOrNot();
-            }
-        });
+        btnIgnoreMonth.setOnClickListener(v->setMonthIgnoreOrNot());
         btnIgnoreDay = datePickView.findViewById(R.id.btn_ignore_day);
-        btnIgnoreDay.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                setDayIgnoreOrNot();
-            }
-        });
+        btnIgnoreDay.setOnClickListener(v->setDayIgnoreOrNot());
         btnConfirm = datePickView.findViewById(R.id.btn_date_picker_confirm);
-        btnConfirm.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                confirmChooseDate();
-            }
-        });
+        btnConfirm.setOnClickListener(v -> confirmChooseDate());
     }
 
     public DatePickView(Context context) {
@@ -72,13 +52,13 @@ public class DatePickView {
         //未忽略,要忽略
         if(btnIgnoreYear.getCurrentTextColor() == context.getResources().getColor(R.color.primary_font)) {
             ifIgnoreYear = true;
-            btnIgnoreYear.setTextColor(context.getResources().getColor(R.color.white));
+            btnIgnoreYear.setTextColor(context.getResources().getColor(R.color.reverse_primary_font));
             btnIgnoreYear.setBackgroundColor(context.getResources().getColor(R.color.blue));
         }
         //已忽略,不忽略
         else{
             ifIgnoreYear = false;
-            btnIgnoreYear.setTextColor(context.getResources().getColor(R.color.black));
+            btnIgnoreYear.setTextColor(context.getResources().getColor(R.color.primary_font));
             btnIgnoreYear.setBackgroundColor(context.getResources().getColor(R.color.item_background));
         }
         setChildrenViewIfVisible();
@@ -89,13 +69,13 @@ public class DatePickView {
         //未忽略,要忽略
         if(btnIgnoreMonth.getCurrentTextColor() == context.getResources().getColor(R.color.primary_font)) {
             ifIgnoreMonth = true;
-            btnIgnoreMonth.setTextColor(context.getResources().getColor(R.color.white));
+            btnIgnoreMonth.setTextColor(context.getResources().getColor(R.color.reverse_primary_font));
             btnIgnoreMonth.setBackgroundColor(context.getResources().getColor(R.color.blue));
         }
         //已忽略,不忽略
         else{
             ifIgnoreMonth = false;
-            btnIgnoreMonth.setTextColor(context.getResources().getColor(R.color.black));
+            btnIgnoreMonth.setTextColor(context.getResources().getColor(R.color.primary_font));
             btnIgnoreMonth.setBackgroundColor(context.getResources().getColor(R.color.item_background));
         }
         setChildrenViewIfVisible();
@@ -106,13 +86,13 @@ public class DatePickView {
         //未忽略,要忽略
         if(btnIgnoreDay.getCurrentTextColor() == context.getResources().getColor(R.color.primary_font)) {
             ifIgnoreDay = true;
-            btnIgnoreDay.setTextColor(context.getResources().getColor(R.color.white));
+            btnIgnoreDay.setTextColor(context.getResources().getColor(R.color.reverse_primary_font));
             btnIgnoreDay.setBackgroundColor(context.getResources().getColor(R.color.blue));
         }
         //已忽略,不忽略
         else{
             ifIgnoreDay = false;
-            btnIgnoreDay.setTextColor(context.getResources().getColor(R.color.black));
+            btnIgnoreDay.setTextColor(context.getResources().getColor(R.color.primary_font));
             btnIgnoreDay.setBackgroundColor(context.getResources().getColor(R.color.item_background));
         }
         setChildrenViewIfVisible();
@@ -183,27 +163,27 @@ public class DatePickView {
         ifIgnoreDay = searchConditionEntity.isIfIgnoreDay();
         //控制按钮颜色
         if(ifIgnoreYear){
-            btnIgnoreYear.setTextColor(context.getResources().getColor(R.color.white));
+            btnIgnoreYear.setTextColor(context.getResources().getColor(R.color.reverse_primary_font));
             btnIgnoreYear.setBackgroundColor(context.getResources().getColor(R.color.blue));
         }
         else{
-            btnIgnoreYear.setTextColor(context.getResources().getColor(R.color.black));
+            btnIgnoreYear.setTextColor(context.getResources().getColor(R.color.primary_font));
             btnIgnoreYear.setBackgroundColor(context.getResources().getColor(R.color.item_background));
         }
         if(ifIgnoreMonth){
-            btnIgnoreMonth.setTextColor(context.getResources().getColor(R.color.white));
+            btnIgnoreMonth.setTextColor(context.getResources().getColor(R.color.reverse_primary_font));
             btnIgnoreMonth.setBackgroundColor(context.getResources().getColor(R.color.blue));
         }
         else{
-            btnIgnoreMonth.setTextColor(context.getResources().getColor(R.color.black));
+            btnIgnoreMonth.setTextColor(context.getResources().getColor(R.color.primary_font));
             btnIgnoreMonth.setBackgroundColor(context.getResources().getColor(R.color.item_background));
         }
         if(ifIgnoreDay){
-            btnIgnoreDay.setTextColor(context.getResources().getColor(R.color.white));
+            btnIgnoreDay.setTextColor(context.getResources().getColor(R.color.reverse_primary_font));
             btnIgnoreDay.setBackgroundColor(context.getResources().getColor(R.color.blue));
         }
         else{
-            btnIgnoreDay.setTextColor(context.getResources().getColor(R.color.black));
+            btnIgnoreDay.setTextColor(context.getResources().getColor(R.color.primary_font));
             btnIgnoreDay.setBackgroundColor(context.getResources().getColor(R.color.item_background));
         }
         //控制日期选择器的显示

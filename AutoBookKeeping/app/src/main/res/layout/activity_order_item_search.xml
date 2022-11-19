@@ -3,6 +3,8 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+
+
     android:orientation="vertical">
     <!-- 第一行,包含账单查询字样-->
     <LinearLayout
@@ -41,8 +43,10 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:id="@+id/ll_down_menu"
+            android:background="@color/reverse_primary_font"
             android:orientation="vertical">
             <com.wdeo3601.dropdownmenu.DropDownMenu
+
                 android:id="@+id/drop_down_menu"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
@@ -54,7 +58,8 @@
                 app:ddMenuTextSize="14dp"
                 app:ddTextPadding="12dp"
                 app:ddTextSelectedColor="@color/blue"
-                app:ddTextUnselectedColor="@color/primary_font"
+                android:background="@color/reverse_primary_font"
+                app:ddTextUnselectedColor="@color/black"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/tv_title">
 
@@ -66,18 +71,6 @@
                 </LinearLayout>
             </com.wdeo3601.dropdownmenu.DropDownMenu>
         </LinearLayout>
-
-<!--        &lt;!&ndash;第三行,包括所有的账单信息&ndash;&gt;-->
-<!--        <ScrollView-->
-<!--            android:layout_width="match_parent"-->
-<!--            android:layout_height="wrap_content">-->
-<!--            <LinearLayout-->
-<!--                android:layout_width="match_parent"-->
-<!--                android:layout_height="wrap_content"-->
-<!--                android:id="@+id/ll_allOrderItemLimit"-->
-<!--                android:orientation="vertical">-->
-<!--            </LinearLayout>-->
-<!--        </ScrollView>-->
     </LinearLayout>
 
 </LinearLayout>

@@ -45,6 +45,7 @@ import com.beta.autobookkeeping.smsTools.SMSService;
 import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.tabs.TabLayoutMediator;
 import com.hss01248.dialog.StyledDialog;
+import com.hss01248.dialog.config.ConfigBean;
 import com.hss01248.dialog.interfaces.MyDialogListener;
 
 import java.io.ByteArrayOutputStream;
@@ -317,8 +318,9 @@ public class MainActivity extends AppCompatActivity {
                 .setColorOfAppName(this.getResources().getColor(R.color.blue))
                 .setColorOfAppStatement(this.getResources().getColor(R.color.blue))
                 .setAppStatement("美好的事情即将发生!")
-                .setAnimationInterval(2000)
-                .setAnimationFinishTime(500)
+                .setAnimationInterval(1500)
+                .setAnimationFinishTime(400)
+                .setColorOfBackground(getColor(R.color.reverse_primary_font))
                 .create();
         openingStartAnimation.show(MainActivity.this);
     }

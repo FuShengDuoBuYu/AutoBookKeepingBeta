@@ -71,7 +71,7 @@ public class PersonalMonthReportFragment extends Fragment {
                 ,costRankingProcessBar
         );
         pieChart.showPieChart();
-        pieChart.showMonthlyCostRanking();
+        pieChart.showMonthlyCostRanking(ProjectUtil.getMonthOrders(activity.recordYear,activity.recordMonth,getContext()));
     }
 
     //查询各个月的收支情况

@@ -210,7 +210,7 @@ public class FamilyMonthReportFragment extends Fragment {
                         ,costRankingProcessBar
                     );
                     pieChart.showPieChart();
-                    pieChart.showMonthlyCostRanking();
+                    pieChart.showMonthlyCostRanking(orderInfos);
                 }
                 else{
                     pieChart.refreshPieChartAndRanking(activity.recordYear,activity.recordMonth,orderInfos);//                pieChart = new com.beta.autobookkeeping.activity.monthReport.charts.PieChart(

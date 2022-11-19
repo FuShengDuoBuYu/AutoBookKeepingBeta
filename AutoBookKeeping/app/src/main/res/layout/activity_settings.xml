@@ -214,11 +214,6 @@
 
                 </TextView>
             </LinearLayout>
-            <com.gelitenight.waveview.library.WaveView
-                android:id="@+id/wave"
-                android:layout_width="300dp"
-                android:layout_height="300dp"
-                android:layout_marginTop="32dp" />
         </LinearLayout>
     </ScrollView>
 

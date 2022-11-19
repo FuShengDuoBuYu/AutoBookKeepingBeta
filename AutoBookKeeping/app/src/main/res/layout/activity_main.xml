@@ -14,8 +14,8 @@
         android:orientation="horizontal">
         <!-- 新增按钮-->
         <ImageView
-            android:layout_width="30dp"
-            android:layout_height="30dp"
+            android:layout_width="29dp"
+            android:layout_height="29dp"
             android:id="@+id/btnPlusNewOrder"
             android:background="@drawable/ic_plus"
             android:gravity="start"
@@ -39,10 +39,9 @@
             android:layout_width="30dp"
             android:layout_height="30dp"
             android:id="@+id/btnSettings"
-            android:src="@drawable/ic_settings"
-            android:layout_marginEnd="10dp"
             android:layout_marginTop="20dp"
-            android:layout_gravity="end">
+            android:src="@drawable/ic_settings"
+            android:layout_marginEnd="10dp">
         </ImageView>
     </LinearLayout>
 

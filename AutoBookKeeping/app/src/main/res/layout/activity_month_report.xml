@@ -45,7 +45,8 @@
             android:layout_width="40dp"
             android:layout_height="40dp"
             android:id="@+id/btn_left_choose"
-            android:background="@drawable/left_button">
+            android:rotation="180"
+            android:background="@drawable/ic_left_arrow">
         </Button>
         <LinearLayout
             android:layout_width="0dp"
@@ -78,7 +79,7 @@
             android:layout_width="40dp"
             android:layout_height="40dp"
             android:id="@+id/btn_right_choose"
-            android:background="@drawable/right_button">
+            android:background="@drawable/ic_right_arrow">
         </Button>
     </LinearLayout>
 

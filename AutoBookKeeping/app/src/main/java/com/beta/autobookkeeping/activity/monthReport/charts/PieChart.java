@@ -15,6 +15,7 @@ import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.beta.autobookkeeping.R;
 import com.beta.autobookkeeping.activity.main.entity.OrderInfo;
@@ -66,6 +67,7 @@ public class PieChart {
     public void setPieChart(com.github.mikephil.charting.charts.PieChart pieChart){
         //设置图表描述
         Description description = new Description();
+        description.setTextColor(context.getColor(R.color.primary_font));
         description.setText("单位:元");
         pieChart.setDescription(description);
         //设置使用百分比
@@ -90,6 +92,7 @@ public class PieChart {
             pieChart.setCenterText("总支出:\n"+String.format("%.1f", totalMoney)+"元");
         }
         pieChart.setCenterTextSize(23f);
+        pieChart.setCenterTextColor(context.getColor(R.color.primary_font));
         //设置中心背景颜色为透明
         pieChart.setHoleColor(0);
         //设置饼状图的颜色
@@ -97,6 +100,7 @@ public class PieChart {
         //图例设置
         Legend legend = pieChart.getLegend();
         legend.setEnabled(true);//是否显示图例
+        legend.setTextColor(context.getColor(R.color.primary_font));
         legend.setHorizontalAlignment(Legend.LegendHorizontalAlignment.CENTER);//图例相对于图表横向的位置
         legend.setVerticalAlignment(Legend.LegendVerticalAlignment.BOTTOM);//图例相对于图表纵向的位置
         legend.setOrientation(Legend.LegendOrientation.HORIZONTAL);//图例显示的方向
@@ -145,6 +149,7 @@ public class PieChart {
         costDataSet.setValueLinePart2Length(0.5f);
         costDataSet.setValueLineColor(context.getColor(R.color.primary_font));//设置连接线的颜色
         costDataSet.setValueTextSize(12);
+        costDataSet.setValueTextColor(context.getColor(R.color.primary_font));
         costDataSet.setYValuePosition(PieDataSet.ValuePosition.OUTSIDE_SLICE);
         costDataSet.setValueFormatter(new PercentFormatter(monthMoneyPieChart));
         //设置各个饼块的间隔
@@ -164,14 +169,20 @@ public class PieChart {
         costRankingProcessBar.removeAllViews();
 
         showPieChart();
-        showMonthlyCostRanking();
+        showMonthlyCostRanking(monthOrders);
     }
 
     //动态显示月度消费排行榜
-    public void showMonthlyCostRanking(){
+    public void showMonthlyCostRanking(ArrayList<OrderInfo> monthOrders){
+        double totalCostMoney = 0.0;
+        //通过monthOrders获取总支出金额
+        for (OrderInfo orderInfo:monthOrders){
+            totalCostMoney += orderInfo.getMoney();
+        }
+        //支出
         for(int i = 0;i < costLabels.size();i++){
             //要加入的进度条
-            LinearLayout costProcessBar = setCostProcessBar(costLabels.get(i),costMoney.get(i), ProjectUtil.getMonthCost(recordYear,recordMonth,context),i);
+            LinearLayout costProcessBar = setCostProcessBar(costLabels.get(i),costMoney.get(i), totalCostMoney,i);
             //点击进度条进入具体支出项目查询
             //由于内部类,故使用final的i
             int finalI = i;
@@ -184,6 +195,15 @@ public class PieChart {
             //加入显示
             costRankingProcessBar.addView(costProcessBar);
         }
+        //收入
+        LinearLayout incomeProcessBar = setCostProcessBar("点击查看收入明细",1f,1f,costLabels.size());
+        incomeProcessBar.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                showCostItems("收入",recordYear,recordMonth);
+            }
+        });
+        costRankingProcessBar.addView(incomeProcessBar);
     }
 
     //创建一个processBar对象,显示某一个类别的消费支出

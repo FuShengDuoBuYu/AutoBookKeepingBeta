@@ -149,10 +149,7 @@ public class TargetCostWaterFragment extends Fragment {
         familyWaveView.setShowWave(true);
         personalWaveHelper = new WaveHelper(personalWaveView,btnPersonalCostTarget);
         familyWaveHelper = new WaveHelper(familyWaveView,btnFamilyCostTarget);
-        personalWaveHelper.initAnimator(0f,0.3f);
-
-
-//        initPersonalBtn();
+        initPersonalBtn();
         getSomeMonthMoney();
         cvPersonalTarget = v.findViewById(R.id.cv_personal_target);
         cvFamilyTarget = v.findViewById(R.id.cv_family_target);
@@ -169,6 +166,8 @@ public class TargetCostWaterFragment extends Fragment {
         int personalTargetCost = (SpUtils.get(context,"targetPersonalCost",0)==null)?2000:(Integer) SpUtils.get(context,"targetPersonalCost",0);
         int personalPercent = Math.abs((int) (Math.abs(personalMonthCost)/personalTargetCost*100));
         personalPercent = Math.min(personalPercent, 100);
+        //设置波浪
+        personalWaveHelper.initAnimator(0f,personalPercent/200f);
         //设置距离顶部高度
         float marginTopPx = context.getResources().getDimension(R.dimen.water_round_container_height)*(100- personalPercent) / 100;
         //设置marginTop
@@ -186,6 +185,8 @@ public class TargetCostWaterFragment extends Fragment {
                 int familyTargetCost = (SpUtils.get(context,"targetFamilyCost",0)==null)?2000:(Integer) SpUtils.get(context,"targetFamilyCost",0);
                 int familyPercent = (Math.abs(familyMonthCost)*100/familyTargetCost);
                 familyPercent = Math.min(familyPercent, 100);
+                //设置波浪
+                familyWaveHelper.initAnimator(0f,familyPercent/200f);
                 //设置距离顶部高度
                 float marginTopPx = context.getResources().getDimension(R.dimen.water_round_container_height)*(100- familyPercent) / 100;
                 //设置marginTop
@@ -195,7 +196,6 @@ public class TargetCostWaterFragment extends Fragment {
                 //设置点击事件
                 btnFamilyCostTarget.setOnClickListener(onFamilyClickListener);
                 initTextViews();
-//                initFamilyBtn(familyMonthCost[0]);
             }
         });
     }
@@ -228,7 +228,7 @@ public class TargetCostWaterFragment extends Fragment {
 
     private void initWaterButton(int orientation){
         //设置动画
-        if(ifAnimationRunning)
+        if(ifAnimationRunning||btnPersonalCostTarget.getVisibility()==View.INVISIBLE||btnFamilyCostTarget.getVisibility()==View.INVISIBLE)
             return;
         Animation.AnimationListener listener = new Animation.AnimationListener() {
             @Override
@@ -284,7 +284,6 @@ public class TargetCostWaterFragment extends Fragment {
 
     //获取某个月的家庭支出
     private void getSomeMonthMoney(){
-
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -293,21 +292,19 @@ public class TargetCostWaterFragment extends Fragment {
                 Request request = new Request.Builder().url(url).get().build();
                 try{
                     Response response = client.newCall(request).execute();
-                    if(response.code()==200){
-                        JSONObject jsonResponse = new JSONObject(response.body().string());
-                        if(jsonResponse.getBoolean("success")){
-                            //将Map转换为Map
-                            Map<String,Object> map = StringUtil.Json2Map(jsonResponse.getJSONObject("data").toString());
-                            Map<String, ArrayList<OrderInfo>> map1 = new HashMap<>();
-                            //遍历Map
-                            for (Map.Entry<String, Object> entry : map.entrySet()) {
-                                JSONArray jsonArray = new JSONArray(entry.getValue().toString());
-                                for(int i = 0;i < jsonArray.length();i++){
-                                    familyMonthCost[0] += jsonArray.getJSONObject(i).getDouble("money");
-                                }
+                    JSONObject jsonResponse = new JSONObject(response.body().string());
+                    if(jsonResponse.getBoolean("success")){
+                        //将Map转换为Map
+                        Map<String,Object> map = StringUtil.Json2Map(jsonResponse.getJSONObject("data").toString());
+                        Map<String, ArrayList<OrderInfo>> map1 = new HashMap<>();
+                        //遍历Map
+                        for (Map.Entry<String, Object> entry : map.entrySet()) {
+                            JSONArray jsonArray = new JSONArray(entry.getValue().toString());
+                            for(int i = 0;i < jsonArray.length();i++){
+                                familyMonthCost[0] += jsonArray.getJSONObject(i).getDouble("money");
                             }
-//                            initFamilyBtn((int)familyMonthCost[0]);
                         }
+                        initFamilyBtn((int)familyMonthCost[0]);
                     }
                 } catch (JSONException | IOException e) {
                     e.printStackTrace();

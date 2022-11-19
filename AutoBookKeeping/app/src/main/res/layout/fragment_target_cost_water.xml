@@ -26,7 +26,7 @@
                 android:layout_marginStart="-100dp"
                 android:layout_height="300dp"
                 android:id="@+id/btn_personal_target_cost"
-                android:layout_marginTop="60dp"
+                android:layout_marginTop="150dp"
                 android:background="@drawable/btn_water_middle_rectangle"
                 style="?android:attr/borderlessButtonStyle">
             </Button>
@@ -103,11 +103,13 @@
                 android:layout_height="300dp"
                 android:id="@+id/btn_family_target_cost"
                 android:background="@drawable/btn_water_middle_rectangle"
+                android:layout_marginTop="150dp"
                 style="?android:attr/borderlessButtonStyle">
             </Button>
             <com.gelitenight.waveview.library.WaveView
                 android:layout_width="400dp"
                 android:layout_height="300dp"
+                android:layout_marginTop="-150dp"
                 android:layout_marginStart="-100dp"
                 android:id="@+id/wv_family_target_cost">
             </com.gelitenight.waveview.library.WaveView>

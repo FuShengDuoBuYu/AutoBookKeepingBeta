@@ -63,72 +63,12 @@ public class SettingsActivity extends AppCompatActivity {
     QMUIRoundButton btnAddBankNumber;
     Fragment fragmentTargetCostWater;
 
-    private int mBorderColor = Color.parseColor("#44FFFFFF");
-
-    private int mBorderWidth = 10;
-
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_settings);
         findViewById();
         initViews();
-        final WaveView waveView = (WaveView) findViewById(R.id.wave);
-        waveView.setBorder(mBorderWidth, mBorderColor);
-//        waveView.setBackgroundColor(Color.GREEN);
-        waveView.setShapeType(WaveView.ShapeType.SQUARE);
-//        ObjectAnimator waterLevelAnim = ObjectAnimator.ofFloat(
-//                waveView, "waterLevelRatio", 0f, 0.5f);
-//        waterLevelAnim.setDuration(10000);
-//        waterLevelAnim.setInterpolator(new DecelerateInterpolator());
-//        waterLevelAnim.start();
-//        ObjectAnimator waveShiftAnim = ObjectAnimator.ofFloat(
-//                waveView, "waveShiftRatio", 0f, 1f);
-////        waveShiftAnim.setRepeatCount(ValueAnimator.);
-//        waveShiftAnim.setDuration(1000);
-//        waveShiftAnim.setInterpolator(new LinearInterpolator());
-//        waveShiftAnim.start();
-//        ObjectAnimator amplitudeAnim = ObjectAnimator.ofFloat(
-//                waveView, "amplitudeRatio", 0f, 0.05f);
-////        amplitudeAnim.setRepeatCount(ValueAnimator.INFINITE);
-//        amplitudeAnim.setRepeatMode(ValueAnimator.REVERSE);
-//        amplitudeAnim.setDuration(5000);
-//        amplitudeAnim.start();
-//        amplitudeAnim.setInterpolator(new LinearInterpolator());
-        waveView.setShowWave(true);
-//        waveView.setWaterLevelRatio(60);
-        List<Animator> animators = new ArrayList<>();
-        ObjectAnimator waveShiftAnim = ObjectAnimator.ofFloat(
-                waveView, "waveShiftRatio", 0.0f, 1.0f);
-        waveShiftAnim.setRepeatCount(10);
-        waveShiftAnim.setDuration(250);
-        waveShiftAnim.setInterpolator(new LinearInterpolator());
-
-// vertical animation.
-// water level increases from 0 to center of WaveView
-        ObjectAnimator waterLevelAnim = ObjectAnimator.ofFloat(
-                waveView, "waterLevelRatio", 0f, 0.5f);
-        waterLevelAnim.setDuration(2500);
-        waterLevelAnim.setInterpolator(new DecelerateInterpolator());
-        animators.add(waterLevelAnim);
-
-// amplitude animation.
-// wave grows big then grows small, repeatedly
-        ObjectAnimator amplitudeAnim = ObjectAnimator.ofFloat(
-                waveView, "amplitudeRatio", 0f, 0.05f);
-        amplitudeAnim.setRepeatCount(2);
-//        amplitudeAnim.setRepeatMode(ValueAnimator.REVERSE);
-        amplitudeAnim.setDuration(1250);
-        amplitudeAnim.setInterpolator(new LinearInterpolator());
-        animators.add(amplitudeAnim);
-        waveView.setWaveColor(Color.RED, Color.BLUE);
-//        AnimatorSet waveAnimation = new AnimatorSet();
-//        waveAnimation.playTogether(animators);
-//        waveAnimation.start();
-        waveShiftAnim.start();
-        waterLevelAnim.start();
-        amplitudeAnim.start();
-//        animators.add(waterLevelAnim);
     }
 
     private void findViewById(){
@@ -226,30 +166,12 @@ public class SettingsActivity extends AppCompatActivity {
                 try {
                     jsonObject.put("phoneNum",SpUtils.get(SettingsActivity.this,"phoneNum",""));
                     jsonObject.put("bankNumbers",StringUtil.list2String(bankNumbers));
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-                RequestBody body = RequestBody.create(jsonObject.toString(), MediaType.parse("application/json;charset=utf-8"));
-                Request request = new Request.Builder().url(url).put(body).build();
-                try{
+                    RequestBody body = RequestBody.create(jsonObject.toString(), MediaType.parse("application/json;charset=utf-8"));
+                    Request request = new Request.Builder().url(url).put(body).build();
                     Response response = client.newCall(request).execute();
-                    if(response.code()==200){
-                        JSONObject jsonResponse = new JSONObject(response.body().string());
-                        if(jsonResponse.getBoolean("success")){
-                            afterModifyBankNumber(StringUtil.list2String(bankNumbers));
-                        }
-                        else{
-                            Looper.prepare();
-                            StyledDialog.dismissLoading(SettingsActivity.this);
-                            ProjectUtil.toastMsg(SettingsActivity.this,jsonResponse.getString("message"));
-                            Looper.loop();
-                        }
-                    }
-                    else{
-                        Looper.prepare();
-                        StyledDialog.dismissLoading(SettingsActivity.this);
-                        ProjectUtil.toastMsg(SettingsActivity.this,"服务器出错");
-                        Looper.loop();
+                    JSONObject jsonResponse = new JSONObject(response.body().string());
+                    if(jsonResponse.getBoolean("success")){
+                        afterModifyBankNumber(StringUtil.list2String(bankNumbers));
                     }
                 } catch (JSONException | IOException e) {
                     e.printStackTrace();

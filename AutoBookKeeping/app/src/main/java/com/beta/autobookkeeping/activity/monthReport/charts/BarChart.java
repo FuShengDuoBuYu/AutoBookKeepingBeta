@@ -55,6 +55,7 @@ public class BarChart {
         ArrayList<IBarDataSet> dataSets = new ArrayList<>();
         dataSets.add(moneyDataSet);
         BarData data = new BarData(dataSets);
+        data.setValueTextColor(context.getColor(R.color.primary_font));
         data.setBarWidth(0.3f);
         //将变量组交给图
         monthMoneyBarChart.setData(data);
@@ -71,6 +72,7 @@ public class BarChart {
         leftAxis.setEnabled(false);
         rightAxis.setEnabled(false);
         //背景颜色
+        barChart.setGridBackgroundColor(context.getColor(R.color.reverse_primary_font));
         barChart.setBackgroundColor(context.getColor(R.color.reverse_primary_font));
         //不显示图表网格
         barChart.setDrawGridBackground(true);
@@ -89,13 +91,14 @@ public class BarChart {
         Description description = new Description();
         description.setEnabled(false);
         barChart.setDescription(description);
+        //X轴字体颜色
+        xAxis.setTextColor(context.getColor(R.color.primary_font));
         //不显示X轴网格线
         xAxis.setDrawGridLines(false);
         //X轴设置显示位置在底部
         xAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
         //X轴横坐标显示的数量
         xAxis.setLabelCount(12,true);
-
         xAxis.setCenterAxisLabels(true);
         xAxis.setValueFormatter(new ValueFormatter() {
             @Override
