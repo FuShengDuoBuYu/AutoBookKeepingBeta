@@ -106,12 +106,16 @@ public class OrderWidget extends AppWidgetProvider {
                 PendingIntent.getBroadcast(context, 0, intent3, PendingIntent.FLAG_ONE_SHOT);
         remoteViews.setOnClickPendingIntent(R.id.iv_swap_version, pendingIntent3);
 
-        //刷新
-        Intent intent1 = new Intent(context, OrderWidget.class);
-        intent1.setAction("refresh");
-        intent1.putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, appWidgetIds);
-        onReceive(context, intent1);
-//        updateWidgetInfo(context,remoteViews,getPersonalMoneyInfo(context)[0],getPersonalMoneyInfo(context)[1],PERSONAL_MODE);
+        //更新小组件
+        String version = (String) SpUtils.get(context,"widgetVersion","");
+        if(PERSONAL_MODE.equals(version)){
+            String[] personalMoney = getPersonalMoneyInfo(context);
+            updateWidgetInfo(context,remoteViews,personalMoney[0],personalMoney[1],version);
+        }
+        else{
+            String[] familyMoney = getFamilyMoneyInfo(context);
+            updateWidgetInfo(context,remoteViews,familyMoney[0],familyMoney[1],version);
+        }
     }
 
     private void updateWidgetInfo(Context context,RemoteViews remoteViews,String todayMoney,String monthMoney,String version){

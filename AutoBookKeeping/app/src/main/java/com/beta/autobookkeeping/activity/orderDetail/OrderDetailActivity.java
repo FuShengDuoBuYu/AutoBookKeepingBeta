@@ -18,6 +18,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Looper;
+import android.os.Vibrator;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -336,29 +337,20 @@ public class OrderDetailActivity extends AppCompatActivity {
                     jsonObject.put("money",values.get("money"));
                     jsonObject.put("userId",values.get("userId"));
                     jsonObject.put("orderId",values.get("id"));
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-                RequestBody body = RequestBody.create(jsonObject.toString(), MediaType.parse("application/json;charset=utf-8"));
-                Request requst = new Request.Builder()
-                        .url(url)
-                        .post(body)
-                        .build();
-                try {
+                    RequestBody body = RequestBody.create(jsonObject.toString(), MediaType.parse("application/json;charset=utf-8"));
+                    Request requst = new Request.Builder().url(url).post(body).build();
                     Response response = client.newCall(requst).execute();
-                    if(response.code()==200){
-                        JSONObject jsonResponse = new JSONObject(response.body().string());
-                        if(jsonResponse.getBoolean("success")){
-                            Looper.prepare();
-                            StyledDialog.dismiss();
-                            ProjectUtil.toastMsg(OrderDetailActivity.this,"保存成功");
-                            finish();
-                            Looper.loop();
-                        }
-                    }
-                    else{
+                    JSONObject jsonResponse = new JSONObject(response.body().string());
+                    if(jsonResponse.getBoolean("success")){
                         Looper.prepare();
-                        ProjectUtil.toastMsg(OrderDetailActivity.this,"服务器出错");
+                        StyledDialog.dismiss();
+                        ProjectUtil.toastMsg(OrderDetailActivity.this,"保存成功");
+                        Vibrator vibrator = (Vibrator) getSystemService(VIBRATOR_SERVICE);
+                        if (vibrator.hasVibrator()) {
+                            long[] pattern = { 10L, 60L }; // An array of longs of times for which to turn the vibrator on or off.
+                            vibrator.vibrate(pattern, -1); // The index into pattern at which to repeat, or -1 if you don't want to repeat.
+                        }
+                        finish();
                         Looper.loop();
                     }
                 } catch (IOException | JSONException e) {

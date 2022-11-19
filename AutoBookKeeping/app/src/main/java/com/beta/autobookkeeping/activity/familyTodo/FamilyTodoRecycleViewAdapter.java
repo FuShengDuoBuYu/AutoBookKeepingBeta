@@ -6,6 +6,7 @@ import static Util.ConstVariable.IP;
 import android.app.Activity;
 import android.content.Context;
 import android.graphics.drawable.Drawable;
+import android.os.Vibrator;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -105,6 +106,12 @@ public class FamilyTodoRecycleViewAdapter extends RecyclerView.Adapter<FamilyTod
                         Toast.makeText(context,"已完成",Toast.LENGTH_SHORT).show();
                         FamilyTodoActivity familyTodoActivity = (FamilyTodoActivity) context;
                         familyTodoActivity.findFamilyTodoItem();
+                        //振动
+                        Vibrator vibrator = (Vibrator) context.getSystemService(Context.VIBRATOR_SERVICE);
+                        if (vibrator.hasVibrator()) {
+                            long[] pattern = { 10L, 60L }; // An array of longs of times for which to turn the vibrator on or off.
+                            vibrator.vibrate(pattern, -1); // The index into pattern at which to repeat, or -1 if you don't want to repeat.
+                        }
                     });
                }
             } catch (JSONException | IOException e) {
