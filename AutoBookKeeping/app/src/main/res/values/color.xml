@@ -13,4 +13,5 @@
     <color name="item_background">#EBEBEB</color>
     <color name="reverse_primary_font">#FFFFFFFF</color>
     <color name="transparent">#00000000</color>
+    <color name="transparent_item_background">#50EBEBEB</color>
 </resources>

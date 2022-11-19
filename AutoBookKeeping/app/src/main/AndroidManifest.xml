@@ -39,12 +39,6 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true">
         <activity
-            android:name=".FamilyTodoActivity"
-            android:exported="false" />
-        <activity
-            android:name=".OrderMapActivity"
-            android:exported="false" />
-        <activity
             android:name=".activity.orderItemSearch.OrderItemSearchActivity"
             android:excludeFromRecents="true"
             android:exported="true"

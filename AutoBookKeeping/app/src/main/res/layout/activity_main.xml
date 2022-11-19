@@ -35,14 +35,15 @@
             android:gravity="center">
         </TextView>
         <!-- 设置按钮-->
-        <Button
+        <ImageView
             android:layout_width="30dp"
             android:layout_height="30dp"
             android:id="@+id/btnSettings"
-            android:background="@drawable/settings"
-            android:gravity="end"
-            android:layout_marginEnd="10dp">
-        </Button>
+            android:src="@drawable/ic_settings"
+            android:layout_marginEnd="10dp"
+            android:layout_marginTop="20dp"
+            android:layout_gravity="end">
+        </ImageView>
     </LinearLayout>
 
     <!--第二行的今日和本月累计-->

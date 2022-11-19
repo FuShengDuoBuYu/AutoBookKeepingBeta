@@ -13,4 +13,5 @@
     <color name="reverse_primary_font">#000000</color>
     <color name="item_background">#FF191919</color>
     <color name="transparent">#00000000</color>
+    <color name="transparent_item_background">#50191919</color>
 </resources>

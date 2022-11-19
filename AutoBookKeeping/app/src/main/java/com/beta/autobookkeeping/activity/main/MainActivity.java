@@ -64,8 +64,8 @@ public class MainActivity extends AppCompatActivity {
     private List<Fragment> fragments;
     private TabLayout tabLayout;
     private TabOrderDetailFragmentPagerAdapter tabOrderDetailFragmentPagerAdapter;
-    private ImageView btnPlusNewOrder;
-    private Button btnSettings,btnSearchMonthlyReport;
+    private ImageView btnPlusNewOrder,btnSettings;
+    private Button btnSearchMonthlyReport;
     private TextView tvAllTodayOrder,tvAllMonthOrder,tv_title;
     private LinearLayout lvOrderDetail,llCostTitle;
     private ScrollView svOrderDetail;

@@ -7,7 +7,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:id="@+id/wll">
+        android:background="@color/transparent_item_background">
 
         <!--今日累计-->
         <LinearLayout
@@ -15,14 +15,15 @@
             android:layout_weight="1"
             android:layout_height="match_parent"
             android:orientation="vertical"
-            android:gravity="start"
+            android:gravity="center"
             android:padding="10dp"
+            android:id="@+id/ll_today"
             >
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/today_all_cost"
-                android:textColor="@color/white">
+                android:textColor="@color/primary_font">
 
             </TextView>
             <TextView
@@ -30,7 +31,7 @@
                 android:layout_height="wrap_content"
                 android:id="@+id/wtvAllTodayOrder"
                 android:text="@string/today_all_cost_number"
-                android:textColor="@color/white"
+                android:textColor="@color/primary_font"
                 android:textSize="25sp">
             </TextView>
         </LinearLayout>
@@ -41,24 +42,66 @@
             android:layout_weight="1"
             android:layout_height="match_parent"
             android:orientation="vertical"
-            android:gravity="end"
+            android:gravity="center"
             android:padding="10dp"
-
+            android:id="@+id/ll_month"
             >
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/month_all_cost"
-                android:textColor="@color/white">
+                android:textColor="@color/primary_font">
             </TextView>
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:id="@+id/wtvAllMonthOrder"
                 android:text="@string/month_all_cost_number"
-                android:textColor="@color/white"
+                android:textColor="@color/primary_font"
                 android:textSize="25sp">
             </TextView>
+        </LinearLayout>
+        <!--按钮-->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_weight="0.7"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:padding="10dp"
+            >
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_horizontal"
+                android:id="@+id/tv_version"
+                android:text="个人版"
+                android:textColor="@color/primary_font">
+
+            </TextView>
+            <LinearLayout
+                android:layout_marginTop="5dp"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center_horizontal"
+                android:orientation="horizontal">
+                <ImageView
+                    android:layout_width="25dp"
+                    android:layout_height="25dp"
+                    android:id="@+id/iv_refresh"
+                    android:src="@drawable/ic_refresh">
+                </ImageView>
+
+                <ImageView
+                    android:layout_width="25dp"
+                    android:layout_marginLeft="15dp"
+                    android:layout_height="25dp"
+                    android:layout_gravity="end"
+                    android:id="@+id/iv_swap_version"
+                    android:src="@drawable/ic_swap_version">
+
+                </ImageView>
+            </LinearLayout>
         </LinearLayout>
     </LinearLayout>
 </LinearLayout>
