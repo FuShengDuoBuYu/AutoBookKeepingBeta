@@ -41,31 +41,44 @@
 
 #### 使用依赖
 
-> [绘制图表](https://github.com/PhilJay/MPAndroidChart)
+> [[绘制图表](https://github.com/PhilJay/MPAndroidChart)](https://github.com/PhilJay/MPAndroidChart)
 > implementation 'com.github.PhilJay:MPAndroidChart:v3.1.0'
 
-> [圆角图表](https://github.com/Tencent/QMUI_Android)
+> [[圆角图表](https://github.com/Tencent/QMUI_Android)](https://github.com/Tencent/QMUI_Android)
 > implementation 'com.qmuiteam:qmui:2.0.0-alpha10'
 
-> [前后端交互](https://github.com/square/okhttp)
+> [[前后端交互](https://github.com/square/okhttp)](https://github.com/square/okhttp)
 > implementation("com.squareup.okhttp3:okhttp:4.9.3")
 
-> [类IOS弹窗](https://github.com/hss01248/DialogUtil)
+> [[类IOS弹窗](https://github.com/hss01248/DialogUtil)](https://github.com/hss01248/DialogUtil)
 > implementation ('com.github.hss01248:DialogUtil:2.0.2'){exclude group: 'com.android.support'}
 
-> [图片选择器](https://github.com/LuckSiege/PictureSelector)
+> [[图片选择器](https://github.com/LuckSiege/PictureSelector)](https://github.com/LuckSiege/PictureSelector)
 > implementation 'io.github.lucksiege:pictureselector:v3.10.5'
 > implementation 'io.github.lucksiege:compress:v3.10.4'
 > implementation 'io.github.lucksiege:ucrop:v3.10.4'
 
-> [下拉选择菜单](https://github.com/wdeo3601/DropdownMenu)
+> [[下拉选择菜单](https://github.com/wdeo3601/DropdownMenu)](https://github.com/wdeo3601/DropdownMenu)
 > implementation 'com.wdeo3601:drop-down-menu:1.0.5'
 
-> [日期选择器](https://github.com/limxing/DatePickerView)
+> [[日期选择器](https://github.com/limxing/DatePickerView)](https://github.com/limxing/DatePickerView)
 > implementation 'com.github.limxing:DatePickerView:1.1.0'
 
-> [图标展示](https://www.iconfont.cn/)
+> [[图标展示](https://www.iconfont.cn/)](https://www.iconfont.cn/)
 > 阿里巴巴矢量图库
+
+> [[开屏动画](https://github.com/wongzy/FancyView)](https://github.com/wongzy/FancyView)
+> implementation 'site.gemus:openingstartanimation:1.0.0'
+
+> [[状态栏沉浸](https://github.com/gyf-dev/ImmersionBar)](https://github.com/gyf-dev/ImmersionBar)
+> implementation 'com.geyifeng.immersionbar:immersionbar:3.2.2'
+
+> [[高德地图](https://developer.amap.com/demo/list/sdk/)](https://developer.amap.com/demo/list/sdk/)
+> implementation 'com.amap.api:map2d:6.0.0'
+> implementation 'com.amap.api:location:6.2.0'
+
+> [[水波浪](https://github.com/gelitenight/WaveView)](https://github.com/gelitenight/WaveView)
+> implementation 'com.gelitenight.waveview:waveview:1.0.0'
 
 ## 介绍
 
@@ -91,6 +104,7 @@
 
 - 本app基本逻辑为显示某段时间的支出和收入的总和,当*总和为正(负*),代表该段时间收*支为正(负*).
 - **首页**:
+  
   - 首页展示本月的收支和本日的收支,而滑动可以查看家庭版/个人版的账单信息
   - 每一条记录项目,可以进行单击进入**编辑页面**,对金额,时间等一系列信息重新编辑
   - 每一条记录项目可以**长按**,进行**删除该项目**,删除的同时页面会进行同步刷新
@@ -126,7 +140,8 @@
     <img src="https://github.com/FuShengDuoBuYu/AutoBookKeepingBeta/raw/master/ReadmeImage/month_report_activity/3.jpg" style="width:30%;margin-left:5%" />
   </div>
 - **设置页**
-	- **进入个人中心**
+	
+  - **进入个人中心**
   	- 在个人中心页面里可以设置昵称,家庭id,头像等个人信息
   <div style="display:flex;">
     <img src="https://github.com/FuShengDuoBuYu/AutoBookKeepingBeta/raw/master/ReadmeImage/settings_activity/personal_activity/2.gif" style="width:30%"/>
@@ -165,6 +180,7 @@
 
 ### 其他
 #### 特别感谢
+
 ##### 在这里,想要特别感谢我的女朋友,她是我这个软件的第二个用户(第一个是我自己hhh),正是因为她的督促,才会有1.2版本的大改动以及家庭版联网支持的大更新,本次版本的更新功不可没
 ##### 同时,还要感谢陈老师关于创新点的支持和对于该项目作为PJ的认可
 
