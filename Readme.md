@@ -82,7 +82,7 @@
     <img src="https://github.com/FuShengDuoBuYu/AutoBookKeepingBeta/raw/master/ReadmeImage/permission/permission2.jpg" style="width:24%;margin-left:1%"/>
     <img src="https://github.com/FuShengDuoBuYu/AutoBookKeepingBeta/raw/master/ReadmeImage/permission/permission3.jpg" style="width:24%;margin-left:1%" />
    <img src="https://github.com/FuShengDuoBuYu/AutoBookKeepingBeta/raw/master/ReadmeImage/permission/permission4.jpg" style="width:24%;margin-left:1%" />
-  </div>
+    </div>
 	
 3. 由于该app并非系统应用,所以请在后台设置其**锁住不被内存清理**,同时设置电量限制为**无限制**
 4. 目前已经适配的银行:农业银行,建设银行,工商银行,招商银行,郑州银行等
@@ -95,7 +95,7 @@
   - 每一条记录项目,可以进行单击进入**编辑页面**,对金额,时间等一系列信息重新编辑
   - 每一条记录项目可以**长按**,进行**删除该项目**,删除的同时页面会进行同步刷新
   <div style="display:flex;">
-    <img src="https://github.com/FuShengDuoBuYu/AutoBookKeepingBeta/raw/master/ReadmeImage/main_activity/1.gif" style="width:30%"/>
+    <img src="https://github.com/FuShengDuoBuYu/AutoBookKeepingBeta/raw/master/ReadmeImage/main_activity/1.gif" width="30%"/>
     <img src="https://github.com/FuShengDuoBuYu/AutoBookKeepingBeta/raw/master/ReadmeImage/main_activity/2.gif" style="width:30%;margin-left:5%"/>
     <img src="https://github.com/FuShengDuoBuYu/AutoBookKeepingBeta/raw/master/ReadmeImage/main_activity/3.gif" style="width:30%;margin-left:5%" />
   </div>

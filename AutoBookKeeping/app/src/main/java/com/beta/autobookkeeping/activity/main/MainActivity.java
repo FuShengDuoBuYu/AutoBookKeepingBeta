@@ -24,6 +24,7 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.amap.api.location.AMapLocationClient;
 import com.beta.autobookkeeping.activity.main.checking.FamilyChecking;
@@ -263,10 +264,8 @@ public class MainActivity extends AppCompatActivity {
 
     //注册手机号
     private void setPhoneNum(){
-        //用户设置电话号码和昵称
         if(
-                SpUtils.get(this,"phoneNum","")==null ||
-                        SpUtils.get(this,"phoneNum","").equals("")
+                SpUtils.get(this,"phoneNum","")==null || SpUtils.get(this,"phoneNum","").equals("")
         ){
             StyledDialog.buildNormalInput("用户注册", "请输入手机号", "请输入密码", "确定", "取消", new MyDialogListener() {
                 @Override
