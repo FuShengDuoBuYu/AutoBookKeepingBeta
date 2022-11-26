@@ -307,6 +307,7 @@ public class TargetCostWaterFragment extends Fragment {
                         initFamilyBtn((int)familyMonthCost[0]);
                     }
                 } catch (JSONException | IOException e) {
+                    Toast.makeText(context,e.getMessage(),Toast.LENGTH_SHORT).show();
                     e.printStackTrace();
                 }
             }

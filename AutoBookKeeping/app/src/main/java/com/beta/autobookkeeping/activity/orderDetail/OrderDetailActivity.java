@@ -375,7 +375,6 @@ public class OrderDetailActivity extends AppCompatActivity {
                         aMapLocation.getLocationType();//获取当前定位结果来源，如网络定位结果，详见定位类型表
                         latitude[0] = aMapLocation.getLatitude();//获取纬度
                         longitude[0] = aMapLocation.getLongitude();//获取经度
-                        Log.d("经纬度", latitude[0] +","+ longitude[0]);
                         t.start();
                     } else {
                         //显示错误信息ErrCode是错误码，errInfo是错误信息，详见错误码表。

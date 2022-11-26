@@ -3,6 +3,7 @@ package com.beta.autobookkeeping.activity.orderMap;
 import static Util.ConstVariable.IP;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.util.Pair;
 
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
@@ -19,6 +20,7 @@ import com.amap.api.maps2d.AMap;
 import com.amap.api.maps2d.CameraUpdateFactory;
 import com.amap.api.maps2d.MapView;
 import com.amap.api.maps2d.model.BitmapDescriptorFactory;
+import com.amap.api.maps2d.model.LatLng;
 import com.amap.api.maps2d.model.LatLngBounds;
 import com.amap.api.maps2d.model.MarkerOptions;
 import com.beta.autobookkeeping.R;
@@ -49,6 +51,8 @@ public class OrderMapActivity extends AppCompatActivity {
     private AMap aMap;
     private String currentVersion = "Personal";
     private Integer searchItems = 10;
+    private Pair<Double,Double> location = null;
+    private List<Pair<Double,Double>> orderLocations = new ArrayList<>();
     private QMUIRoundButton btnPersonalVersion,btnFamilyVersion,btnConfirmSearch,btnChooseItem;
     private View.OnClickListener btnPersonalVersionListener = new View.OnClickListener() {
         @Override
@@ -102,6 +106,7 @@ public class OrderMapActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_order_map);
+        getCurrentLocation();
         findViewByIdAndInit();
         mvOrderMap.onCreate(savedInstanceState);
         initOrderMap();
@@ -110,9 +115,9 @@ public class OrderMapActivity extends AppCompatActivity {
 
     private void findViewByIdAndInit() {
         mvOrderMap = findViewById(R.id.mv_order_map);
+
         aMap = mvOrderMap.getMap();
-        //移动到上海
-        aMap.moveCamera(com.amap.api.maps2d.CameraUpdateFactory.newLatLngZoom(new com.amap.api.maps2d.model.LatLng(31.230416, 121.473701), 12));
+        //移动到指定经纬度
         btnPersonalVersion = findViewById(R.id.btn_personal_version);
         //初始在个人版
         btnPersonalVersion.setBackgroundColor(getResources().getColor(R.color.blue));
@@ -126,7 +131,37 @@ public class OrderMapActivity extends AppCompatActivity {
         btnChooseItem.setOnClickListener(btnChooseItemListener);
     }
 
-
+    private void getCurrentLocation(){
+        AMapLocationClient mLocationClient = null;
+        try {
+            mLocationClient = new AMapLocationClient(getApplicationContext());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        mLocationClient.setLocationListener(new AMapLocationListener() {
+            @Override
+            public void onLocationChanged(AMapLocation aMapLocation) {
+                if (aMapLocation != null && aMapLocation.getErrorCode() == 0) {
+                    //定位成功回调信息，设置相关消息
+                    location = new Pair<>(aMapLocation.getLatitude(),aMapLocation.getLongitude());
+                    aMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(location.first,location.second), 15));
+                }
+            }
+        });
+        //初始化定位参数
+        AMapLocationClientOption mLocationOption = new AMapLocationClientOption();
+        //设置定位模式为AMapLocationMode.Hight_Accuracy，高精度模式。
+        mLocationOption.setLocationMode(AMapLocationClientOption.AMapLocationMode.Hight_Accuracy);
+        //获取一次定位结果：
+        //该方法默认为false。
+        mLocationOption.setOnceLocation(true);
+        //获取最近3s内精度最高的一次定位结果：
+        mLocationOption.setOnceLocationLatest(true);
+        //设置定位参数
+        mLocationClient.setLocationOption(mLocationOption);
+        //启动定位
+        mLocationClient.startLocation();
+    }
 
     @Override
     protected void onDestroy() {
@@ -143,23 +178,13 @@ public class OrderMapActivity extends AppCompatActivity {
                 //上传后端
                 String url = IP + "/findTopN"+currentVersion+"OrderMapPlace/"+ idInfo+ "/"+searchItems;
                 OkHttpClient client = new OkHttpClient();
-                Request requst = new Request.Builder()
-                        .url(url)
-                        .get()
-                        .build();
+                Request requst = new Request.Builder().url(url).get().build();
                 try {
                     Response response = client.newCall(requst).execute();
                     if (response.code() == 200) {
                         JSONObject jsonResponse = new JSONObject(response.body().string());
-                        if (jsonResponse.getBoolean("success")) {
-                            //转为JsonArray
-                            JSONArray jsonArray = jsonResponse.getJSONArray("data");
-                            renderOrderMapMarks(jsonArray);
-                        }
-                    } else {
-                        Looper.prepare();
-                        ProjectUtil.toastMsg(OrderMapActivity.this, "服务器出错");
-                        Looper.loop();
+                        JSONArray jsonArray = jsonResponse.getJSONArray("data");
+                        renderOrderMapMarks(jsonArray);
                     }
                 } catch (IOException | JSONException e) {
                     e.printStackTrace();
@@ -172,11 +197,13 @@ public class OrderMapActivity extends AppCompatActivity {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
+                orderLocations.clear();
                 for (int i = 0; i < jsonArray.length(); i++) {
                     try {
                         JSONObject jsonObject = jsonArray.getJSONObject(i);
                         double latitude = jsonObject.getDouble("latitude");
                         double longitude = jsonObject.getDouble("longitude");
+                        orderLocations.add(new Pair<>(latitude, longitude));
                         double money = jsonObject.getDouble("money");
                         String userId = jsonObject.getString("userId");
                         MarkerOptions markerOptions = new MarkerOptions()
@@ -189,8 +216,36 @@ public class OrderMapActivity extends AppCompatActivity {
                         e.printStackTrace();
                     }
                 }
+                setMapCenterAndZoom();
             }
         });
     }
 
+    private void setMapCenterAndZoom(){
+        //计算得到zoom
+        //获取距离最远的经度的点的经度差
+        double maxLongitude = 0;
+        for(int i = 0; i < orderLocations.size(); i++){
+            double longitude = orderLocations.get(i).second;
+            for(int j = i+1; j < orderLocations.size(); j++){
+                double longitude2 = orderLocations.get(j).second;
+                if(Math.abs(longitude - longitude2) > maxLongitude){
+                    maxLongitude = Math.abs(longitude - longitude2);
+                }
+            }
+        }
+        float zoom = 0;
+        if(maxLongitude > 180)
+            zoom = 0;
+        else{
+            zoom = (float) (Math.log(360/maxLongitude)/Math.log(2));
+        }
+        if(location==null){
+            //设置zoom
+            aMap.moveCamera(CameraUpdateFactory.zoomTo(zoom));
+        }
+        else{
+            aMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new com.amap.api.maps2d.model.LatLng(orderLocations.get(0).first, orderLocations.get(0).second), zoom));
+        }
+    }
 }
