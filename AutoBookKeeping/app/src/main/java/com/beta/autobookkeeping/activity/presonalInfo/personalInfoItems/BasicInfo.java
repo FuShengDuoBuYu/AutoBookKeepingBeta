@@ -108,19 +108,28 @@ public class BasicInfo {
         ll_portrait.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                PictureSelector.create(context)
+                StyledDialog.buildIosAlert("选择图片", "请将图片压缩分辨率或其他方法控制在5KB左右,否则会非常非常卡\n(开发者这里偷懒了)", new MyDialogListener() {
+                    @Override
+                    public void onFirst() {
+                        PictureSelector.create(context)
                         .openSystemGallery(SelectMimeType.ofImage())
                         .forSystemResult(new OnResultCallbackListener<LocalMedia>() {
                             @Override
                             public void onResult(ArrayList<LocalMedia> result) {
                                 startUcrop(Uri.parse(result.get(0).getPath()));
-                                Log.d("test",result.get(0).getPath());
                             }
                             @Override
                             public void onCancel() {
 
                             }
                         });
+                    }
+
+                    @Override
+                    public void onSecond() {
+
+                    }
+                }).setBtnText("我知道啦","取消").show();
             }
         });
         return basicInfo;

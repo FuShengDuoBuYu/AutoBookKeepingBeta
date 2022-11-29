@@ -12,6 +12,7 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
 import android.util.Log;
+import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
@@ -117,11 +118,13 @@ public class TodoNotificationSender extends Service {
                     sendNotification(jsonObject.getInt("id"), jsonObject.getString("notificationTitle"), jsonObject.getString("notificationContent"));
                 }
             } catch (IOException | JSONException e) {
-                Looper.prepare();
-                ProjectUtil.toastMsg(TodoNotificationSender.this,e.getMessage());
                 e.printStackTrace();
-                Looper.loop();
             }
         }).start();
+    }
+
+    @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        return START_STICKY;
     }
 }

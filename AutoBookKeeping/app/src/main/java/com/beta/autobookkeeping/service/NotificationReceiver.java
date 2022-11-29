@@ -71,4 +71,8 @@ public class NotificationReceiver extends NotificationListenerService {
         return bundle;
     }
 
+    @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        return START_STICKY;
+    }
 }

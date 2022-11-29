@@ -29,6 +29,7 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.beta.autobookkeeping.R;
 import com.beta.autobookkeeping.activity.main.DialogActivity;
@@ -127,6 +128,10 @@ public class FamilyOrderDetailFragment extends Fragment {
     }
 
     private void getFamilyOrders(){
+        if (SpUtils.get(activity, "familyId", "")==null || SpUtils.get(activity, "familyId", "").equals("")) {
+            Toast.makeText(activity, "您还没有加入家庭", Toast.LENGTH_SHORT).show();
+            return;
+        }
         StyledDialog.buildLoading().show();
         new Thread(new Runnable() {
             @Override
@@ -138,22 +143,8 @@ public class FamilyOrderDetailFragment extends Fragment {
                     Response response = client.newCall(request).execute();
                     if(response.code()==200){
                         JSONObject jsonResponse = new JSONObject(response.body().string());
-                        if(jsonResponse.getBoolean("success")){
-                            JSONArray familyOrdersAndFamilyUsers = jsonResponse.getJSONArray("data");
-                            afterGetFamilyOrders(familyOrdersAndFamilyUsers,ll_FamilyOrders);
-                        }
-                        else{
-                            Looper.prepare();
-                            ProjectUtil.toastMsg(getContext(),jsonResponse.getString("message"));
-                            Looper.loop();
-                        }
-                    }
-                    else{
-                        Looper.prepare();
-                        Log.d("test",String.valueOf(response.code()));
-                        Log.d("test",String.valueOf(response.toString()));
-                        ProjectUtil.toastMsg(getContext(),"服务器出错");
-                        Looper.loop();
+                        JSONArray familyOrdersAndFamilyUsers = jsonResponse.getJSONArray("data");
+                        afterGetFamilyOrders(familyOrdersAndFamilyUsers,ll_FamilyOrders);
                     }
                 } catch (JSONException | IOException e) {
                     e.printStackTrace();

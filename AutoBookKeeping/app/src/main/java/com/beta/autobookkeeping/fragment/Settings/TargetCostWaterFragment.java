@@ -139,6 +139,8 @@ public class TargetCostWaterFragment extends Fragment {
         activity = getActivity();
         btnPersonalCostTarget = v.findViewById(R.id.btn_personal_target_cost);
         btnFamilyCostTarget = v.findViewById(R.id.btn_family_target_cost);
+        cvPersonalTarget = v.findViewById(R.id.cv_personal_target);
+        cvFamilyTarget = v.findViewById(R.id.cv_family_target);
         personalWaveView = v.findViewById(R.id.wv_personal_target_cost);
         familyWaveView = v.findViewById(R.id.wv_family_target_cost);
         personalWaveView.setWaveColor(getResources().getColor(R.color.blue),getResources().getColor(R.color.blue));
@@ -151,8 +153,7 @@ public class TargetCostWaterFragment extends Fragment {
         familyWaveHelper = new WaveHelper(familyWaveView,btnFamilyCostTarget);
         initPersonalBtn();
         getSomeMonthMoney();
-        cvPersonalTarget = v.findViewById(R.id.cv_personal_target);
-        cvFamilyTarget = v.findViewById(R.id.cv_family_target);
+
         initCardViews();
         tvPersonalTargetCostNumber = v.findViewById(R.id.tv_personal_target_cost_number);
         tvPersonalCostNumber = v.findViewById(R.id.tv_personal_cost_number);
@@ -164,6 +165,9 @@ public class TargetCostWaterFragment extends Fragment {
     private void initPersonalBtn(){
         double personalMonthCost = ProjectUtil.getMonthCost(ProjectUtil.getCurrentYear(),ProjectUtil.getCurrentMonth(),context);
         int personalTargetCost = (SpUtils.get(context,"targetPersonalCost",0)==null)?2000:(Integer) SpUtils.get(context,"targetPersonalCost",0);
+        if(personalTargetCost==0){
+            personalTargetCost = 2000;
+        }
         int personalPercent = Math.abs((int) (Math.abs(personalMonthCost)/personalTargetCost*100));
         personalPercent = Math.min(personalPercent, 100);
         //设置波浪
@@ -183,6 +187,9 @@ public class TargetCostWaterFragment extends Fragment {
             @Override
             public void run() {
                 int familyTargetCost = (SpUtils.get(context,"targetFamilyCost",0)==null)?2000:(Integer) SpUtils.get(context,"targetFamilyCost",0);
+                if(familyTargetCost==0){
+                    familyTargetCost = 4000;
+                }
                 int familyPercent = (Math.abs(familyMonthCost)*100/familyTargetCost);
                 familyPercent = Math.min(familyPercent, 100);
                 //设置波浪
@@ -284,6 +291,10 @@ public class TargetCostWaterFragment extends Fragment {
 
     //获取某个月的家庭支出
     private void getSomeMonthMoney(){
+        if(SpUtils.get(context,"familyId","")==null||"".equals(SpUtils.get(context,"familyId",""))){
+            Toast.makeText(context,"请先加入/创建家庭",Toast.LENGTH_SHORT).show();
+            return;
+        }
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -307,7 +318,6 @@ public class TargetCostWaterFragment extends Fragment {
                         initFamilyBtn((int)familyMonthCost[0]);
                     }
                 } catch (JSONException | IOException e) {
-                    Toast.makeText(context,e.getMessage(),Toast.LENGTH_SHORT).show();
                     e.printStackTrace();
                 }
             }

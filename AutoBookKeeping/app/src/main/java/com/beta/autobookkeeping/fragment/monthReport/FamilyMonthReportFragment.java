@@ -13,6 +13,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
+import android.widget.Toast;
 
 import com.beta.autobookkeeping.R;
 import com.beta.autobookkeeping.activity.main.entity.OrderInfo;
@@ -70,6 +71,10 @@ public class FamilyMonthReportFragment extends Fragment {
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_family_month_report, container, false);
         findViewsByIdAndInit(view);
+        if(SpUtils.get(getContext(),"familyId","").equals("")||SpUtils.get(getContext(),"familyId","")==null){
+            Toast.makeText(getContext(),"您还没有加入家庭",Toast.LENGTH_SHORT).show();
+            return view;
+        }
         //请求后端获取12月份的收支数据
         getEveryMonthMoney();
         getSomeMonthMoney();

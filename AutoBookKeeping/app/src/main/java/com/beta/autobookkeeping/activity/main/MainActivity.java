@@ -6,17 +6,20 @@ import static Util.ProjectUtil.getCurrentYear;
 import static Util.ProjectUtil.toastMsg;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityOptionsCompat;
 import androidx.core.util.Pair;
 import androidx.fragment.app.Fragment;
 import androidx.viewpager2.widget.ViewPager2;
 
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
 import android.os.Bundle;
+import android.text.InputType;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -95,8 +98,8 @@ public class MainActivity extends AppCompatActivity {
         startService(new Intent(MainActivity.this, NotificationReceiver.class));
         startService(new Intent(MainActivity.this, TodoNotificationSender.class));
         //设置手机号
-        setPhoneNum();
         FamilyChecking.checkFamily(this);
+        setPhoneNum();
         //设置开屏动画
         setOpeningAnimation();
         super.onCreate(savedInstanceState);
@@ -267,19 +270,42 @@ public class MainActivity extends AppCompatActivity {
         if(
                 SpUtils.get(this,"phoneNum","")==null || SpUtils.get(this,"phoneNum","").equals("")
         ){
-            StyledDialog.buildNormalInput("用户注册", "请输入手机号", "请输入密码", "确定", "取消", new MyDialogListener() {
+//            StyledDialog.buildNormalInput("用户注册", "请输入手机号", "请输入密码", "确定", "取消", new MyDialogListener() {
+//                @Override
+//                public void onFirst() {}
+//                @Override
+//                public void onSecond() {}
+//                @Override
+//                public boolean onInputValid(CharSequence input1, CharSequence input2, EditText editText1, EditText editText2) {
+//                    if(input1.toString().matches("^[1][3,4,5,7,8,9][0-9]{9}$")&&(!(input2.toString()==null))&&(!input2.toString().equals(""))){
+//                        UserRegister.userRegister(input1.toString(),input2.toString(),MainActivity.this);
+//                        return true;
+//                    }else{
+//                        toastMsg(MainActivity.this,"输入有误,请重试");
+//                        return false;
+//                    }
+//                }
+//            }).show();
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setTitle("用户注册");
+            builder.setMessage("请依次输入手机号和密码");
+            final EditText etPhoneNum = new EditText(this);
+            etPhoneNum.setInputType(InputType.TYPE_CLASS_PHONE);
+            final EditText etPassword = new EditText(this);
+            etPassword.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
+            LinearLayout ll = new LinearLayout(this);
+            ll.setOrientation(LinearLayout.VERTICAL);
+            ll.addView(etPhoneNum);
+            ll.addView(etPassword);
+            builder.setView(ll);
+            builder.setCancelable(false);
+            builder.setPositiveButton("确定", new DialogInterface.OnClickListener() {
                 @Override
-                public void onFirst() {}
-                @Override
-                public void onSecond() {}
-                @Override
-                public boolean onInputValid(CharSequence input1, CharSequence input2, EditText editText1, EditText editText2) {
-                    if(input1.toString().matches("^[1][3,4,5,7,8,9][0-9]{9}$")&&(!(input2.toString()==null))&&(!input2.toString().equals(""))){
-                        UserRegister.userRegister(input1.toString(),input2.toString(),MainActivity.this);
-                        return true;
+                public void onClick(DialogInterface dialog, int which) {
+                    if(etPhoneNum.getText().toString().matches("^[1][3,4,5,7,8,9][0-9]{9}$")){
+                        UserRegister.userRegister(etPhoneNum.getText().toString(),etPassword.getText().toString(),MainActivity.this);
                     }else{
                         toastMsg(MainActivity.this,"输入有误,请重试");
-                        return false;
                     }
                 }
             }).show();

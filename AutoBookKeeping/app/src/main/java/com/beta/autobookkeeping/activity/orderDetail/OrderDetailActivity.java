@@ -1,5 +1,6 @@
 package com.beta.autobookkeeping.activity.orderDetail;
 
+import static android.content.pm.PackageManager.PERMISSION_GRANTED;
 import static Util.ConstVariable.COST_TYPE;
 import static Util.ConstVariable.IP;
 import static Util.ConstVariable.ORDER_TYPE;
@@ -8,7 +9,10 @@ import static Util.ConstVariable.PAY_WAY;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
+import android.Manifest;
 import android.app.DatePickerDialog;
 import android.app.TimePickerDialog;
 import android.content.ContentValues;
@@ -81,6 +85,7 @@ public class OrderDetailActivity extends AppCompatActivity {
         setContentView(R.layout.activity_order_detail);
         findViews();
         initViews();
+        initPermission();
         //页面进来的时候就查看是否有短信信息或者数据信息在这里,若有,则处理信息自动匹配
         bundle = getIntent().getExtras();
         handleMsg(bundle);
@@ -486,5 +491,26 @@ public class OrderDetailActivity extends AppCompatActivity {
         timePicker.show();
         //选择好以后将ordertime修改
         orderTime = ((orderMonth>0&&orderMonth<10)?("0"+orderMonth):orderMonth)+"月"+orderDay+"日"+" "+orderHour+ ":"+((orderMin>0&&orderMin<10)?("0"+orderMin):orderMin);
+    }
+
+    private void initPermission() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PERMISSION_GRANTED) {
+            // 检查权限状态
+            if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.ACCESS_FINE_LOCATION)) {
+                /**
+                 * 用户彻底拒绝授予权限，一般会提示用户进入设置权限界面
+                 * 第一次授权失败之后，退出App再次进入时，再此处重新调出允许权限提示框
+                 */
+                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 1);
+                Log.d("info:", "-----get--Permissions--success--1-");
+            } else {
+                /**
+                 * 用户未彻底拒绝授予权限
+                 * 第一次安装时，调出的允许权限提示框，之后再也不提示
+                 */
+                Log.d("info:", "-----get--Permissions--success--2-");
+                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 1);
+            }
+        }
     }
 }

@@ -1,11 +1,17 @@
 package com.beta.autobookkeeping.activity.orderMap;
 
+import static android.content.pm.PackageManager.PERMISSION_GRANTED;
 import static Util.ConstVariable.IP;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.core.util.Pair;
 
+import android.Manifest;
 import android.graphics.BitmapFactory;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Looper;
 import android.util.Log;
@@ -106,6 +112,8 @@ public class OrderMapActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_order_map);
+        //申请定位权限
+        initPermission();
         getCurrentLocation();
         findViewByIdAndInit();
         mvOrderMap.onCreate(savedInstanceState);
@@ -246,6 +254,47 @@ public class OrderMapActivity extends AppCompatActivity {
         }
         else{
             aMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new com.amap.api.maps2d.model.LatLng(orderLocations.get(0).first, orderLocations.get(0).second), zoom));
+        }
+    }
+
+    private void initPermission() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PERMISSION_GRANTED) {
+            // 检查权限状态
+            if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.ACCESS_FINE_LOCATION)) {
+                /**
+                 * 用户彻底拒绝授予权限，一般会提示用户进入设置权限界面
+                 * 第一次授权失败之后，退出App再次进入时，再此处重新调出允许权限提示框
+                 */
+                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 1);
+                Log.d("info:", "-----get--Permissions--success--1-");
+            } else {
+                /**
+                 * 用户未彻底拒绝授予权限
+                 * 第一次安装时，调出的允许权限提示框，之后再也不提示
+                 */
+                Log.d("info:", "-----get--Permissions--success--2-");
+                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 1);
+            }
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == 1) {
+            for (int i = 0; i < permissions.length; i++) {
+                if (grantResults[i] == PERMISSION_GRANTED) {
+                    // 申请成功
+                    Log.d("info:", "-----get--Permissions--success--3-");
+//                    SharedPreferencesUtils.getInstance().putString(Contranst.IS_LOCATION_SUCCESS, "success");
+//                    mPresenter.initMap(mMapview, MainActivity.this, getSavedInstanceState());
+
+                } else {
+                    // 申请失败
+                    Toast.makeText(this, "请在设置中更改定位权限", Toast.LENGTH_SHORT).show();
+                    Log.d("info:", "-----get--Permissions--success--4-");
+                }
+            }
         }
     }
 }
