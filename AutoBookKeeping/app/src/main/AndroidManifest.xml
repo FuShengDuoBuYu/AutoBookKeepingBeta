@@ -77,6 +77,7 @@
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".activity.main.MainActivity" />
+
         </activity>
         <activity android:name=".activity.familyTodo.FamilyTodoActivity"
             android:excludeFromRecents="true"
@@ -89,7 +90,7 @@
             android:theme="@style/Theme.AppCompat.DayNight.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
+                <action android:name="android.service.quicksettings.action.QS_TILE_PREFERENCES"/>
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
@@ -109,7 +110,16 @@
             </intent-filter>
         </service>
         <service android:name="com.amap.api.location.APSService" />
-
+        <service
+            android:name=".service.StartAutoBookTileService"
+            android:label="开启记账"
+            android:icon="@drawable/ic_quick_settings"
+            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.service.quicksettings.action.QS_TILE" />
+            </intent-filter>
+        </service>
 
         <receiver
             android:name=".widget.OrderWidget"

@@ -75,4 +75,10 @@ public class NotificationReceiver extends NotificationListenerService {
     public int onStartCommand(Intent intent, int flags, int startId) {
         return START_STICKY;
     }
+
+    @Override
+    public void onStart(Intent intent, int startId) {
+        Toast.makeText(this, "NotificationReceiver Service Started", Toast.LENGTH_LONG).show();
+        super.onStart(intent, startId);
+    }
 }
