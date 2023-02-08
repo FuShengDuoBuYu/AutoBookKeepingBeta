@@ -26,27 +26,14 @@ public class SearchConditionEntity {
     private String searchOrderRemark = "";
     private String[] searchCostType = {};
     private boolean ifIgnoreYear = false,ifIgnoreMonth = false,ifIgnoreDay = false;
-
+    private List<String> sortList = new ArrayList<>();
+    private boolean isAsc = true;
     public List<View> getPopupViews() {
         List<View> popupViews = new ArrayList<>();
         popupViews.add(new VersionItemView(context).getVersionItemView());
         popupViews.add(new DatePickView(context).getDatePickView());
         popupViews.add(new OtherDescriptionView(context).getDescriptionView());
         return popupViews;
-    }
-
-    //打印搜索条件
-    public void printSearchCondition(){
-        Log.d("SearchConditionEntity", "printSearchCondition: mode = " + mode);
-        Log.d("SearchConditionEntity", "printSearchCondition: year = " + year);
-        Log.d("SearchConditionEntity", "printSearchCondition: month = " + month);
-        Log.d("SearchConditionEntity", "printSearchCondition: day = " + day);
-        Log.d("SearchConditionEntity", "printSearchCondition: searchOrderRemark = " + searchOrderRemark);
-        Log.d("SearchConditionEntity", "printSearchCondition: searchCostType = " + Arrays.toString(searchCostType));
-        Log.d("SearchConditionEntity", "printSearchCondition: ifIgnoreYear = " + ifIgnoreYear);
-        Log.d("SearchConditionEntity", "printSearchCondition: ifIgnoreMonth = " + ifIgnoreMonth);
-        Log.d("SearchConditionEntity", "printSearchCondition: ifIgnoreDay = " + ifIgnoreDay);
-
     }
 
     public Context getContext() {
@@ -139,6 +126,14 @@ public class SearchConditionEntity {
         this.ifIgnoreDay = ifIgnoreDay;
     }
 
+    public void setIsAsc(boolean isAsc) {
+        this.isAsc = isAsc;
+    }
+
+    public boolean getIsAsc() {
+        return isAsc;
+    }
+
     @Override
     public String toString() {
         //年月日为0则不显示
@@ -160,3 +155,4 @@ public class SearchConditionEntity {
         return Arrays.toString(searchCostType)+ " 关键字:" + searchOrderRemark;
     }
 }
+

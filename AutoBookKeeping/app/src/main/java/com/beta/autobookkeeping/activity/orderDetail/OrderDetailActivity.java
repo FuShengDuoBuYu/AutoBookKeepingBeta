@@ -31,12 +31,6 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.TimePicker;
 
-import com.amap.api.location.AMapLocation;
-import com.amap.api.location.AMapLocationClient;
-import com.amap.api.location.AMapLocationClientOption;
-import com.amap.api.location.AMapLocationListener;
-import com.amap.api.maps2d.AMap;
-import com.amap.api.maps2d.MapView;
 import com.beta.autobookkeeping.R;
 import com.beta.autobookkeeping.BaseApplication;
 import com.beta.autobookkeeping.smsTools.SMSDataBase;
@@ -241,11 +235,6 @@ public class OrderDetailActivity extends AppCompatActivity {
                                 refreshLocalSql(db,null);
                             }
                         }
-                        else{
-                            Looper.prepare();
-                            ProjectUtil.toastMsg(OrderDetailActivity.this,"服务器出错");
-                            Looper.loop();
-                        }
                         // str为json字符串
                     } catch (IOException | JSONException e) {
                         e.printStackTrace();
@@ -304,14 +293,8 @@ public class OrderDetailActivity extends AppCompatActivity {
                             JSONObject jsonResponse = new JSONObject(response.body().string());
                             if(jsonResponse.getBoolean("success")){
                                 values.put("id",Integer.valueOf(jsonResponse.getString("data")));
-                                uploadLBSData(values);
                                 refreshLocalSql(db,values);
                             }
-                        }
-                        else{
-                            Looper.prepare();
-                            ProjectUtil.toastMsg(OrderDetailActivity.this,"服务器出错");
-                            Looper.loop();
                         }
                     } catch (IOException | JSONException e) {
                         e.printStackTrace();
@@ -319,92 +302,6 @@ public class OrderDetailActivity extends AppCompatActivity {
                 }
             }).start();
         }
-    }
-
-    /**
-     * 上传LBS数据
-     * 删除v1.3
-     * @param values
-     */
-    private void uploadLBSData(ContentValues values) {
-        final double[] latitude = new double[1];
-        final double[] longitude = new double[1];
-        //上传后端
-        Thread t = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                String url = IP+"/addLBSOrder";
-                OkHttpClient client = new OkHttpClient();
-                JSONObject jsonObject = new JSONObject();
-                try {
-                    jsonObject.put("latitude",latitude[0]);
-                    jsonObject.put("longitude",longitude[0]);
-                    jsonObject.put("money",values.get("money"));
-                    jsonObject.put("userId",values.get("userId"));
-                    jsonObject.put("orderId",values.get("id"));
-                    RequestBody body = RequestBody.create(jsonObject.toString(), MediaType.parse("application/json;charset=utf-8"));
-                    Request requst = new Request.Builder().url(url).post(body).build();
-                    Response response = client.newCall(requst).execute();
-                    JSONObject jsonResponse = new JSONObject(response.body().string());
-                    if(jsonResponse.getBoolean("success")){
-                        Looper.prepare();
-                        StyledDialog.dismiss();
-                        ProjectUtil.toastMsg(OrderDetailActivity.this,"保存成功");
-                        Vibrator vibrator = (Vibrator) getSystemService(VIBRATOR_SERVICE);
-                        if (vibrator.hasVibrator()) {
-                            long[] pattern = { 10L, 60L }; // An array of longs of times for which to turn the vibrator on or off.
-                            vibrator.vibrate(pattern, -1); // The index into pattern at which to repeat, or -1 if you don't want to repeat.
-                        }
-                        finish();
-                        Looper.loop();
-                    }
-                } catch (IOException | JSONException e) {
-                    e.printStackTrace();
-                }
-            }
-        });
-
-        //利用高德获取经纬度
-        AMapLocationClient mLocationClient = null;
-        try {
-            mLocationClient = new AMapLocationClient(getApplicationContext());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        mLocationClient.setLocationListener(new AMapLocationListener() {
-            @Override
-            public void onLocationChanged(AMapLocation aMapLocation) {
-                if (aMapLocation != null) {
-                    if (aMapLocation.getErrorCode() == 0) {
-                        //定位成功回调信息，设置相关消息
-                        aMapLocation.getLocationType();//获取当前定位结果来源，如网络定位结果，详见定位类型表
-                        latitude[0] = aMapLocation.getLatitude();//获取纬度
-                        longitude[0] = aMapLocation.getLongitude();//获取经度
-                        t.start();
-                    } else {
-                        //显示错误信息ErrCode是错误码，errInfo是错误信息，详见错误码表。
-                        Log.e("AmapError", "location Error, ErrCode:"
-                                + aMapLocation.getErrorCode() + ", errInfo:"
-                                + aMapLocation.getErrorInfo());
-                    }
-                }
-            }
-        });
-        //初始化定位参数
-        AMapLocationClientOption mLocationOption = new AMapLocationClientOption();
-        //设置定位模式为AMapLocationMode.Hight_Accuracy，高精度模式。
-        mLocationOption.setLocationMode(AMapLocationClientOption.AMapLocationMode.Hight_Accuracy);
-        //获取一次定位结果：
-        //该方法默认为false。
-        mLocationOption.setOnceLocation(true);
-        //获取最近3s内精度最高的一次定位结果：
-        mLocationOption.setOnceLocationLatest(true);
-        //设置定位参数
-        mLocationClient.setLocationOption(mLocationOption);
-        //启动定位
-        mLocationClient.startLocation();
-
-
     }
 
     //后端返回成功后更新本地数据库
@@ -422,6 +319,7 @@ public class OrderDetailActivity extends AppCompatActivity {
                 }
                 else{
                     db.insert("orderInfo",null,values);
+                    finish();
                 }
             }
         });

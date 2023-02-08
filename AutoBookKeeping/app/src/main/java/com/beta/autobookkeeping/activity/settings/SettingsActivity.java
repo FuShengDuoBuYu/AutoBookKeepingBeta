@@ -13,10 +13,12 @@ import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
 import android.animation.ValueAnimator;
 import android.content.Intent;
+import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Color;
 import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
 import android.os.Looper;
+import android.util.Log;
 import android.view.View;
 import android.view.animation.DecelerateInterpolator;
 import android.view.animation.LinearInterpolator;
@@ -29,10 +31,10 @@ import android.widget.Toast;
 
 import com.beta.autobookkeeping.R;
 import com.beta.autobookkeeping.activity.familyTodo.FamilyTodoActivity;
+import com.beta.autobookkeeping.activity.main.entity.OrderInfo;
 import com.beta.autobookkeeping.activity.orderItemSearch.OrderItemSearchActivity;
-import com.beta.autobookkeeping.activity.orderMap.OrderMapActivity;
 import com.beta.autobookkeeping.activity.presonalInfo.PersonlInfoActivity;
-import com.beta.autobookkeeping.activity.settings.items.BankNumbers;
+import com.beta.autobookkeeping.smsTools.SMSDataBase;
 import com.gelitenight.waveview.library.WaveView;
 import com.hss01248.dialog.StyledDialog;
 import com.hss01248.dialog.interfaces.MyDialogListener;
@@ -57,12 +59,12 @@ import okhttp3.Response;
 public class SettingsActivity extends AppCompatActivity {
 
     TextView tvUserPhoneNum;
-    LinearLayout personalCenter,llSearchOrders,llOrderMap,llFamilyTodo;
+    LinearLayout personalCenter,llSearchOrders,llDownloadOrders,llFamilyTodo;
     ImageView userPortrait;
-    GridLayout glBankNum;
-    BankNumbers bankNumbers = null;
     QMUIRoundButton btnAddBankNumber;
     Fragment fragmentTargetCostWater;
+    SMSDataBase smsDb = new SMSDataBase(this,"orderInfo",null,1);
+    SQLiteDatabase db;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -70,16 +72,15 @@ public class SettingsActivity extends AppCompatActivity {
         setContentView(R.layout.activity_settings);
         findViewById();
         initViews();
+        db = smsDb.getWritableDatabase();
     }
 
     private void findViewById(){
         tvUserPhoneNum = findViewById(R.id.tv_user_phone_num);
         personalCenter = findViewById(R.id.ll_personal_center);
         userPortrait = findViewById(R.id.iv_portrait);
-        btnAddBankNumber = findViewById(R.id.btn_add_bank_number);
-        glBankNum = findViewById(R.id.gl_bank_num);
         llSearchOrders = findViewById(R.id.ll_search_orders);
-        llOrderMap = findViewById(R.id.ll_order_map);
+        llDownloadOrders = findViewById(R.id.ll_download_orders);
         llFamilyTodo = findViewById(R.id.ll_family_todo);
         FragmentManager fragmentManager = getSupportFragmentManager();
         fragmentTargetCostWater = fragmentManager.findFragmentById(R.id.fragment_target_cost_water);
@@ -88,13 +89,7 @@ public class SettingsActivity extends AppCompatActivity {
     private void initViews(){
         //个人中心
         tvUserPhoneNum.setText((String) SpUtils.get(this,"phoneNum",""));
-        personalCenter.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(SettingsActivity.this,PersonlInfoActivity.class);
-                startActivity(intent);
-            }
-        });
+        personalCenter.setOnClickListener(v-> startActivity(new Intent(this,PersonlInfoActivity.class)));
         //获取头像
         if(SpUtils.get(this,"portrait","")==null||"".equals(SpUtils.get(this,"portrait",""))){
             userPortrait.setBackground(this.getDrawable(R.drawable.ic_portrait));
@@ -102,98 +97,72 @@ public class SettingsActivity extends AppCompatActivity {
         else{
             userPortrait.setBackground(new BitmapDrawable(base642bitmap((String) SpUtils.get(this,"portrait",""))));
         }
-        //添加银行号码
-        btnAddBankNumber.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                StyledDialog.buildNormalInput("添加银行号码", "请输入要监听短信的银行号码", null, "确定", "取消", new MyDialogListener() {
-                    @Override public void onFirst() {}  @Override public void onSecond() {}
-                    @Override
-                    public boolean onInputValid(CharSequence input1, CharSequence input2, EditText editText1, EditText editText2) {
-                        if(input1.toString().matches("^[0-9]*$")&&!input1.toString().equals("")){
-                            addBankNumber(input1.toString());
-                        }
-                        else{
-                            ProjectUtil.toastMsg(SettingsActivity.this,"短信号格式不合法!");
-                        }
-                        return super.onInputValid(input1, input2, editText1, editText2);
-                    }
-                }).show();
-            }
-        });
-        //银行短信
-        bankNumbers = new BankNumbers(SpUtils.get(this,"bankNumbers","")==null?"": (String) SpUtils.get(this,"bankNumbers",""),SettingsActivity.this);
-        for(int i = 0;i < bankNumbers.getBankNumbersViews().size();i++){
-            glBankNum.addView(bankNumbers.getBankNumbersViews().get(i));
-        }
         //跳转到订单查询
-        llSearchOrders.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(SettingsActivity.this, OrderItemSearchActivity.class);
-                startActivity(intent);
-            }
-        });
-
-        llOrderMap.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(SettingsActivity.this, OrderMapActivity.class);
-                startActivity(intent);
-            }
-        });
-
-        llFamilyTodo.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(SettingsActivity.this, FamilyTodoActivity.class);
-                startActivity(intent);
-            }
+        llSearchOrders.setOnClickListener(v-> startActivity(new Intent(this, OrderItemSearchActivity.class)));
+        //跳转到家庭代办
+        llFamilyTodo.setOnClickListener(v-> startActivity(new Intent(this, FamilyTodoActivity.class)));
+        //从云端拉取个人账单信息
+        llDownloadOrders.setOnClickListener(v->{
+            StyledDialog.buildIosAlert("下载个人账单", "将会清空本地存储账单后从云端覆盖", new MyDialogListener() {
+                @Override
+                public void onFirst() {
+                    downloadOrders();
+                }
+                @Override
+                public void onSecond() {}
+            }).show();
         });
     }
-
-    //添加一个银行号码
-    private void addBankNumber(String newBankNumber){
-        List<String> bankNumbers = StringUtil.string2List((String) SpUtils.get(SettingsActivity.this,"bankNumbers",""));
-        bankNumbers.add(newBankNumber);
-        //传递给后端
+    private void downloadOrders(){
         StyledDialog.buildLoading().show();
         new Thread(new Runnable() {
             @Override
             public void run() {
-                String url = IP+"/user/modifyBankNumber";
+                //清空表中数据
+                db.execSQL("delete from orderInfo");
+                String url = IP+"/getOrderByUserId/"+SpUtils.get(SettingsActivity.this,"phoneNum","");
                 OkHttpClient client = new OkHttpClient();
-                JSONObject jsonObject = new JSONObject();
-                try {
-                    jsonObject.put("phoneNum",SpUtils.get(SettingsActivity.this,"phoneNum",""));
-                    jsonObject.put("bankNumbers",StringUtil.list2String(bankNumbers));
-                    RequestBody body = RequestBody.create(jsonObject.toString(), MediaType.parse("application/json;charset=utf-8"));
-                    Request request = new Request.Builder().url(url).put(body).build();
+                Request request = new Request.Builder().url(url).get().build();
+                try{
                     Response response = client.newCall(request).execute();
-                    JSONObject jsonResponse = new JSONObject(response.body().string());
-                    if(jsonResponse.getBoolean("success")){
-                        afterModifyBankNumber(StringUtil.list2String(bankNumbers));
+                    if(response.code()==200){
+                        JSONObject jsonResponse = new JSONObject(response.body().string());
+                        if(jsonResponse.getBoolean("success")){
+                            List<OrderInfo> orderInfos = new ArrayList<>();
+                            for(int i=0;i<jsonResponse.getJSONArray("data").length();i++){
+                                JSONObject orderInfo = jsonResponse.getJSONArray("data").getJSONObject(i);
+                                orderInfos.add(new OrderInfo(orderInfo.getInt("id"),
+                                        orderInfo.getInt("year"),
+                                        orderInfo.getInt("month"),
+                                        orderInfo.getInt("day"),
+                                        orderInfo.getString("clock"),
+                                        orderInfo.getDouble("money"),
+                                        orderInfo.getString("bankName"),
+                                        orderInfo.getString("orderRemark"),
+                                        orderInfo.getString("costType"),
+                                        orderInfo.getString("userId")));
+                            }
+                            //将数据存入数据库
+                            for(int i=0;i<orderInfos.size();i++){
+                                OrderInfo orderInfo = orderInfos.get(i);
+                                db.execSQL("insert into orderInfo values(?,?,?,?,?,?,?,?,?,?)",
+                                        new Object[]{orderInfo.getId(),orderInfo.getYear(),orderInfo.getMonth(),orderInfo.getDay(),orderInfo.getClock(),orderInfo.getMoney(),orderInfo.getBankName(),orderInfo.getOrderRemark(),orderInfo.getCostType(),(String) SpUtils.get(SettingsActivity.this,"phoneNum","")});
+                            }
+                            //提示
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    StyledDialog.dismissLoading(SettingsActivity.this);
+                                    ProjectUtil.toastMsg(SettingsActivity.this,"下载成功");
+                                }
+                            });
+                        }
+
                     }
                 } catch (JSONException | IOException e) {
                     e.printStackTrace();
                 }
             }
         }).start();
-    }
-
-    public void afterModifyBankNumber(String newBankNumbers){
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                SpUtils.put(SettingsActivity.this,"bankNumbers",newBankNumbers);
-                bankNumbers.setBankNumbers(newBankNumbers);
-                glBankNum.removeAllViews();
-                for(int i = 0;i < bankNumbers.getBankNumbersViews().size();i++){
-                    glBankNum.addView(bankNumbers.getBankNumbersViews().get(i));
-                }
-                StyledDialog.dismissLoading(SettingsActivity.this);
-                ProjectUtil.toastMsg(SettingsActivity.this,"修改成功");
-            }
-        });
     }
 }

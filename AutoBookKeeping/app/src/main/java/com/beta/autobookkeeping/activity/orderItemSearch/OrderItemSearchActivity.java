@@ -11,16 +11,20 @@ import android.os.Bundle;
 import android.os.Looper;
 import android.util.Log;
 import android.view.View;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.ScrollView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.beta.autobookkeeping.R;
 import com.beta.autobookkeeping.activity.main.entity.OrderInfo;
 import com.beta.autobookkeeping.activity.orderItemSearch.items.SearchConditionEntity;
 import com.beta.autobookkeeping.activity.orderItemSearch.items.SearchOrderListViewAdapter;
 import com.hss01248.dialog.StyledDialog;
+import com.hss01248.dialog.interfaces.MyDialogListener;
+import com.hss01248.dialog.interfaces.MyItemDialogListener;
 import com.wdeo3601.dropdownmenu.DropDownMenu;
 
 import org.json.JSONArray;
@@ -51,6 +55,7 @@ public class OrderItemSearchActivity extends AppCompatActivity {
     private ListView lvSearchOrders = null;
     private TextView tvSearchCost,tvSearchMoney,tvSearchIncome;
     private TextView tvSearchConditionVersion,tvSearchConditionDate,tvSearchConditionOtherDescription;
+    private ImageView ivSortList,ivSortType;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -58,6 +63,7 @@ public class OrderItemSearchActivity extends AppCompatActivity {
         setContentView(R.layout.activity_order_item_search);
         findViewsById();
         initDropDownMenu();
+        initListener();
     }
 
     @Override
@@ -81,6 +87,8 @@ public class OrderItemSearchActivity extends AppCompatActivity {
         tvSearchConditionVersion = findViewById(R.id.tv_search_condition_version);
         tvSearchConditionDate = findViewById(R.id.tv_search_condition_date);
         tvSearchConditionOtherDescription = findViewById(R.id.tv_search_condition_other_description);
+        ivSortList = findViewById(R.id.iv_sort_list);
+        ivSortType = findViewById(R.id.iv_sort_type);
     }
 
     private void initDropDownMenu(){
@@ -92,14 +100,54 @@ public class OrderItemSearchActivity extends AppCompatActivity {
         dropDownMenu.setupDropDownMenu(tabs, searchConditionEntity.getPopupViews());
     }
 
+    private void initListener(){
+        ivSortList.setOnClickListener((v)->{
+            String[] items = {"时间","金额","类型"};
+            List<Integer> choose = new ArrayList<>();
+            StyledDialog.buildMdMultiChoose("排序类别", items,choose, new MyDialogListener() {
+                @Override
+                public void onFirst() {
+                    for (int i = 0; i < choose.size(); i++) {
+                        Log.d("choose",choose.get(i)+"" );
+                    }
+                    Toast.makeText(OrderItemSearchActivity.this,choose.size()+"",Toast.LENGTH_SHORT).show();
+                }
+
+                @Override
+                public void onSecond() {
+                    for (int i = 0; i < choose.size(); i++) {
+                        Log.d("choose",choose.get(i)+"" );
+                    }
+                    Toast.makeText(OrderItemSearchActivity.this, "取消", Toast.LENGTH_SHORT).show();
+                }
+
+                @Override
+                public void onChoosen( List<Integer> selectedIndex, List<CharSequence> selectedStrs,boolean[] states){
+                    for (int i = 0; i < selectedIndex.size(); i++) {
+                        Log.d("choose",selectedIndex.get(i)+"" );
+                    }
+                    Toast.makeText(OrderItemSearchActivity.this, selectedIndex.size()+"", Toast.LENGTH_SHORT).show();
+                }
+            }).setTitleColor(R.color.primary_font).setBtnText("确定","取消").show();
+        });
+        ivSortType.setOnClickListener((v)->{
+            String[] items = {"升序","降序"};
+            StyledDialog.buildMdSingleChoose("升序/降序",searchConditionEntity.getIsAsc()?0:1,items, new MyItemDialogListener() {
+                @Override
+                public void onItemClick(CharSequence text, int position) {
+                    searchConditionEntity.setIsAsc(position==0);
+                    searchOrders();
+                }
+            }).setBackground(getColor(R.color.white)).setTitleColor(R.color.primary_font).show();
+        });
+    }
+
     public void closeMenu(){
         dropDownMenu.closeMenu();
         searchOrders();
     }
 
     private void searchOrders(){
-        //输出搜索条件
-        searchConditionEntity.printSearchCondition();
         StyledDialog.buildLoading().show();
         //向后端拿数据
         new Thread(new Runnable() {

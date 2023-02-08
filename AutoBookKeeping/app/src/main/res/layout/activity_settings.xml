@@ -31,7 +31,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical">
-<!--            个人中心-->
+            <!--            个人中心-->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="70dp"
@@ -79,57 +79,14 @@
                 android:name="com.beta.autobookkeeping.fragment.Settings.TargetCostWaterFragment"
                 android:id="@+id/fragment_target_cost_water">
             </fragment>
-<!--            银行号码设置-->
+            <!--            银行号码设置-->
             <View
                 android:layout_width="match_parent"
                 android:layout_height="1px"
                 android:background="@color/primary_font"
                 android:layout_marginTop="10dp">
             </View>
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="50dp"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:foreground="?selectableItemBackground">
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="添加银行短信号码可精准识别账单"
-                    android:textColor="@color/primary_font"
-                    android:textSize="16sp"
-                    android:layout_weight="1"
-                    >
-                </TextView>
-                <LinearLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content">
-                    <com.qmuiteam.qmui.widget.roundwidget.QMUIRoundButton
-                        android:layout_marginLeft="5dp"
-                        android:layout_width="100dp"
-                        android:layout_height="30dp"
-                        android:gravity="center_vertical|center_horizontal"
-                        android:id="@+id/btn_add_bank_number"
-                        app:qmui_backgroundColor="@color/blue"
-                        android:textColor="@color/white"
-                        app:qmui_radius="10dp"
-                        android:text="添加号码">
-                    </com.qmuiteam.qmui.widget.roundwidget.QMUIRoundButton>
-                </LinearLayout>
-            </LinearLayout>
-            <GridLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:columnCount="2"
-                android:foreground="?selectableItemBackground"
-                android:id="@+id/gl_bank_num">
-            </GridLayout>
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="1px"
-                android:background="@color/primary_font"
-                android:layout_marginTop="10dp">
-            </View>
+
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="70dp"
@@ -164,13 +121,13 @@
                 android:layout_width="match_parent"
                 android:layout_height="70dp"
                 android:foreground="?selectableItemBackground"
-                android:id="@+id/ll_order_map"
+                android:id="@+id/ll_download_orders"
                 android:orientation="horizontal">
                 <ImageView
                     android:layout_width="35dp"
                     android:layout_height="35dp"
                     android:layout_gravity="center_vertical"
-                    android:src="@drawable/ic_order_map">
+                    android:src="@drawable/ic_download">
 
                 </ImageView>
                 <TextView
@@ -178,7 +135,7 @@
                     android:gravity="center_vertical"
                     android:layout_width="wrap_content"
                     android:layout_height="match_parent"
-                    android:text="查看账单地图"
+                    android:text="从云端下载账单"
                     android:textColor="@color/primary_font"
                     android:textSize="18sp">
 

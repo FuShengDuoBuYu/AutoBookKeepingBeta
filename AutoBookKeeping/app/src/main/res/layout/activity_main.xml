@@ -29,7 +29,7 @@
             android:layout_width="0dp"
             android:layout_weight="1"
             android:layout_height="50dp"
-            android:text=""
+            android:text="我的收支"
             android:textColor="@color/white"
             android:textSize="20sp"
             android:gravity="center">
