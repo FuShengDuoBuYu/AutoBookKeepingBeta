@@ -6,7 +6,7 @@ import android.service.quicksettings.Tile;
 import android.service.quicksettings.TileService;
 import android.widget.Toast;
 
-import com.beta.autobookkeeping.smsTools.SMSService;
+
 
 import Util.ServiceUtil;
 
@@ -17,7 +17,6 @@ public class StartAutoBookTileService extends TileService {
         Context context = getApplicationContext();
         super.onTileAdded();
         context.startService(new Intent(context, NotificationReceiver.class));
-        context.startService(new Intent(context, SMSService.class));
         context.startService(new Intent(context, TodoNotificationSender.class));
     }
 

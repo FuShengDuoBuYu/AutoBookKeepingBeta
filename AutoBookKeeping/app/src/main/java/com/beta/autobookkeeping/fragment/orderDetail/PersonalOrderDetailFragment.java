@@ -38,7 +38,6 @@ import com.beta.autobookkeeping.activity.main.MainActivity;
 import com.beta.autobookkeeping.activity.main.entity.OrderDayItems;
 import com.beta.autobookkeeping.activity.main.entity.OrderInfo;
 import com.beta.autobookkeeping.activity.orderDetail.OrderDetailActivity;
-import com.beta.autobookkeeping.smsTools.SMSDataBase;
 import com.willowtreeapps.spruce.Spruce;
 import com.willowtreeapps.spruce.SpruceAnimator;
 import com.willowtreeapps.spruce.animation.DefaultAnimations;
@@ -66,6 +65,7 @@ public class PersonalOrderDetailFragment extends Fragment {
     private ArrayList<OrderInfo> ordersInfo;
     private ArrayList<OrderDayItems> orderDayItems;
     private SQLiteDatabase db;
+
     private ScrollView svOrderDetail;
     private LinearLayout lvOrderDetail;
 
@@ -85,8 +85,7 @@ public class PersonalOrderDetailFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_order_detail, container, false);
         svOrderDetail = view.findViewById(R.id.svOrderDetail);
         lvOrderDetail = view.findViewById(R.id.lvOrderDetail);
-        SMSDataBase smsDb = new SMSDataBase(getContext(),"orderInfo",null,1);
-        db = smsDb.getWritableDatabase();
+        db=SQLiteDatabase.openOrCreateDatabase(this.getActivity().getFilesDir().toString() + "/orderInfo.db", null);
         return view;
     }
 

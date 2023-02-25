@@ -10,7 +10,7 @@ import android.graphics.drawable.VectorDrawable;
 import android.util.Log;
 
 import com.beta.autobookkeeping.activity.main.entity.OrderInfo;
-import com.beta.autobookkeeping.smsTools.*;
+
 
 import android.util.TypedValue;
 import android.view.Gravity;
@@ -155,8 +155,9 @@ public class ProjectUtil {
     //获取当日收支金额的方法
     public static double getTodayMoney(Context context) {
         double allTodayOrder = 0.0;
-        SMSDataBase smsDb = new SMSDataBase(context, "orderInfo", null, 1);
-        SQLiteDatabase db = smsDb.getWritableDatabase();
+//        SMSDataBase smsDb = new SMSDataBase(context, "orderInfo", null, 1);
+//        SQLiteDatabase db = smsDb.getWritableDatabase();
+        SQLiteDatabase db = SQLiteDatabase.openOrCreateDatabase(context.getFilesDir().toString() + "/orderInfo.db", null);
         Cursor cursor = db.query("orderInfo", null, null, null, null, null, "id");
         while (cursor.moveToNext()) {
             if (cursor.getInt(1) == ProjectUtil.getCurrentYear() && cursor.getInt(2) == ProjectUtil.getCurrentMonth() && cursor.getInt(3) == ProjectUtil.getCurrentDay()) {
@@ -171,8 +172,9 @@ public class ProjectUtil {
     //获取当日收支金额的方法
     public static double getMonthMoney(Context context) {
         double allMonthOrder = 0.0;
-        SMSDataBase smsDb = new SMSDataBase(context, "orderInfo", null, 1);
-        SQLiteDatabase db = smsDb.getWritableDatabase();
+//        SMSDataBase smsDb = new SMSDataBase(context, "orderInfo", null, 1);
+//        SQLiteDatabase db = smsDb.getWritableDatabase();
+        SQLiteDatabase db = SQLiteDatabase.openDatabase(context.getFilesDir().toString() + "/orderInfo.db", null, SQLiteDatabase.OPEN_READWRITE);
         Cursor cursor = db.query("orderInfo", null, null, null, null, null, "id");
         while (cursor.moveToNext()) {
             if (cursor.getInt(1) == ProjectUtil.getCurrentYear() && cursor.getInt(2) == ProjectUtil.getCurrentMonth()) {
@@ -186,8 +188,9 @@ public class ProjectUtil {
     //获取指定月份收支金额的方法
     public static double getMonthMoney(int year, int month, Context context) {
         double appointMonthMoney = 0.0;
-        SMSDataBase smsDb = new SMSDataBase(context, "orderInfo", null, 1);
-        SQLiteDatabase db = smsDb.getWritableDatabase();
+//        SMSDataBase smsDb = new SMSDataBase(context, "orderInfo", null, 1);
+//        SQLiteDatabase db = smsDb.getWritableDatabase();
+        SQLiteDatabase db = SQLiteDatabase.openOrCreateDatabase(context.getFilesDir().toString() + "/orderInfo.db", null);
         Cursor cursor = db.query("orderInfo", null, null, null, null, null, "id");
         while (cursor.moveToNext()) {
             if (cursor.getInt(1) == year && cursor.getInt(2) == month) {
@@ -201,8 +204,9 @@ public class ProjectUtil {
     //获取指定日收支金额的方法
     public static double getDayMoney(int year, int month, int day, Context context) {
         double appointDayMoney = 0.0;
-        SMSDataBase smsDb = new SMSDataBase(context, "orderInfo", null, 1);
-        SQLiteDatabase db = smsDb.getWritableDatabase();
+//        SMSDataBase smsDb = new SMSDataBase(context, "orderInfo", null, 1);
+//        SQLiteDatabase db = smsDb.getWritableDatabase();
+        SQLiteDatabase db = SQLiteDatabase.openOrCreateDatabase(context.getFilesDir().toString() + "/orderInfo.db", null);
         Cursor cursor = db.query("orderInfo", null, null, null, null, null, "id");
         while (cursor.moveToNext()) {
             if (cursor.getInt(1) == year && cursor.getInt(2) == month && cursor.getInt(3) == day) {
@@ -216,8 +220,9 @@ public class ProjectUtil {
     //获取指定月份的所有账单信息
     public static ArrayList<OrderInfo> getMonthOrders(int year,int month,Context context){
         ArrayList<OrderInfo> orderInfos = new ArrayList<>();
-        SMSDataBase smsDb = new SMSDataBase(context, "orderInfo", null, 1);
-        SQLiteDatabase db = smsDb.getWritableDatabase();
+//        SMSDataBase smsDb = new SMSDataBase(context, "orderInfo", null, 1);
+//        SQLiteDatabase db = smsDb.getWritableDatabase();
+        SQLiteDatabase db = SQLiteDatabase.openOrCreateDatabase(context.getFilesDir().toString() + "/orderInfo.db", null);
         Cursor cursor = db.query("orderInfo", null, null, null, null, null, "id");
         while (cursor.moveToNext()) {
             //当是查询月的时候且是支出时
@@ -303,8 +308,9 @@ public class ProjectUtil {
     //获取查询月所有支出总和,返回值为负
     public static double getMonthCost(int year, int month, Context context) {
         double appointMonthCost = 0.0;
-        SMSDataBase smsDb = new SMSDataBase(context, "orderInfo", null, 1);
-        SQLiteDatabase db = smsDb.getWritableDatabase();
+//        SMSDataBase smsDb = new SMSDataBase(context, "orderInfo", null, 1);
+//        SQLiteDatabase db = smsDb.getWritableDatabase();
+        SQLiteDatabase db = SQLiteDatabase.openOrCreateDatabase(context.getFilesDir().toString() + "/orderInfo.db", null);
         Cursor cursor = db.query("orderInfo", null, null, null, null, null, "id");
         while (cursor.moveToNext()) {
             if (cursor.getInt(1) == year && cursor.getInt(2) == month && cursor.getDouble(5) < 0) {
@@ -318,8 +324,9 @@ public class ProjectUtil {
     //获取查询某个月某一项支出总和,返回值为负
     public static double getMonthSomeItemCost(int year, int month,String itemName, Context context) {
         double appointMonthSomeItemCost = 0.0;
-        SMSDataBase smsDb = new SMSDataBase(context, "orderInfo", null, 1);
-        SQLiteDatabase db = smsDb.getWritableDatabase();
+//        SMSDataBase smsDb = new SMSDataBase(context, "orderInfo", null, 1);
+//        SQLiteDatabase db = smsDb.getWritableDatabase();
+        SQLiteDatabase db = SQLiteDatabase.openOrCreateDatabase(context.getFilesDir().toString() + "/orderInfo.db", null);
         Cursor cursor = db.query("orderInfo", null, null, null, null, null, "id");
         while (cursor.moveToNext()) {
             Log.d("1",String.valueOf(month));
@@ -336,8 +343,9 @@ public class ProjectUtil {
     //获取查询日所有支出总和,返回值为负
     public static double getDayCost(int year, int month, int day, Context context) {
         double appointDayCost = 0.0;
-        SMSDataBase smsDb = new SMSDataBase(context, "orderInfo", null, 1);
-        SQLiteDatabase db = smsDb.getWritableDatabase();
+//        SMSDataBase smsDb = new SMSDataBase(context, "orderInfo", null, 1);
+//        SQLiteDatabase db = smsDb.getWritableDatabase();
+        SQLiteDatabase db = SQLiteDatabase.openOrCreateDatabase(context.getFilesDir().toString() + "/orderInfo.db", null);
         Cursor cursor = db.query("orderInfo", null, null, null, null, null, "id");
         while (cursor.moveToNext()) {
             if (cursor.getInt(1) == year && cursor.getInt(2) == month && cursor.getInt(3) == day && cursor.getDouble(5) < 0) {
@@ -351,8 +359,9 @@ public class ProjectUtil {
     //获取某个月都有那几天有数据
     public static ArrayList<Integer> getHasOrderDays(int year,int month, Context context) {
         ArrayList<Integer> hasOrderDays = new ArrayList<>();
-        SMSDataBase smsDb = new SMSDataBase(context, "orderInfo", null, 1);
-        SQLiteDatabase db = smsDb.getWritableDatabase();
+//        SMSDataBase smsDb = new SMSDataBase(context, "orderInfo", null, 1);
+//        SQLiteDatabase db = smsDb.getWritableDatabase();
+        SQLiteDatabase db = SQLiteDatabase.openOrCreateDatabase(context.getFilesDir().toString() + "/orderInfo.db", null);
         Cursor cursor = db.query("orderInfo", null, null, null, null, null, "id");
         while (cursor.moveToNext()) {
             //先找到当月
@@ -608,8 +617,10 @@ public class ProjectUtil {
 
     //获取当前sqlite中的所有数据
     public static Cursor getLocalOrderInfo(Context context) {
-        SMSDataBase smsDb = new SMSDataBase(context, "orderInfo", null, 1);
-        SQLiteDatabase db = smsDb.getWritableDatabase();
+//        SMSDataBase smsDb = new SMSDataBase(context, "orderInfo", null, 1);
+//        SQLiteDatabase db = smsDb.getWritableDatabase();
+        SQLiteDatabase db = SQLiteDatabase.openOrCreateDatabase(context.getFilesDir().toString() + "/orderInfo.db", null);
+
         Cursor cursor = db.query("orderInfo", null, null, null, null, null, "id");
         return cursor;
     }

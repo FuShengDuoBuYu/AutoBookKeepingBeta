@@ -33,8 +33,6 @@ import android.widget.TimePicker;
 
 import com.beta.autobookkeeping.R;
 import com.beta.autobookkeeping.BaseApplication;
-import com.beta.autobookkeeping.smsTools.SMSDataBase;
-import com.beta.autobookkeeping.smsTools.SMSService;
 import com.hss01248.dialog.StyledDialog;
 import com.hss01248.dialog.config.ConfigBean;
 import com.hss01248.dialog.interfaces.MyItemDialogListener;
@@ -197,8 +195,7 @@ public class OrderDetailActivity extends AppCompatActivity {
     //写入数据库数据
     private void setDataBaseData(){
         StyledDialog.buildLoading().show();
-        SMSDataBase smsDb = new SMSDataBase(OrderDetailActivity.this, "orderInfo", null, 1);
-        SQLiteDatabase db = smsDb.getWritableDatabase();
+        SQLiteDatabase db = SQLiteDatabase.openOrCreateDatabase(this.getFilesDir().toString() + "/orderInfo.db", null);
         //执行更新数据库操作
         if(isChangeOrderInfo){
             new Thread(new Runnable() {

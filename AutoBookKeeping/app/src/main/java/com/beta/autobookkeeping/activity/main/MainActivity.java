@@ -46,19 +46,12 @@ import com.beta.autobookkeeping.fragment.orderDetail.PersonalOrderDetailFragment
 import com.beta.autobookkeeping.fragment.orderDetail.TabOrderDetailFragmentPagerAdapter;
 import com.beta.autobookkeeping.service.NotificationReceiver;
 import com.beta.autobookkeeping.service.TodoNotificationSender;
-import com.beta.autobookkeeping.smsTools.SMSDataBase;
-import com.beta.autobookkeeping.smsTools.SMSService;
+
 import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.tabs.TabLayoutMediator;
-import com.hss01248.dialog.StyledDialog;
-import com.hss01248.dialog.config.ConfigBean;
-import com.hss01248.dialog.interfaces.MyDialogListener;
-
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
+
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -94,58 +87,12 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         //设置初始偏好数据
         initSpAndSqlLiteData();
-        //------------------
-//        //向后端获取Order数据
-//        new Thread(new Runnable() {
-//            @Override
-//            public void run() {
-//                //清空表中数据
-//                db.execSQL("delete from orderInfo");
-//                String url = IP+"/getOrderById/18916629734";
-//                OkHttpClient client = new OkHttpClient();
-//                Request request = new Request.Builder().url(url).get().build();
-//                try{
-//                    Response response = client.newCall(request).execute();
-//                    if(response.code()==200){
-//                        JSONObject jsonResponse = new JSONObject(response.body().string());
-//                        Log.d("MainActivity", "==========================================");
-//                        if(jsonResponse.getBoolean("success")){
-//                            List<OrderInfo> orderInfos = new ArrayList<>();
-//                            for(int i=0;i<jsonResponse.getJSONArray("data").length();i++){
-//                                JSONObject orderInfo = jsonResponse.getJSONArray("data").getJSONObject(i);
-//                                orderInfos.add(new OrderInfo(orderInfo.getInt("id"),
-//                                        orderInfo.getInt("year"),
-//                                        orderInfo.getInt("month"),
-//                                        orderInfo.getInt("day"),
-//                                        orderInfo.getString("clock"),
-//                                        orderInfo.getDouble("money"),
-//                                        orderInfo.getString("bankName"),
-//                                        orderInfo.getString("orderRemark"),
-//                                        orderInfo.getString("costType"),
-//                                        orderInfo.getString("userId")));
-//                            }
-//                            //将数据存入数据库
-//                            for(int i=0;i<orderInfos.size();i++){
-//                                OrderInfo orderInfo = orderInfos.get(i);
-//                                Log.d("orderInfo",orderInfo.getId()+"");
-//                                db.execSQL("insert into orderInfo values(?,?,?,?,?,?,?,?,?,?)",
-//                                        new Object[]{orderInfo.getId(),orderInfo.getYear(),orderInfo.getMonth(),orderInfo.getDay(),orderInfo.getClock(),orderInfo.getMoney(),orderInfo.getBankName(),orderInfo.getOrderRemark(),orderInfo.getCostType(),(String) SpUtils.get(MainActivity.this,"phoneNum","")});
-//                            }
-//                        }
-//                    }
-//                } catch (JSONException | IOException e) {
-//                    e.printStackTrace();
-//                }
-//            }
-//        }).start();
-        //------------------
-        //先检查短信等权限是否获取
+
         PermissonChecking.ifGetPermission(MainActivity.this,MainActivity.this);
         findViewByIdAndInit();
         //初始化页面布局
         initFragmentAndViewPage();
-        //开启读取短信线程
-        startService(new Intent(MainActivity.this, SMSService.class));
+
         startService(new Intent(MainActivity.this, NotificationReceiver.class));
         startService(new Intent(MainActivity.this, TodoNotificationSender.class));
         //设置手机号
@@ -296,11 +243,11 @@ public class MainActivity extends AppCompatActivity {
             SpUtils.put(this,"OrderStatus","个人版");
         }
         //初始化数据库
-        SMSDataBase smsDb = new SMSDataBase(this,"orderInfo",null,1);
-        db = smsDb.getWritableDatabase();
+        db = openOrCreateDatabase(MainActivity.this.getFilesDir()+"/orderInfo.db",MODE_PRIVATE,null);
         if(!ifContainTable(db,"orderInfo")){
             String sql = "create table orderInfo(id int(8),year int(4),month int(2),day int(2),clock varchar(20),money numeric(10,2),bankName varchar(255),orderRemark varchar(255),costType varchar(255),userId varchar(255))";
             db.execSQL(sql);
+            Log.d("MainActivity","创建orderInfo表成功");
         }
     }
 

@@ -25,16 +25,10 @@ public class BaseApplication extends Application {
             @Override
             public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
                 if(activity instanceof MainActivity){
-                    ImmersionBar.with(activity)
-                            .statusBarColor(R.color.blue)
-//                            .statusBarDarkFont(true)
-                            .init();
+                    ImmersionBar.with(activity).statusBarColor(R.color.blue).init();
                 }
                 else {
-                    ImmersionBar.with(activity)
-                            .fitsSystemWindows(true)
-                            .statusBarColor(R.color.blue)
-                            .init();
+                    ImmersionBar.with(activity).fitsSystemWindows(true).statusBarColor(R.color.blue).init();
                 }
                 ActivityStackManager.getInstance().addActivity(activity);
             }

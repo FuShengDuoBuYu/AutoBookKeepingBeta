@@ -5,8 +5,8 @@ public class ConstVariable {
 //    public static final String IP = "http://192.168.1.106:9000";
 //    public static final String IP = "http://192.168.11.106:9000";
 //    public static final String IP = "http://192.168.172.106:9000";
-//    public static final String IP = "http://106.15.35.61:9000";
-    public static final String IP = "https://l4425642w4.zicp.fun";
+    public static final String IP = "http://106.15.35.61:9000";
+//    public static final String IP = "https://l4425642w4.zicp.fun";
 //    public static final String IP = "http://localhost:9000";
     public static final String FAMILY_MODE = "家庭版";
     public static final String PERSONAL_MODE = "个人版";

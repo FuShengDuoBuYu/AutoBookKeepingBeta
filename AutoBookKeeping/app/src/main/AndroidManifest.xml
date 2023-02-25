@@ -50,11 +50,6 @@
             android:exported="true"
             android:theme="@style/Theme.AppCompat.DayNight.NoActionBar" />
         <activity
-            android:name=".activity.orderMap.OrderMapActivity"
-            android:excludeFromRecents="true"
-            android:exported="true"
-            android:theme="@style/Theme.AppCompat.DayNight.NoActionBar" />
-        <activity
             android:name=".activity.main.DialogActivity"
             android:excludeFromRecents="true"
             android:exported="true"
@@ -81,8 +76,6 @@
             </intent-filter>
         </activity>
 
-        <service android:name=".smsTools.SMSService" />
-
         <service android:name=".service.TodoNotificationSender"
             android:exported="true"
             android:priority="1000"/>
@@ -95,7 +88,6 @@
                 <action android:name="android.service.notification.NotificationListenerService" />
             </intent-filter>
         </service>
-        <service android:name="com.amap.api.location.APSService" />
         <service
             android:name=".service.StartAutoBookTileService"
             android:label="开启记账"
@@ -131,10 +123,6 @@
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </receiver>
-
-        <meta-data
-            android:name="com.amap.api.v2.apikey"
-            android:value="1e6da3f2d328206b68698e39a365b6f7" />
     </application>
 
 </manifest>

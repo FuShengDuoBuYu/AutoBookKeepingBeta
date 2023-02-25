@@ -34,8 +34,6 @@ import com.beta.autobookkeeping.activity.familyTodo.FamilyTodoActivity;
 import com.beta.autobookkeeping.activity.main.entity.OrderInfo;
 import com.beta.autobookkeeping.activity.orderItemSearch.OrderItemSearchActivity;
 import com.beta.autobookkeeping.activity.presonalInfo.PersonlInfoActivity;
-import com.beta.autobookkeeping.smsTools.SMSDataBase;
-import com.gelitenight.waveview.library.WaveView;
 import com.hss01248.dialog.StyledDialog;
 import com.hss01248.dialog.interfaces.MyDialogListener;
 import com.qmuiteam.qmui.widget.roundwidget.QMUIRoundButton;
@@ -63,16 +61,16 @@ public class SettingsActivity extends AppCompatActivity {
     ImageView userPortrait;
     QMUIRoundButton btnAddBankNumber;
     Fragment fragmentTargetCostWater;
-    SMSDataBase smsDb = new SMSDataBase(this,"orderInfo",null,1);
     SQLiteDatabase db;
+
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_settings);
         findViewById();
+        db = SQLiteDatabase.openOrCreateDatabase(this.getFilesDir().toString() + "/orderInfo.db", null);
         initViews();
-        db = smsDb.getWritableDatabase();
     }
 
     private void findViewById(){

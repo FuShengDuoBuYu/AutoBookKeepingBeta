@@ -29,8 +29,7 @@ import com.beta.autobookkeeping.fragment.monthReport.PersonalMonthReportFragment
 import com.beta.autobookkeeping.fragment.orderDetail.FamilyOrderDetailFragment;
 import com.beta.autobookkeeping.fragment.orderDetail.PersonalOrderDetailFragment;
 import com.beta.autobookkeeping.fragment.orderDetail.TabOrderDetailFragmentPagerAdapter;
-import com.beta.autobookkeeping.smsTools.SMSDataBase;
-import com.beta.autobookkeeping.smsTools.SMSService;
+
 import com.github.mikephil.charting.animation.Easing;
 import com.github.mikephil.charting.charts.BarChart;
 import com.github.mikephil.charting.charts.PieChart;
@@ -72,8 +71,8 @@ public class MonthReportActivity extends AppCompatActivity {
     //当前页面查看的月份
     public int recordYear = ProjectUtil.getCurrentYear();
     public int recordMonth = ProjectUtil.getCurrentMonth();
-    SMSDataBase smsDb = new SMSDataBase(MonthReportActivity.this,"orderInfo",null,1);
     SQLiteDatabase db;
+
     //保存数据的实体
     private final List<BarEntry> moneyEntry = new ArrayList<BarEntry>();
     private  ArrayList<PieEntry> costEntry = new ArrayList<>();
@@ -91,13 +90,11 @@ public class MonthReportActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         //开启读取短信线程
-        startService(new Intent(MonthReportActivity.this, SMSService.class));
-        db = smsDb.getWritableDatabase();
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_month_report);
         //获取各个组件
         getViews();
-
+        db = SQLiteDatabase.openOrCreateDatabase(this.getFilesDir().toString() + "/orderInfo.db", null);
         //先更新总收支数据
         tv_month_report_money.setText("0.00");
         tv_month_report_time.setText("计算中...");

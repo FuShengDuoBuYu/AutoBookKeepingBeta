@@ -6,7 +6,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.widget.Toast;
 
-import com.beta.autobookkeeping.smsTools.SMSService;
 
 public class BootBroadcastReceiver extends BroadcastReceiver {
     static final String ACTION = "android.intent.action.BOOT_COMPLETED";
@@ -20,7 +19,6 @@ public class BootBroadcastReceiver extends BroadcastReceiver {
             newIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             //自启动读取内容的服务
             context.startService(new Intent(context, NotificationReceiver.class));
-            context.startService(new Intent(context, SMSService.class));
             context.startService(new Intent(context, TodoNotificationSender.class));
             Toast.makeText(context, "已启动自动记账", Toast.LENGTH_LONG).show();
         }
