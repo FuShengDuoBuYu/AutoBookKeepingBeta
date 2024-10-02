@@ -147,17 +147,19 @@
                 android:background="@color/primary_font"
                 android:layout_marginTop="10dp">
             </View>
+<!--            是否采用支付宝小荷包模式,如果用,则展示小荷包成员名字-->
+<!--            使用一个linearview里套一个switch,如果switch为true,则展示小荷包成员名字-->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="70dp"
                 android:foreground="?selectableItemBackground"
-                android:id="@+id/ll_family_todo"
+                android:id="@+id/ll_alipay_xiaohebao"
                 android:orientation="horizontal">
                 <ImageView
-                    android:layout_width="32dp"
-                    android:layout_height="32dp"
+                    android:layout_width="35dp"
+                    android:layout_height="35dp"
                     android:layout_gravity="center_vertical"
-                    android:src="@drawable/ic_family_todo">
+                    android:src="@drawable/ic_xiaohebao">
 
                 </ImageView>
                 <TextView
@@ -165,12 +167,19 @@
                     android:gravity="center_vertical"
                     android:layout_width="wrap_content"
                     android:layout_height="match_parent"
-                    android:text="查看家庭待办"
+                    android:text="是否在支付宝里使用小荷包"
                     android:textColor="@color/primary_font"
                     android:textSize="18sp">
-
                 </TextView>
+                <Switch
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_vertical"
+                    android:layout_marginStart="20dp"
+                    android:id="@+id/switch_use_xiaohebao">
+                </Switch>
             </LinearLayout>
+
         </LinearLayout>
     </ScrollView>
 

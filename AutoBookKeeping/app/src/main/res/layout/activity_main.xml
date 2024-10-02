@@ -8,7 +8,7 @@
     <!-- 第一行,包含新增,我的支出和设置图标-->
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="55dp"
+        android:layout_height="75dp"
         android:id="@+id/theFirstLine"
         android:background="@drawable/blue_background"
         android:orientation="horizontal">
@@ -19,7 +19,7 @@
             android:id="@+id/btnPlusNewOrder"
             android:background="@drawable/ic_plus"
             android:gravity="start"
-            android:layout_marginTop="20dp"
+            android:layout_marginTop="40dp"
             android:layout_marginStart="10dp"
             >
         </ImageView>
@@ -29,7 +29,6 @@
             android:layout_width="0dp"
             android:layout_weight="1"
             android:layout_height="50dp"
-            android:text="我的收支"
             android:textColor="@color/white"
             android:textSize="20sp"
             android:gravity="center">
@@ -39,7 +38,7 @@
             android:layout_width="30dp"
             android:layout_height="30dp"
             android:id="@+id/btnSettings"
-            android:layout_marginTop="20dp"
+            android:layout_marginTop="40dp"
             android:src="@drawable/ic_settings"
             android:layout_marginEnd="10dp">
         </ImageView>

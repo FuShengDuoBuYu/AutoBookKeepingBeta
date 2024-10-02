@@ -7,9 +7,12 @@ import android.content.Intent;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.Switch;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
@@ -30,6 +33,7 @@ import org.json.JSONObject;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import Util.ProjectUtil;
 import Util.SpUtils;
@@ -40,8 +44,9 @@ import okhttp3.Response;
 public class SettingsActivity extends AppCompatActivity {
 
     TextView tvUserPhoneNum;
-    LinearLayout personalCenter,llSearchOrders,llDownloadOrders,llFamilyTodo;
+    LinearLayout personalCenter,llSearchOrders,llDownloadOrders,llAlipayXiaohebao;
     ImageView userPortrait;
+    Switch useXiaohebao;
     QMUIRoundButton btnAddBankNumber;
     Fragment fragmentTargetCostWater;
     SQLiteDatabase db;
@@ -62,7 +67,8 @@ public class SettingsActivity extends AppCompatActivity {
         userPortrait = findViewById(R.id.iv_portrait);
         llSearchOrders = findViewById(R.id.ll_search_orders);
         llDownloadOrders = findViewById(R.id.ll_download_orders);
-        llFamilyTodo = findViewById(R.id.ll_family_todo);
+        llAlipayXiaohebao = findViewById(R.id.ll_alipay_xiaohebao);
+        useXiaohebao = findViewById(R.id.switch_use_xiaohebao);
         FragmentManager fragmentManager = getSupportFragmentManager();
         fragmentTargetCostWater = fragmentManager.findFragmentById(R.id.fragment_target_cost_water);
     }
@@ -90,6 +96,32 @@ public class SettingsActivity extends AppCompatActivity {
                 @Override
                 public void onSecond() {}
             }).show();
+        });
+        useXiaohebao.setChecked(SpUtils.contains(this,"is_alipay_xiaohebao"));
+        //支付宝小荷包
+        useXiaohebao.setOnClickListener(v->{
+            if(useXiaohebao.isChecked()){
+                String input1;
+                input1 = (String) SpUtils.get(this,"is_alipay_xiaohebao","");
+                if(input1==null||"".equals(input1)){
+                    StyledDialog.buildNormalInput("选择使用支付宝小荷包记账", "请输入小荷包昵称", null, "确定","取消",new MyDialogListener() {
+                        @Override
+                        public void onFirst() {}
+                        @Override
+                        public void onSecond() {}
+                        @Override
+                        public void onGetInput(CharSequence input1, CharSequence input2) {
+                            SpUtils.put(SettingsActivity.this,"is_alipay_xiaohebao",input1);
+                            ProjectUtil.toastMsg(SettingsActivity.this,"设置成功");
+                        }
+                    }).show();
+                }
+            }
+            else{
+                SpUtils.remove(this,"is_alipay_xiaohebao");
+                ProjectUtil.toastMsg(this,"取消使用支付宝小荷包记账");
+                System.out.println(SpUtils.getAll(SettingsActivity.this));
+            }
         });
     }
     private void downloadOrders(){
