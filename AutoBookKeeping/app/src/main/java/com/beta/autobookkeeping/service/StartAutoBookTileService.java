@@ -17,22 +17,16 @@ public class StartAutoBookTileService extends TileService {
         Context context = getApplicationContext();
         super.onTileAdded();
         context.startService(new Intent(context, NotificationReceiver.class));
-        context.startService(new Intent(context, TodoNotificationSender.class));
     }
 
     // Called when your app can update your tile.
     @Override
     public void onStartListening() {
         //启动一个service
-        if(!ServiceUtil.isMyServiceRunning(NotificationReceiver.class,getApplicationContext())){
+        if(!ServiceUtil.isMyServiceRunning(NotificationReceiver.class,getApplicationContext())) {
             Context context = getApplicationContext();
             context.startService(new Intent(context, NotificationReceiver.class));
             Toast.makeText(context, "启动自动记账服务", Toast.LENGTH_SHORT).show();
-        }
-        if(!ServiceUtil.isMyServiceRunning(TodoNotificationSender.class,getApplicationContext())){
-            Context context = getApplicationContext();
-            context.startService(new Intent(context, TodoNotificationSender.class));
-            Toast.makeText(context, "启动待办提醒服务", Toast.LENGTH_SHORT).show();
         }
         Tile tile = getQsTile();
         tile.setState(Tile.STATE_ACTIVE);

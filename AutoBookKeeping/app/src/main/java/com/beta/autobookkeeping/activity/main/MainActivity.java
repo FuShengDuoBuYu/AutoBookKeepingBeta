@@ -1,6 +1,5 @@
 package com.beta.autobookkeeping.activity.main;
 
-import static Util.ConstVariable.IP;
 import static Util.ProjectUtil.getCurrentDay;
 import static Util.ProjectUtil.getCurrentMonth;
 import static Util.ProjectUtil.getCurrentYear;
@@ -20,7 +19,6 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
 import android.os.Bundle;
-import android.os.Looper;
 import android.text.InputType;
 import android.util.Log;
 import android.view.View;
@@ -30,7 +28,6 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.beta.autobookkeeping.activity.main.checking.FamilyChecking;
 import com.beta.autobookkeeping.activity.main.checking.PermissonChecking;
@@ -45,7 +42,6 @@ import com.beta.autobookkeeping.fragment.orderDetail.FamilyOrderDetailFragment;
 import com.beta.autobookkeeping.fragment.orderDetail.PersonalOrderDetailFragment;
 import com.beta.autobookkeeping.fragment.orderDetail.TabOrderDetailFragmentPagerAdapter;
 import com.beta.autobookkeeping.service.NotificationReceiver;
-import com.beta.autobookkeeping.service.TodoNotificationSender;
 
 import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.tabs.TabLayoutMediator;
@@ -59,11 +55,6 @@ import java.util.List;
 import Util.ImageUtil;
 import Util.ProjectUtil;
 import Util.SpUtils;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.Response;
-import site.gemus.openingstartanimation.LineDrawStrategy;
-import site.gemus.openingstartanimation.OpeningStartAnimation;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -94,12 +85,10 @@ public class MainActivity extends AppCompatActivity {
         initFragmentAndViewPage();
 
         startService(new Intent(MainActivity.this, NotificationReceiver.class));
-        startService(new Intent(MainActivity.this, TodoNotificationSender.class));
         //设置手机号
         FamilyChecking.checkFamily(this);
         setPhoneNum();
         //设置开屏动画
-        setOpeningAnimation();
         super.onCreate(savedInstanceState);
     }
     //初始化fragment和viewpage
@@ -331,21 +320,6 @@ public class MainActivity extends AppCompatActivity {
     public void showDayAndMonthMoney(String dayMoney,String monthMoney){
         tvAllTodayOrder.setText(dayMoney);
         tvAllMonthOrder.setText(monthMoney);
-    }
-
-    private void setOpeningAnimation(){
-        OpeningStartAnimation openingStartAnimation = new OpeningStartAnimation.Builder(MainActivity.this)
-                .setDrawStategy(new LineDrawStrategy()) //设置动画效果
-                //将图标转为drawable
-                .setAppName("自动记账")
-                .setColorOfAppName(this.getResources().getColor(R.color.blue))
-                .setColorOfAppStatement(this.getResources().getColor(R.color.blue))
-                .setAppStatement("美好的事情即将发生!")
-                .setAnimationInterval(1500)
-                .setAnimationFinishTime(400)
-                .setColorOfBackground(getColor(R.color.reverse_primary_font))
-                .create();
-        openingStartAnimation.show(MainActivity.this);
     }
 
     public void clickFamilyItemToShowDetail(View v, Pair<View, String>... pairs){

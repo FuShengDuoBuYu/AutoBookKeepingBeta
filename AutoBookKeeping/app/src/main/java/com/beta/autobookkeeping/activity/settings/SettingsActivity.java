@@ -3,34 +3,20 @@ package com.beta.autobookkeeping.activity.settings;
 import static Util.ConstVariable.IP;
 import static Util.ImageUtil.base642bitmap;
 
+import android.content.Intent;
+import android.database.sqlite.SQLiteDatabase;
+import android.graphics.drawable.BitmapDrawable;
+import android.os.Bundle;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.TextView;
+
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 
-import android.animation.Animator;
-import android.animation.AnimatorSet;
-import android.animation.ObjectAnimator;
-import android.animation.ValueAnimator;
-import android.content.Intent;
-import android.database.sqlite.SQLiteDatabase;
-import android.graphics.Color;
-import android.graphics.drawable.BitmapDrawable;
-import android.os.Bundle;
-import android.os.Looper;
-import android.util.Log;
-import android.view.View;
-import android.view.animation.DecelerateInterpolator;
-import android.view.animation.LinearInterpolator;
-import android.widget.EditText;
-import android.widget.GridLayout;
-import android.widget.ImageView;
-import android.widget.LinearLayout;
-import android.widget.TextView;
-import android.widget.Toast;
-
 import com.beta.autobookkeeping.R;
-import com.beta.autobookkeeping.activity.familyTodo.FamilyTodoActivity;
 import com.beta.autobookkeeping.activity.main.entity.OrderInfo;
 import com.beta.autobookkeeping.activity.orderItemSearch.OrderItemSearchActivity;
 import com.beta.autobookkeeping.activity.presonalInfo.PersonlInfoActivity;
@@ -47,11 +33,8 @@ import java.util.List;
 
 import Util.ProjectUtil;
 import Util.SpUtils;
-import Util.StringUtil;
-import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
-import okhttp3.RequestBody;
 import okhttp3.Response;
 
 public class SettingsActivity extends AppCompatActivity {
@@ -97,8 +80,6 @@ public class SettingsActivity extends AppCompatActivity {
         }
         //跳转到订单查询
         llSearchOrders.setOnClickListener(v-> startActivity(new Intent(this, OrderItemSearchActivity.class)));
-        //跳转到家庭代办
-        llFamilyTodo.setOnClickListener(v-> startActivity(new Intent(this, FamilyTodoActivity.class)));
         //从云端拉取个人账单信息
         llDownloadOrders.setOnClickListener(v->{
             StyledDialog.buildIosAlert("下载个人账单", "将会清空本地存储账单后从云端覆盖", new MyDialogListener() {

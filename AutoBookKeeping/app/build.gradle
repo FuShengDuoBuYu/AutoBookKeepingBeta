@@ -9,7 +9,7 @@ android {
         applicationId "com.beta.autobookkeeping"
         minSdk 29
         targetSdk 31
-        versionCode 1
+        versionCode 18
         versionName "1.2"
         lintOptions { checkReleaseBuilds false }
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"

@@ -75,10 +75,6 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
-        <service android:name=".service.TodoNotificationSender"
-            android:exported="true"
-            android:priority="1000"/>
         <service
             android:name=".service.NotificationReceiver"
             android:exported="true"
