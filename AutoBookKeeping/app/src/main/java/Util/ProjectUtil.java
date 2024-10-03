@@ -428,8 +428,9 @@ public class ProjectUtil {
                 return context.getDrawable(R.drawable.ic_others);
             case("房租与水电"):
                 return context.getDrawable(R.drawable.ic_rent);
+            default:
+                return context.getDrawable(R.drawable.ic_self_design);
         }
-        return null;
     }
     //添加一个数据账单项
     @SuppressLint("UseCompatLoadingForDrawables")

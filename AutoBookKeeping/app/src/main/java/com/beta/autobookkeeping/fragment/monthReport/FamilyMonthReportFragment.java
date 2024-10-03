@@ -144,8 +144,6 @@ public class FamilyMonthReportFragment extends Fragment {
                     }
                     else{
                         Looper.prepare();
-                        Log.d("test",String.valueOf(response.code()));
-                        Log.d("test",String.valueOf(response.toString()));
                         ProjectUtil.toastMsg(getContext(),"服务器出错");
                         Looper.loop();
                     }
@@ -186,8 +184,6 @@ public class FamilyMonthReportFragment extends Fragment {
                     }
                     else{
                         Looper.prepare();
-                        Log.d("test",String.valueOf(response.code()));
-                        Log.d("test",String.valueOf(response.toString()));
                         ProjectUtil.toastMsg(getContext(),"服务器出错");
                         Looper.loop();
                     }
@@ -247,8 +243,6 @@ public class FamilyMonthReportFragment extends Fragment {
         getSomeMonthMoney();
         StyledDialog.dismissLoading(activity);
     }
-
-
 
     //判断两个年月之间差了几个月
     private int getMonthDiff(int year,int month){

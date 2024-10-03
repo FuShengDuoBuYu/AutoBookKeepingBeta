@@ -37,6 +37,7 @@ import com.beta.autobookkeeping.BaseApplication;
 import com.hss01248.dialog.StyledDialog;
 import com.hss01248.dialog.bottomsheet.BottomSheetBean;
 import com.hss01248.dialog.config.ConfigBean;
+import com.hss01248.dialog.interfaces.MyDialogListener;
 import com.hss01248.dialog.interfaces.MyItemDialogListener;
 
 import org.json.JSONException;
@@ -111,12 +112,32 @@ public class OrderDetailActivity extends AppCompatActivity {
         });
 
         //选择消费类型的按钮
-        btnCostType.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                //弹出选择消费类型的dialog
-                showCostType();
-            }
+        btnCostType.setOnClickListener(view -> {
+            showCostType();
+        });
+        //自定义消费类型
+        btnCostType.setOnLongClickListener(view -> {
+            // 弹出原生输入框
+            AlertDialog.Builder builder = new AlertDialog.Builder(OrderDetailActivity.this);
+            builder.setTitle("请输入消费类型");
+
+            final EditText et = new EditText(OrderDetailActivity.this);
+            builder.setView(et);
+            builder.setPositiveButton("确定", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    String input = et.getText().toString();
+                    if (input.equals("")) {
+                        Toast.makeText(OrderDetailActivity.this, "输入不能为空！", Toast.LENGTH_SHORT).show();
+                    } else {
+                        btnCostType.setText(input);
+                        //备注也要修改
+                        etOrderRemark.setText(input);
+                    }
+                }
+            });
+            builder.show();
+            return true;
         });
         //选择账单是支出还是收入的按钮
         btnOrderType.setOnClickListener(new View.OnClickListener() {
