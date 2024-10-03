@@ -28,6 +28,7 @@ public class SearchConditionEntity {
     private boolean ifIgnoreYear = false,ifIgnoreMonth = false,ifIgnoreDay = false;
     private List<String> sortList = new ArrayList<>();
     private boolean isAsc = true;
+    private String sortType = "时间";
     public List<View> getPopupViews() {
         List<View> popupViews = new ArrayList<>();
         popupViews.add(new VersionItemView(context).getVersionItemView());
@@ -132,6 +133,14 @@ public class SearchConditionEntity {
 
     public boolean getIsAsc() {
         return isAsc;
+    }
+
+    public void setSortType(String sortType) {
+        this.sortType = sortType;
+    }
+
+    public String getSortType() {
+        return sortType;
     }
 
     @Override

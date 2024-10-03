@@ -103,32 +103,15 @@ public class OrderItemSearchActivity extends AppCompatActivity {
     private void initListener(){
         ivSortList.setOnClickListener((v)->{
             String[] items = {"时间","金额","类型"};
-            List<Integer> choose = new ArrayList<>();
-            StyledDialog.buildMdMultiChoose("排序类别", items,choose, new MyDialogListener() {
-                @Override
-                public void onFirst() {
-                    for (int i = 0; i < choose.size(); i++) {
-                        Log.d("choose",choose.get(i)+"" );
+            int choosen = items[0].equals(searchConditionEntity.getSortType())?0:items[1].equals(searchConditionEntity.getSortType())?1:2;
+            StyledDialog.buildMdSingleChoose("排序类别", choosen , items, new MyItemDialogListener() {
+                    @Override
+                    public void onItemClick(CharSequence text, int position) {
+                        searchConditionEntity.setSortType(text.toString());
+                        searchOrders();
                     }
-                    Toast.makeText(OrderItemSearchActivity.this,choose.size()+"",Toast.LENGTH_SHORT).show();
                 }
-
-                @Override
-                public void onSecond() {
-                    for (int i = 0; i < choose.size(); i++) {
-                        Log.d("choose",choose.get(i)+"" );
-                    }
-                    Toast.makeText(OrderItemSearchActivity.this, "取消", Toast.LENGTH_SHORT).show();
-                }
-
-                @Override
-                public void onChoosen( List<Integer> selectedIndex, List<CharSequence> selectedStrs,boolean[] states){
-                    for (int i = 0; i < selectedIndex.size(); i++) {
-                        Log.d("choose",selectedIndex.get(i)+"" );
-                    }
-                    Toast.makeText(OrderItemSearchActivity.this, selectedIndex.size()+"", Toast.LENGTH_SHORT).show();
-                }
-            }).setTitleColor(R.color.primary_font).setBtnText("确定","取消").show();
+            ).setTitleColor(R.color.primary_font).show();
         });
         ivSortType.setOnClickListener((v)->{
             String[] items = {"升序","降序"};
@@ -138,7 +121,7 @@ public class OrderItemSearchActivity extends AppCompatActivity {
                     searchConditionEntity.setIsAsc(position==0);
                     searchOrders();
                 }
-            }).setBackground(getColor(R.color.white)).setTitleColor(R.color.primary_font).show();
+            }).setTitleColor(R.color.primary_font).show();
         });
     }
 
@@ -147,7 +130,7 @@ public class OrderItemSearchActivity extends AppCompatActivity {
         searchOrders();
     }
 
-    private void searchOrders(){
+    public void searchOrders(){
         StyledDialog.buildLoading().show();
         //向后端拿数据
         new Thread(new Runnable() {
@@ -238,6 +221,9 @@ public class OrderItemSearchActivity extends AppCompatActivity {
             @SuppressLint("DefaultLocale")
             @Override
             public void run() {
+                //对ordersInfo进行排序
+                sortOrdersInfo(ordersInfo);
+
                 //把数据给到Adapter
                 lvSearchOrders.setAdapter(new SearchOrderListViewAdapter(ordersInfo,OrderItemSearchActivity.this,userInfo));
                 //设置总支出、总收入、总金额,一位小数
@@ -255,5 +241,65 @@ public class OrderItemSearchActivity extends AppCompatActivity {
             }
         });
         StyledDialog.dismissLoading(this);
+    }
+
+    private void sortOrdersInfo(List<OrderInfo> ordersInfo){
+        //排序
+        if(searchConditionEntity.getSortType().equals("时间")){
+            ordersInfo.sort((o1, o2) -> {
+                if(searchConditionEntity.getIsAsc()){
+                    // 按照o1.getYear()、o1.getMonth()、o1.getDay()的顺序比较
+                    int yearCompare = Integer.compare(o1.getYear(), o2.getYear());
+                    if (yearCompare != 0) {
+                        return yearCompare; // 如果年份不同，则返回年份的比较结果
+                    }
+                    int monthCompare = Integer.compare(o1.getMonth(), o2.getMonth());
+                    if (monthCompare != 0) {
+                        return monthCompare; // 如果月份不同，则返回月份的比较结果
+                    }
+                    int dayCompare = Integer.compare(o1.getDay(), o2.getDay());
+                    if (dayCompare != 0) {
+                        return dayCompare; // 如果日期不同，则返回日期的比较结果
+                    }
+                    return o1.getClock().compareTo(o2.getClock());
+                }
+                else{
+                    // 按照o1.getYear()、o1.getMonth()、o1.getDay()的顺序比较
+                    int yearCompare = Integer.compare(o2.getYear(), o1.getYear());
+                    if (yearCompare != 0) {
+                        return yearCompare; // 如果年份不同，则返回年份的比较结果
+                    }
+                    int monthCompare = Integer.compare(o2.getMonth(), o1.getMonth());
+                    if (monthCompare != 0) {
+                        return monthCompare; // 如果月份不同，则返回月份的比较结果
+                    }
+                    int dayCompare = Integer.compare(o2.getDay(), o1.getDay());
+                    if (dayCompare != 0) {
+                        return dayCompare; // 如果日期不同，则返回日期的比较结果
+                    }
+                    return o2.getClock().compareTo(o1.getClock());
+                }
+            });
+        }
+        else if(searchConditionEntity.getSortType().equals("金额")){
+            ordersInfo.sort((o1, o2) -> {
+                if(searchConditionEntity.getIsAsc()){
+                    return Double.compare(o1.getMoney(), o2.getMoney());
+                }
+                else{
+                    return Double.compare(o2.getMoney(), o1.getMoney());
+                }
+            });
+        }
+        else if(searchConditionEntity.getSortType().equals("类型")){
+            ordersInfo.sort((o1, o2) -> {
+                if(searchConditionEntity.getIsAsc()){
+                    return o1.getCostType().compareTo(o2.getCostType());
+                }
+                else{
+                    return o2.getCostType().compareTo(o1.getCostType());
+                }
+            });
+        }
     }
 }
