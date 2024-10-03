@@ -257,22 +257,6 @@ public class MainActivity extends AppCompatActivity {
         if(
                 SpUtils.get(this,"phoneNum","")==null || SpUtils.get(this,"phoneNum","").equals("")
         ){
-//            StyledDialog.buildNormalInput("用户注册", "请输入手机号", "请输入密码", "确定", "取消", new MyDialogListener() {
-//                @Override
-//                public void onFirst() {}
-//                @Override
-//                public void onSecond() {}
-//                @Override
-//                public boolean onInputValid(CharSequence input1, CharSequence input2, EditText editText1, EditText editText2) {
-//                    if(input1.toString().matches("^[1][3,4,5,7,8,9][0-9]{9}$")&&(!(input2.toString()==null))&&(!input2.toString().equals(""))){
-//                        UserRegister.userRegister(input1.toString(),input2.toString(),MainActivity.this);
-//                        return true;
-//                    }else{
-//                        toastMsg(MainActivity.this,"输入有误,请重试");
-//                        return false;
-//                    }
-//                }
-//            }).show();
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
             builder.setTitle("用户注册");
             builder.setMessage("请依次输入手机号和密码");

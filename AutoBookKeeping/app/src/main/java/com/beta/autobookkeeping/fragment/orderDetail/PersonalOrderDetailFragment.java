@@ -55,11 +55,6 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 
-/**
- * A simple {@link Fragment} subclass.
- * Use the {@link PersonalOrderDetailFragment#newInstance} factory method to
- * create an instance of this fragment.
- */
 public class PersonalOrderDetailFragment extends Fragment {
 
     private ArrayList<OrderInfo> ordersInfo;
@@ -73,7 +68,6 @@ public class PersonalOrderDetailFragment extends Fragment {
         // Required empty public constructor
     }
 
-    // TODO: Rename and change types and number of parameters
     public static PersonalOrderDetailFragment newInstance(ArrayList<OrderInfo> ordersInfo, String test) {
         PersonalOrderDetailFragment fragment = new PersonalOrderDetailFragment();
         return fragment;

@@ -61,10 +61,6 @@
                 android:value=".activity.main.MainActivity" />
 
         </activity>
-        <activity android:name=".activity.familyTodo.FamilyTodoActivity"
-            android:excludeFromRecents="true"
-            android:exported="true"
-            android:theme="@style/Theme.AppCompat.DayNight.NoActionBar" />
         <activity
             android:name=".activity.main.MainActivity"
             android:excludeFromRecents="true"

@@ -422,12 +422,12 @@ public class ProjectUtil {
                 return context.getDrawable(R.drawable.ic_red_money);
             case("医疗"):
                 return context.getDrawable(R.drawable.ic_hospital);
-            case("一卡通"):
-                return context.getDrawable(R.drawable.ic_ecard);
             case("学习"):
                 return context.getDrawable(R.drawable.ic_study);
             case("其他"):
                 return context.getDrawable(R.drawable.ic_others);
+            case("房租与水电"):
+                return context.getDrawable(R.drawable.ic_rent);
         }
         return null;
     }
