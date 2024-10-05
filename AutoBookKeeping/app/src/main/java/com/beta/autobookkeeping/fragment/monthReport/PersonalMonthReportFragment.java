@@ -5,6 +5,7 @@ import android.os.Bundle;
 
 import androidx.fragment.app.Fragment;
 
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -71,7 +72,7 @@ public class PersonalMonthReportFragment extends Fragment {
                 ,costRankingProcessBar
         );
         pieChart.showPieChart();
-        pieChart.showMonthlyCostRanking(ProjectUtil.getMonthOrders(activity.recordYear,activity.recordMonth,getContext()));
+        pieChart.showMonthlyCostRanking();
     }
 
     //查询各个月的收支情况

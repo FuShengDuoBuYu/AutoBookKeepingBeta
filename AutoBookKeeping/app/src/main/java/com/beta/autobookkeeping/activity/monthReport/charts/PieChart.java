@@ -9,6 +9,7 @@ import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
 import android.graphics.drawable.LayerDrawable;
 import android.os.Bundle;
+import android.util.Log;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
@@ -16,6 +17,8 @@ import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import androidx.appcompat.app.AlertDialog;
 
 import com.beta.autobookkeeping.R;
 import com.beta.autobookkeeping.activity.main.entity.OrderInfo;
@@ -33,6 +36,8 @@ import com.github.mikephil.charting.highlight.Highlight;
 import com.github.mikephil.charting.listener.OnChartValueSelectedListener;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 import Util.ProjectUtil;
 
@@ -45,9 +50,13 @@ public class PieChart {
     private final int[] dataColor = ProjectUtil.colors;
     public ArrayList<String> costLabels = new ArrayList<>();
     public ArrayList<Float> costMoney = new ArrayList<>();
+    public ArrayList<String> showLabels = new ArrayList<>();
+    public ArrayList<Float> showMoney = new ArrayList<>();
     private PieDataSet costDataSet;
     private LinearLayout costRankingProcessBar;
     private ArrayList<OrderInfo> monthOrders;
+    // 是否是第一次初始化
+    private boolean isFirstInit = true;
 
     public PieChart(com.github.mikephil.charting.charts.PieChart monthMoneyPieChart,Context context,int recordMonth,int recordYear,ArrayList<OrderInfo> monthOrders,LinearLayout costRankingProcessBar){
         this.context = context;
@@ -83,8 +92,8 @@ public class PieChart {
 //        设置中心的文字
         double totalMoney = 0.0;
         //通过monthOrders获取总金额
-        for (OrderInfo orderInfo:monthOrders){
-            totalMoney += orderInfo.getMoney();
+        for (Float money:showMoney){
+            totalMoney += money;
         }
         if(totalMoney==0.0){
             pieChart.setCenterText("暂无数据");
@@ -122,8 +131,10 @@ public class PieChart {
 
             @Override
             public void onNothingSelected() {
+                showLabels.clear();
+                showMoney.clear();
                 //取消点击时去除此时的具体金额
-                refreshPieChartAndRanking(recordYear,recordMonth,monthOrders);
+                getShowLabels(costLabels,costMoney);
             }
         });
         //启动pieChart
@@ -137,9 +148,14 @@ public class PieChart {
         costLabels = ProjectUtil.getCostTypeAndMoney(monthOrders).get(0);
         //获取本月中所有消费的具体值
         costMoney = ProjectUtil.getCostTypeAndMoney(monthOrders).get(1);
+        if(isFirstInit){
+            showLabels = costLabels;
+            showMoney = costMoney;
+            isFirstInit = false;
+        }
         //创建Entry
-        for(int i = 0;i < costLabels.size();i++){
-            costEntry.add(new PieEntry(0.0f-costMoney.get(i),costLabels.get(i)));
+        for(int i = 0;i < showLabels.size();i++){
+            costEntry.add(new PieEntry(0.0f-showMoney.get(i),showLabels.get(i)));
         }
         //将获取到的数据写入DataSet
         costDataSet = new PieDataSet(costEntry,"");
@@ -167,36 +183,57 @@ public class PieChart {
         costMoney = null;
         monthMoneyPieChart.removeAllViews();
         costRankingProcessBar.removeAllViews();
-
         showPieChart();
-        showMonthlyCostRanking(monthOrders);
+        showMonthlyCostRanking();
+    }
+
+    public void getShowLabels(ArrayList<String> costLabels, ArrayList<Float> costMoney){
+        //获取用户想要展示的种类数据,展示多选框
+        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+        builder.setTitle("请选择要展示的消费种类");
+        boolean[] checkedItems = new boolean[costLabels.size()];
+        Arrays.fill(checkedItems, true);
+        builder.setMultiChoiceItems(costLabels.toArray(new String[0]), checkedItems, (dialogInterface, i, b) -> {
+            checkedItems[i] = b;
+        });
+        builder.setPositiveButton("确定", (dialogInterface, i) -> {
+            for (int j = 0; j < checkedItems.length; j++) {
+                if (checkedItems[j]) {
+                    showLabels.add(costLabels.get(j));
+                    showMoney.add(costMoney.get(j));
+                }
+            }
+            refreshPieChartAndRanking(recordYear,recordMonth,monthOrders);
+        });
+        builder.show();
+
     }
 
     //动态显示月度消费排行榜
-    public void showMonthlyCostRanking(ArrayList<OrderInfo> monthOrders){
+    public void showMonthlyCostRanking(){
         double totalCostMoney = 0.0;
         //通过monthOrders获取总支出金额
-        for (OrderInfo orderInfo:monthOrders){
-            totalCostMoney += orderInfo.getMoney();
+        for (Float money:showMoney){
+            totalCostMoney += money;
         }
         //支出
-        for(int i = 0;i < costLabels.size();i++){
+        for(int i = 0;i < showLabels.size();i++){
             //要加入的进度条
-            LinearLayout costProcessBar = setCostProcessBar(costLabels.get(i),costMoney.get(i), totalCostMoney,i);
+            LinearLayout costProcessBar = setCostProcessBar(showLabels.get(i),showMoney.get(i), totalCostMoney,i);
             //点击进度条进入具体支出项目查询
             //由于内部类,故使用final的i
             int finalI = i;
             costProcessBar.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    showCostItems(costLabels.get(finalI),recordYear,recordMonth);
+                    showCostItems(showLabels.get(finalI),recordYear,recordMonth);
                 }
             });
             //加入显示
             costRankingProcessBar.addView(costProcessBar);
         }
         //收入
-        LinearLayout incomeProcessBar = setCostProcessBar("点击查看收入明细",1f,1f,costLabels.size());
+        LinearLayout incomeProcessBar = setCostProcessBar("点击查看收入明细",1f,1f,showLabels.size());
         incomeProcessBar.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -219,7 +256,8 @@ public class PieChart {
         TextView tvCost = new TextView(context);
         //设置两个小布局
         tvCategory.setText(category);
-        tvCost.setText(cost+"元");
+
+        tvCost.setText(cost>=0?"":cost+"元");
         tvCategory.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT,LinearLayout.LayoutParams.WRAP_CONTENT,1));
         tvCost.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT,LinearLayout.LayoutParams.WRAP_CONTENT,1));
         tvCategory.setPadding(40,10,10,30);
