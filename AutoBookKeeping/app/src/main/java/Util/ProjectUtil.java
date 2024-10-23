@@ -44,7 +44,26 @@ public class ProjectUtil {
             Color.rgb(34,139,34),
             Color.rgb(95,158,160),
             Color.rgb(138,43,226),
-            Color.rgb(233,150,122)};
+            Color.rgb(233,150,122),
+            Color.rgb(255, 99, 71),    // Tomato
+            Color.rgb(64, 224, 208),   // Turquoise
+            Color.rgb(255, 215, 0),    // Gold
+            Color.rgb(199, 21, 133),   // MediumVioletRed
+            Color.rgb(46, 139, 87),    // SeaGreen
+            Color.rgb(255, 105, 180),  // HotPink
+            Color.rgb(255, 69, 0),     // OrangeRed
+            Color.rgb(255, 182, 193),  // LightPink
+            Color.rgb(70, 130, 180),   // SteelBlue
+            Color.rgb(72, 61, 139),    // DarkSlateBlue
+            Color.rgb(128, 0, 0),      // Maroon
+            Color.rgb(135, 206, 250),  // LightSkyBlue
+            Color.rgb(0, 255, 127),    // SpringGreen
+            Color.rgb(165, 42, 42),    // Brown
+            Color.rgb(255, 140, 0),    // DarkOrange
+            Color.rgb(75, 0, 130),     // Indigo
+            Color.rgb(240, 128, 128)   // LightCoral
+    };
+
     public final static int BLUE = Color.parseColor("#5091F3");
     public final static int Gray = Color.rgb(235, 235, 235);
     //匹配银行账单信息的正则表达式

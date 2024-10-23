@@ -247,7 +247,7 @@ public class FamilyOrderDetailFragment extends Fragment {
                             familyOrderItem.setTransitionName("familyOrderItem"+orderIndex);
                             //设置点击事件
                             familyOrderItem.setOnClickListener(v->{
-                                showDialog(v);
+//                                showDialog(v);
                             });
                             linearLayout.addView(familyOrderItem);
                             orderIndex++;
