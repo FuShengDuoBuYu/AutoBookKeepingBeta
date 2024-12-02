@@ -106,6 +106,12 @@ public class PersonalMonthReportFragment extends Fragment {
     //更新显示月份
     public void refreshMonthCost(int recordYear,int recordMonth){
         activity.refreshMonthMoney(ProjectUtil.getMonthMoney(recordYear,recordMonth,getContext()),recordYear,recordMonth);
-        pieChart.refreshPieChartAndRanking(activity.recordYear,activity.recordMonth,ProjectUtil.getMonthOrders(activity.recordYear,activity.recordMonth,getContext()));
+//        pieChart.refreshPieChartAndRanking(activity.recordYear,activity.recordMonth,ProjectUtil.getMonthOrders(activity.recordYear,activity.recordMonth,getContext()));
+        pieChart = new com.beta.autobookkeeping.activity.monthReport.charts.PieChart(
+                monthMoneyPieChart,getContext(),recordMonth,recordYear,ProjectUtil.getMonthOrders(recordYear,recordMonth,getContext())
+                ,costRankingProcessBar
+        );
+        pieChart.showPieChart();
+        pieChart.showMonthlyCostRanking();
     }
 }

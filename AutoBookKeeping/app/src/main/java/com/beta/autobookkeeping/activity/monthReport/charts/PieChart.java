@@ -131,9 +131,11 @@ public class PieChart {
 
             @Override
             public void onNothingSelected() {
+
                 showLabels.clear();
                 showMoney.clear();
-                //取消点击时去除此时的具体金额
+                costLabels = ProjectUtil.getCostTypeAndMoney(monthOrders).get(0);
+                costMoney = ProjectUtil.getCostTypeAndMoney(monthOrders).get(1);
                 getShowLabels(costLabels,costMoney);
             }
         });
@@ -183,6 +185,7 @@ public class PieChart {
         costMoney = null;
         monthMoneyPieChart.removeAllViews();
         costRankingProcessBar.removeAllViews();
+//        isFirstInit = true;
         showPieChart();
         showMonthlyCostRanking();
     }
@@ -211,6 +214,7 @@ public class PieChart {
 
     //动态显示月度消费排行榜
     public void showMonthlyCostRanking(){
+        costRankingProcessBar.removeAllViews();
         double totalCostMoney = 0.0;
         //通过monthOrders获取总支出金额
         for (Float money:showMoney){

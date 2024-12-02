@@ -204,19 +204,12 @@ public class FamilyMonthReportFragment extends Fragment {
                 for (Map.Entry<String, ArrayList<OrderInfo>> entry : map.entrySet()) {
                     orderInfos.addAll(entry.getValue());
                 }
-
-                if(pieChart == null){
-                        pieChart = new com.beta.autobookkeeping.activity.monthReport.charts.PieChart(
+                pieChart = new com.beta.autobookkeeping.activity.monthReport.charts.PieChart(
                         monthMoneyPieChart,activity,activity.recordMonth,activity.recordYear, orderInfos
                         ,costRankingProcessBar
-                    );
-                    pieChart.showPieChart();
-                    pieChart.showMonthlyCostRanking();
-                }
-                else{
-                    pieChart.refreshPieChartAndRanking(activity.recordYear,activity.recordMonth,orderInfos);//                pieChart = new com.beta.autobookkeeping.activity.monthReport.charts.PieChart(
-
-                }
+                );
+                pieChart.showPieChart();
+                pieChart.showMonthlyCostRanking();
             }
         });
     }
