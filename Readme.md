@@ -171,7 +171,7 @@ https://github.com/FuShengDuoBuYu/AutoBookKeepingBeta/wiki
 - 月度报告和数据可视化
 - 账单搜索和详情页面
 - 设置页面和个人信息
-- 家庭模式和家庭代办
+- 家庭模式和家庭待办
 - 深色模式支持
 
 ---
