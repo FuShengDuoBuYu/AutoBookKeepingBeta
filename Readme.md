@@ -2,6 +2,60 @@
 
 ---
 
+## 项目简介
+
+自动记账是一款专为Android平台设计的智能记账应用，通过监听微信和支付宝的支付通知，实现自动识别并记录账单信息。该应用采用前后端分离架构，支持云端数据备份，让用户无需手动输入即可完成日常收支记录。
+
+### 核心功能
+- **自动识别账单**：监听微信支付、支付宝支付通知，自动提取交易信息并记录
+- **支持支付宝小荷包**：可识别支付宝小荷包账单
+- **月度报告**：提供详细的月度收支统计和可视化图表（饼状图、柱状图）
+- **账单搜索**：支持按时间、类别、关键字等多维度查询账单详情
+- **自定义账单类型**：用户可自定义账单分类
+- **家庭版/个人版**：支持家庭成员管理和家庭账单统计
+- **云端备份**：前后端分离架构，账单数据云端存储
+
+### 技术特点
+- **通知读取**：基于Android NotificationListenerService，实时监听支付通知
+- **前后端分离**：采用云端数据存储，需要联网使用
+- **组件化设计**：使用Fragment等组件化技术，降低代码耦合度
+- **美观的UI**：采用仿iOS风格的对话框和动画效果，使用SVG图标
+- **快捷功能**：支持桌面小部件和快速设置磁贴
+
+### 支持的支付平台
+- 微信支付（WeChat Pay）
+- 支付宝（Alipay）
+- 支付宝小荷包
+
+---
+
+## Project Overview (English)
+
+AutoBookKeeping is an intelligent bookkeeping application designed for Android platforms. It automatically recognizes and records transaction information by monitoring payment notifications from WeChat and Alipay. The app uses a front-end and back-end separation architecture with cloud data backup, allowing users to complete daily income and expense records without manual input.
+
+### Key Features
+- **Automatic Bill Recognition**: Monitors WeChat and Alipay payment notifications, automatically extracts and records transaction information
+- **Alipay Xiaohebao Support**: Recognizes Alipay Xiaohebao (small wallet) transactions
+- **Monthly Reports**: Provides detailed monthly income and expense statistics with visualization charts (pie charts, bar charts)
+- **Bill Search**: Supports multi-dimensional queries by time, category, keywords, etc.
+- **Custom Bill Types**: Users can customize bill categories
+- **Family/Personal Mode**: Supports family member management and family bill statistics
+- **Cloud Backup**: Front-end and back-end separation architecture with cloud data storage
+
+### Technical Highlights
+- **Notification Listening**: Based on Android NotificationListenerService for real-time payment notification monitoring
+- **Front-End/Back-End Separation**: Cloud data storage, requires internet connection
+- **Component-Based Design**: Uses Fragment and other component technologies to reduce code coupling
+- **Beautiful UI**: iOS-style dialogs and animations, SVG icons
+- **Quick Access**: Supports home screen widgets and quick settings tiles
+
+### Supported Payment Platforms
+- WeChat Pay
+- Alipay
+- Alipay Xiaohebao
+
+---
+
 ## 使用说明
 
 本软件的所有使用说明已更新至wiki,还请移步wiki查看
@@ -65,9 +119,111 @@ https://github.com/FuShengDuoBuYu/AutoBookKeepingBeta/wiki
 
 ---
 
+## 技术栈 / Tech Stack
 
+### Android开发框架
+- **最低SDK版本**: Android 10 (API 29)
+- **目标SDK版本**: Android 12 (API 31)
+- **编程语言**: Java 8
+- **构建工具**: Gradle
 
+### 核心依赖库
+- **Material Design**: Material Components for Android
+- **数据可视化**: MPAndroidChart (图表库)
+- **UI组件**: QMUI (腾讯UI组件库)
+- **网络请求**: OkHttp
+- **图片选择**: PictureSelector
+- **数据库**: MySQL Connector
 
+### 主要功能模块
+1. **通知监听服务** (`NotificationReceiver`)
+   - 继承NotificationListenerService
+   - 监听微信和支付宝的支付通知
+   - 实时解析交易信息
+
+2. **账单管理**
+   - 主界面 (`MainActivity`)
+   - 账单详情 (`OrderDetailActivity`)
+   - 账单搜索 (`OrderItemSearchActivity`)
+
+3. **数据统计**
+   - 月度报告 (`MonthReportActivity`)
+   - 饼状图和柱状图展示
+   - 收入/支出进度条
+
+4. **系统集成**
+   - 桌面小部件 (`OrderWidget`)
+   - 快速设置磁贴 (`StartAutoBookTileService`)
+   - 开机自启动 (`BootBroadcastReceiver`)
+
+### 权限要求
+- 通知访问权限（用于监听支付通知）
+- 网络访问权限（用于云端数据同步）
+- 存储权限（用于数据备份）
+- 前台服务权限（用于后台监听）
+
+---
+
+## 应用截图 / Screenshots
+
+应用截图请查看 `ReadmeImage` 目录，包含以下功能的展示：
+- 主界面和UI动画效果
+- 月度报告和数据可视化
+- 账单搜索和详情页面
+- 设置页面和个人信息
+- 家庭模式和家庭待办
+- 深色模式支持
+
+---
+
+## 开发说明 / Development
+
+### 环境要求
+- Android Studio (推荐最新版本)
+- JDK 8 或更高版本
+- Android SDK (API 29+)
+
+### 构建项目
+```bash
+# 克隆仓库
+git clone https://github.com/FuShengDuoBuYu/AutoBookKeepingBeta.git
+
+# 进入项目目录
+cd AutoBookKeepingBeta/AutoBookKeeping
+
+# 使用Gradle构建
+./gradlew build
+
+# 安装到设备
+./gradlew installDebug
+```
+
+### 注意事项
+- 本应用需要**通知访问权限**才能正常工作，首次使用需要在系统设置中授予权限
+- 应用采用**云端存储**，需要联网才能正常使用
+- 部分功能需要**辅助功能权限**和**悬浮窗权限**
+
+---
+
+## 贡献指南 / Contributing
+
+欢迎提交Issue和Pull Request来改进本项目！
+
+---
+
+## 许可证 / License
+
+本项目的许可证信息请查看仓库根目录的LICENSE文件。
+
+---
+
+## 联系方式 / Contact
+
+如有问题或建议，请通过以下方式联系：
+- GitHub Issues: https://github.com/FuShengDuoBuYu/AutoBookKeepingBeta/issues
+- Wiki文档: https://github.com/FuShengDuoBuYu/AutoBookKeepingBeta/wiki
+
+---
 
 
 
