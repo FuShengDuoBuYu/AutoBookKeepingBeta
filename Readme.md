@@ -8,6 +8,7 @@
 
 https://github.com/FuShengDuoBuYu/AutoBookKeepingBeta/wiki
 
+> 注 : 因为阿里云服务器到期(一核一G一年居然收我一千多块钱...),所以换用免费的Render后端和MongoDB atlas部署了,由于该后端服务器可能被自动挂起,所以可能会出现网络卡顿(约1min)左右的情况,属于正常.
 ---
 
 ## 版本更新日志
