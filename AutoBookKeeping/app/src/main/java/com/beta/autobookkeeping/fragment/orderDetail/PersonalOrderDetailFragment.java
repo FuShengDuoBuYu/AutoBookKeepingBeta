@@ -2,8 +2,6 @@ package com.beta.autobookkeeping.fragment.orderDetail;
 
 import static Util.ConstVariable.IP;
 import static Util.ProjectUtil.BLUE;
-import static Util.ProjectUtil.getCurrentMonth;
-import static Util.ProjectUtil.getCurrentYear;
 import static Util.ProjectUtil.setDayOrderItem;
 import static Util.ProjectUtil.setDayOrderTitle;
 
@@ -48,7 +46,7 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Date;
+import java.util.Calendar;
 
 import Util.ProjectUtil;
 import okhttp3.OkHttpClient;
@@ -106,7 +104,11 @@ public class PersonalOrderDetailFragment extends Fragment {
                 String category = this.ordersInfo.get(ordersIndex).getCostType()  + (this.ordersInfo.get(ordersIndex).getOrderRemark().equals("")?"":"-"+this.ordersInfo.get(ordersIndex).getOrderRemark());
                 String payWay = this.ordersInfo.get(ordersIndex).getBankName();
                 String dayMoney = String.format("%.1f",this.ordersInfo.get(ordersIndex).getMoney())+"元";
-                String time = ProjectUtil.getWeek(new Date(getCurrentYear(),getCurrentMonth(),this.ordersInfo.get(ordersIndex).getDay())) + " " +this.ordersInfo.get(ordersIndex).getClock().substring(this.ordersInfo.get(ordersIndex).getClock().length()-5,this.ordersInfo.get(ordersIndex).getClock().length());
+                String time = getWeekByYmd(
+                    this.ordersInfo.get(ordersIndex).getYear(),
+                    this.ordersInfo.get(ordersIndex).getMonth(),
+                    this.ordersInfo.get(ordersIndex).getDay()
+                ) + " " +this.ordersInfo.get(ordersIndex).getClock().substring(this.ordersInfo.get(ordersIndex).getClock().length()-5,this.ordersInfo.get(ordersIndex).getClock().length());
                 LinearLayout dayOrderItem = setDayOrderItem(category,payWay,dayMoney,time,context);
                 //为每个item设置长按选择删除事件
                 dayOrderItem.setOnLongClickListener(new View.OnLongClickListener() {
@@ -136,7 +138,10 @@ public class PersonalOrderDetailFragment extends Fragment {
         //在数据库里找到这个数据
         Cursor cursor = db.query("orderInfo",null,"id="+itemIdInDatabase,null,null,null,null);
         //将已有的数据传过去
-        cursor.moveToNext();
+        if(!cursor.moveToNext()){
+            cursor.close();
+            return;
+        }
         Bundle bundle = new Bundle();
         bundle.putInt("id",cursor.getInt(0));
         bundle.putInt("year",cursor.getInt(1));
@@ -147,6 +152,7 @@ public class PersonalOrderDetailFragment extends Fragment {
         bundle.putString("bankName",cursor.getString(6));
         bundle.putString("orderRemark",cursor.getString(7));
         bundle.putString("costType",cursor.getString(8));
+        cursor.close();
         intent.putExtras(bundle);
         getContext().startActivity(intent);
     }
@@ -220,6 +226,17 @@ public class PersonalOrderDetailFragment extends Fragment {
         });
     }
 
+    private String getWeekByYmd(int year, int month, int day){
+        try {
+            Calendar calendar = Calendar.getInstance();
+            calendar.set(year, month - 1, day, 0, 0, 0);
+            calendar.set(Calendar.MILLISECOND, 0);
+            return ProjectUtil.getWeek(calendar.getTime());
+        } catch (Exception e) {
+            return "";
+        }
+    }
+
     //刷新显示
     @Override
     public void onStart() {
@@ -246,5 +263,13 @@ public class PersonalOrderDetailFragment extends Fragment {
     @Override
     public void onAttach(@NonNull Context context) {
         super.onAttach(context);
+    }
+
+    @Override
+    public void onDestroyView() {
+        if(db != null && db.isOpen()){
+            db.close();
+        }
+        super.onDestroyView();
     }
 }

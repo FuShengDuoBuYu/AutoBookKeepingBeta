@@ -5,6 +5,7 @@ import static Util.ImageUtil.base642bitmap;
 
 import android.content.Intent;
 import android.database.sqlite.SQLiteDatabase;
+import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
 import android.util.Log;
@@ -82,7 +83,12 @@ public class SettingsActivity extends AppCompatActivity {
             userPortrait.setBackground(this.getDrawable(R.drawable.ic_portrait));
         }
         else{
-            userPortrait.setBackground(new BitmapDrawable(base642bitmap((String) SpUtils.get(this,"portrait",""))));
+            Bitmap portraitBitmap = base642bitmap((String) SpUtils.get(this,"portrait",""));
+            if(portraitBitmap == null){
+                userPortrait.setBackground(this.getDrawable(R.drawable.ic_portrait));
+            } else {
+                userPortrait.setBackground(new BitmapDrawable(getResources(), portraitBitmap));
+            }
         }
         //跳转到订单查询
         llSearchOrders.setOnClickListener(v-> startActivity(new Intent(this, OrderItemSearchActivity.class)));
@@ -129,14 +135,11 @@ public class SettingsActivity extends AppCompatActivity {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                //清空表中数据
-                db.execSQL("delete from orderInfo");
-                String url = IP+"/getOrderByUserId/"+SpUtils.get(SettingsActivity.this,"phoneNum","");
+                String url = IP+"/getOrderByPhoneNum/"+SpUtils.get(SettingsActivity.this,"phoneNum","");
                 OkHttpClient client = new OkHttpClient();
                 Request request = new Request.Builder().url(url).get().build();
-                try{
-                    Response response = client.newCall(request).execute();
-                    if(response.code()==200){
+                try(Response response = client.newCall(request).execute()){
+                    if(response.code()==200 && response.body() != null){
                         JSONObject jsonResponse = new JSONObject(response.body().string());
                         if(jsonResponse.getBoolean("success")){
                             List<OrderInfo> orderInfos = new ArrayList<>();
@@ -151,15 +154,21 @@ public class SettingsActivity extends AppCompatActivity {
                                         orderInfo.getString("bankName"),
                                         orderInfo.getString("orderRemark"),
                                         orderInfo.getString("costType"),
-                                        orderInfo.getString("userId")));
+                                        orderInfo.optString("userId", orderInfo.optString("phoneNum", ""))));
                             }
-                            //将数据存入数据库
-                            for(int i=0;i<orderInfos.size();i++){
-                                OrderInfo orderInfo = orderInfos.get(i);
-                                db.execSQL("insert into orderInfo values(?,?,?,?,?,?,?,?,?,?)",
-                                        new Object[]{orderInfo.getId(),orderInfo.getYear(),orderInfo.getMonth(),orderInfo.getDay(),orderInfo.getClock(),orderInfo.getMoney(),orderInfo.getBankName(),orderInfo.getOrderRemark(),orderInfo.getCostType(),(String) SpUtils.get(SettingsActivity.this,"phoneNum","")});
+                            db.beginTransaction();
+                            try {
+                                // Only replace local data after successful remote fetch and parse.
+                                db.execSQL("delete from orderInfo");
+                                for(int i=0;i<orderInfos.size();i++){
+                                    OrderInfo orderInfo = orderInfos.get(i);
+                                    db.execSQL("insert into orderInfo values(?,?,?,?,?,?,?,?,?,?)",
+                                            new Object[]{orderInfo.getId(),orderInfo.getYear(),orderInfo.getMonth(),orderInfo.getDay(),orderInfo.getClock(),orderInfo.getMoney(),orderInfo.getBankName(),orderInfo.getOrderRemark(),orderInfo.getCostType(),orderInfo.getUser()});
+                                }
+                                db.setTransactionSuccessful();
+                            } finally {
+                                db.endTransaction();
                             }
-                            //提示
                             runOnUiThread(new Runnable() {
                                 @Override
                                 public void run() {
@@ -167,12 +176,20 @@ public class SettingsActivity extends AppCompatActivity {
                                     ProjectUtil.toastMsg(SettingsActivity.this,"下载成功");
                                 }
                             });
+                            return;
                         }
 
                     }
                 } catch (JSONException | IOException e) {
                     e.printStackTrace();
                 }
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        StyledDialog.dismissLoading(SettingsActivity.this);
+                        ProjectUtil.toastMsg(SettingsActivity.this,"下载失败,请检查网络后重试");
+                    }
+                });
             }
         }).start();
     }

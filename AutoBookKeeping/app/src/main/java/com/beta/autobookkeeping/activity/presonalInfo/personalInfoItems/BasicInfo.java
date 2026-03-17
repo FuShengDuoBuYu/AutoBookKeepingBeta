@@ -80,7 +80,12 @@ public class BasicInfo {
             iv_portrait.setBackground(context.getDrawable(R.drawable.ic_portrait));
         }
         else{
-            iv_portrait.setBackground(new BitmapDrawable(base642bitmap((String) SpUtils.get(context,"portrait",""))));
+            Bitmap portraitBitmap = base642bitmap((String) SpUtils.get(context,"portrait",""));
+            if(portraitBitmap == null){
+                iv_portrait.setBackground(context.getDrawable(R.drawable.ic_portrait));
+            } else {
+                iv_portrait.setBackground(new BitmapDrawable(context.getResources(), portraitBitmap));
+            }
         }
         //设置值
         tv_phoneNum.setText(this.phoneNum);

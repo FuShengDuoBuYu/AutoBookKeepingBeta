@@ -236,7 +236,12 @@ public class FamilyInfo {
                     ivFamilyMemberPortrait.setBackground(context.getDrawable(R.drawable.ic_portrait));
                 }
                 else{
-                    ivFamilyMemberPortrait.setBackground(new BitmapDrawable(base642bitmap(familyMembers.getJSONObject(i).getString("portrait"))));
+                    Bitmap portraitBitmap = base642bitmap(familyMembers.getJSONObject(i).getString("portrait"));
+                    if(portraitBitmap == null){
+                        ivFamilyMemberPortrait.setBackground(context.getDrawable(R.drawable.ic_portrait));
+                    } else {
+                        ivFamilyMemberPortrait.setBackground(new BitmapDrawable(context.getResources(), portraitBitmap));
+                    }
                 }
                 tvFamilyMemberIdentityAndNickname.setText(familyMembers.getJSONObject(i).getString("familyIdentity")+"·"+familyMembers.getJSONObject(i).getString("nickname"));
                 tvFamilyMemberPhoneNum.setText(familyMembers.getJSONObject(i).getString("phoneNum"));

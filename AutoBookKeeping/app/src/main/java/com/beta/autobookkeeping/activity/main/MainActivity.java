@@ -15,6 +15,7 @@ import androidx.viewpager2.widget.ViewPager2;
 
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageInfo;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
@@ -46,6 +47,9 @@ import com.beta.autobookkeeping.service.NotificationReceiver;
 import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.tabs.TabLayoutMediator;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.ByteArrayOutputStream;
 
 import java.util.ArrayList;
@@ -55,6 +59,9 @@ import java.util.List;
 import Util.ImageUtil;
 import Util.ProjectUtil;
 import Util.SpUtils;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -86,7 +93,6 @@ public class MainActivity extends AppCompatActivity {
 
         startService(new Intent(MainActivity.this, NotificationReceiver.class));
         //设置手机号
-        FamilyChecking.checkFamily(this);
         setPhoneNum();
         //设置开屏动画
         super.onCreate(savedInstanceState);
@@ -166,6 +172,7 @@ public class MainActivity extends AppCompatActivity {
                 dayMoney += cursor.getDouble(5);
                 orders.add(orderInfo);
             }
+            cursor.close();
             orderDayItems.add(new OrderDayItems(
                     getCurrentYear(),
                     getCurrentMonth(),
@@ -246,9 +253,11 @@ public class MainActivity extends AppCompatActivity {
         Cursor cursor = db.rawQuery(searchTable,null);
         while (cursor.moveToNext()){
             if(cursor.getString(0).equals(tableName)){
+                cursor.close();
                 return true;
             }
         }
+        cursor.close();
         return false;
     }
 
@@ -258,12 +267,14 @@ public class MainActivity extends AppCompatActivity {
                 SpUtils.get(this,"phoneNum","")==null || SpUtils.get(this,"phoneNum","").equals("")
         ){
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
-            builder.setTitle("用户注册");
-            builder.setMessage("请依次输入手机号和密码");
+            builder.setTitle("登录/注册");
+            builder.setMessage("请输入手机号和密码,若手机号未注册将自动创建账号");
             final EditText etPhoneNum = new EditText(this);
             etPhoneNum.setInputType(InputType.TYPE_CLASS_PHONE);
+            etPhoneNum.setHint("请输入手机号");
             final EditText etPassword = new EditText(this);
             etPassword.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
+            etPassword.setHint("请输入密码");
             LinearLayout ll = new LinearLayout(this);
             ll.setOrientation(LinearLayout.VERTICAL);
             ll.addView(etPhoneNum);
@@ -280,6 +291,8 @@ public class MainActivity extends AppCompatActivity {
                     }
                 }
             }).show();
+        }else {
+            UserRegister.syncUserProfile(this, (String) SpUtils.get(this,"phoneNum",""), () -> FamilyChecking.checkFamily(MainActivity.this));
         }
     }
 
@@ -289,9 +302,57 @@ public class MainActivity extends AppCompatActivity {
         tv_title.setText("我的收支");
         //获取本日和本月累计收支
         showDayAndMonthMoney();
+        pullRemoteNoticeAndShow();
         //获取并显示所有账单详情
 //        showOrderDetailList();
         super.onStart();
+    }
+
+    private void pullRemoteNoticeAndShow(){
+        new Thread(() -> {
+            try {
+                PackageInfo packageInfo = getPackageManager().getPackageInfo(getPackageName(), 0);
+                int versionCode = packageInfo.versionCode;
+
+                String url = Util.ConstVariable.IP + "/notices/global/latest/" + versionCode;
+                OkHttpClient client = new OkHttpClient();
+                Request request = new Request.Builder().url(url).get().build();
+                try(Response response = client.newCall(request).execute()){
+                    if(response.code() != 200 || response.body() == null){
+                        return;
+                    }
+
+                    JSONObject jsonResponse = new JSONObject(response.body().string());
+                    if(!jsonResponse.getBoolean("success") || jsonResponse.isNull("data")){
+                        return;
+                    }
+
+                    JSONObject data = jsonResponse.getJSONObject("data");
+                    String noticeId = data.optString("noticeId", "");
+                    if(noticeId.isEmpty()){
+                        return;
+                    }
+
+                    String noticeKey = "remote_notice_shown_" + noticeId;
+                    if(SpUtils.contains(MainActivity.this, noticeKey)){
+                        return;
+                    }
+
+                    String title = data.optString("title", "通知");
+                    String content = data.optString("content", "");
+                    runOnUiThread(() -> new AlertDialog.Builder(MainActivity.this)
+                            .setTitle(title)
+                            .setMessage(content)
+                            .setCancelable(false)
+                            .setPositiveButton("我知道了", (dialog, which) -> {
+                                SpUtils.put(MainActivity.this, noticeKey, true);
+                                dialog.dismiss();
+                            })
+                            .show());
+                }
+            } catch (Exception ignored) {
+            }
+        }).start();
     }
 
     //为今日和本月累计赋值刷新(个人)
@@ -304,6 +365,17 @@ public class MainActivity extends AppCompatActivity {
     public void showDayAndMonthMoney(String dayMoney,String monthMoney){
         tvAllTodayOrder.setText(dayMoney);
         tvAllMonthOrder.setText(monthMoney);
+    }
+
+    public void refreshAfterCloudOrderSync(){
+        showDayAndMonthMoney();
+        if(fragments == null || fragments.isEmpty()){
+            return;
+        }
+        Fragment personalFragment = fragments.get(0);
+        if(personalFragment instanceof PersonalOrderDetailFragment){
+            ((PersonalOrderDetailFragment) personalFragment).addViewByData(this);
+        }
     }
 
     public void clickFamilyItemToShowDetail(View v, Pair<View, String>... pairs){
@@ -325,5 +397,13 @@ public class MainActivity extends AppCompatActivity {
         byte[] byteArray = stream.toByteArray();
         intent.putExtra("background",byteArray);
         startActivity(intent, options.toBundle());
+    }
+
+    @Override
+    protected void onDestroy() {
+        if(db != null && db.isOpen()){
+            db.close();
+        }
+        super.onDestroy();
     }
 }

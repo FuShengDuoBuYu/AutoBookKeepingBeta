@@ -49,8 +49,15 @@ public class ImageUtil {
 
     //把base64转为bitmap用于展示
     public static Bitmap base642bitmap(String base64Image){
-        byte[] bytes = Base64.decode(base64Image, Base64.DEFAULT);
-        return BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
+        if(base64Image == null || base64Image.trim().isEmpty()){
+            return null;
+        }
+        try {
+            byte[] bytes = Base64.decode(base64Image, Base64.DEFAULT);
+            return BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
+        } catch (IllegalArgumentException e) {
+            return null;
+        }
     }
 
     //把drawable转为bitmap

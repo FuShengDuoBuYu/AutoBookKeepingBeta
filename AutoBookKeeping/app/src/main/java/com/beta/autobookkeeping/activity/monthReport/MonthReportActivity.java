@@ -210,4 +210,12 @@ public class MonthReportActivity extends AppCompatActivity {
             return "个人版";
         }
     }
+
+    @Override
+    protected void onDestroy() {
+        if(db != null && db.isOpen()){
+            db.close();
+        }
+        super.onDestroy();
+    }
 }

@@ -77,7 +77,7 @@ public class FamilyMonthReportFragment extends Fragment {
         }
         //请求后端获取12月份的收支数据
         getEveryMonthMoney();
-        getSomeMonthMoney();
+        getSomeMonthMoney(activity.recordYear, activity.recordMonth);
         return view;
     }
 
@@ -97,12 +97,12 @@ public class FamilyMonthReportFragment extends Fragment {
     }
 
     //查询某个月的支出情况
-    private void getSomeMonthMoney(){
+    private void getSomeMonthMoney(int year, int month){
         StyledDialog.buildLoading().show();
         new Thread(new Runnable() {
             @Override
             public void run() {
-                String url = IP+"/findFamilySomeMonthCosts/"+ SpUtils.get(getContext(),"familyId","")+"/"+activity.recordYear+"/"+activity.recordMonth;
+                String url = IP+"/findFamilySomeMonthCosts/"+ SpUtils.get(getContext(),"familyId","")+"/"+year+"/"+month;
                 OkHttpClient client = new OkHttpClient();
                 Request request = new Request.Builder().url(url).get().build();
                 try{
@@ -134,7 +134,7 @@ public class FamilyMonthReportFragment extends Fragment {
                                 }
                                 map1.put(entry.getKey(),orderInfos);
                             }
-                            afterGetSomeMonthMoney(map1);
+                            afterGetSomeMonthMoney(map1, year, month);
                         }
                         else{
                             Looper.prepare();
@@ -158,6 +158,7 @@ public class FamilyMonthReportFragment extends Fragment {
     //查询12个月的收支情况
     private void getEveryMonthMoney(){
         StyledDialog.buildLoading().show();
+        everyMonthMoney.clear();
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -194,7 +195,7 @@ public class FamilyMonthReportFragment extends Fragment {
         }).start();
     }
 
-    private void afterGetSomeMonthMoney(Map<String,ArrayList<OrderInfo>> map){
+    private void afterGetSomeMonthMoney(Map<String,ArrayList<OrderInfo>> map, int year, int month){
         StyledDialog.dismissLoading(activity);
         activity.runOnUiThread(new Runnable() {
             @Override
@@ -205,7 +206,7 @@ public class FamilyMonthReportFragment extends Fragment {
                     orderInfos.addAll(entry.getValue());
                 }
                 pieChart = new com.beta.autobookkeeping.activity.monthReport.charts.PieChart(
-                        monthMoneyPieChart,activity,activity.recordMonth,activity.recordYear, orderInfos
+                    monthMoneyPieChart,activity,month,year, orderInfos
                         ,costRankingProcessBar
                 );
                 pieChart.showPieChart();
@@ -232,8 +233,13 @@ public class FamilyMonthReportFragment extends Fragment {
 
     //更新数据
     public void refreshMonthCost(int year,int month){
-        activity.refreshMonthMoney((double) everyMonthMoney.get(getMonthDiff(year,month)),year,month);
-        getSomeMonthMoney();
+        int monthDiff = getMonthDiff(year,month);
+        float monthMoney = 0f;
+        if(monthDiff >= 0 && monthDiff < everyMonthMoney.size()){
+            monthMoney = everyMonthMoney.get(monthDiff);
+        }
+        activity.refreshMonthMoney((double) monthMoney,year,month);
+        getSomeMonthMoney(year, month);
         StyledDialog.dismissLoading(activity);
     }
 

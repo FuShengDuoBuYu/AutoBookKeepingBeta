@@ -1,13 +1,9 @@
 package Util;
 
+import com.beta.autobookkeeping.BuildConfig;
+
 public class ConstVariable {
-//    public static final String IP = "http://192.168.31.59:9000";
-//    public static final String IP = "http://192.168.1.106:9000";
-//    public static final String IP = "http://192.168.11.106:9000";
-//    public static final String IP = "http://192.168.172.106:9000";
-    public static final String IP = "http://106.15.35.61:9000";
-//    public static final String IP = "https://l4425642w4.zicp.fun";
-//    public static final String IP = "http://localhost:9000";
+    public static final String IP = BuildConfig.API_BASE_URL;
     public static final String FAMILY_MODE = "家庭版";
     public static final String PERSONAL_MODE = "个人版";
     public static final String[] COST_TYPE = {"消费","饮食","交通","体育","聚会","娱乐","购物","通讯","红包","医疗","房租与水电","学习","其他"};

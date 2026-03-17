@@ -10,6 +10,7 @@ import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
@@ -48,7 +49,7 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Date;
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -128,6 +129,9 @@ public class FamilyOrderDetailFragment extends Fragment {
     }
 
     private void getFamilyOrders(){
+        if(activity == null){
+            return;
+        }
         if (SpUtils.get(activity, "familyId", "")==null || SpUtils.get(activity, "familyId", "").equals("")) {
             Toast.makeText(activity, "您还没有加入家庭", Toast.LENGTH_SHORT).show();
             return;
@@ -139,14 +143,19 @@ public class FamilyOrderDetailFragment extends Fragment {
                 String url = IP+"/findMonthFamilyOrders/"+ SpUtils.get(getContext(),"familyId","")+"/"+String.valueOf(ProjectUtil.getCurrentMonth());
                 OkHttpClient client = new OkHttpClient();
                 Request request = new Request.Builder().url(url).get().build();
-                try{
-                    Response response = client.newCall(request).execute();
-                    if(response.code()==200){
+                try (Response response = client.newCall(request).execute()){
+                    if(response.code()==200 && response.body() != null){
                         JSONObject jsonResponse = new JSONObject(response.body().string());
-                        JSONArray familyOrdersAndFamilyUsers = jsonResponse.getJSONArray("data");
-                        afterGetFamilyOrders(familyOrdersAndFamilyUsers,ll_FamilyOrders);
+                        JSONArray familyOrdersAndFamilyUsers = jsonResponse.optJSONArray("data");
+                        if(familyOrdersAndFamilyUsers == null){
+                            familyOrdersAndFamilyUsers = new JSONArray();
+                        }
+                        afterGetFamilyOrders(familyOrdersAndFamilyUsers, ll_FamilyOrders);
+                    } else {
+                        dismissLoadingSafely();
                     }
                 } catch (JSONException | IOException e) {
+                    dismissLoadingSafely();
                     e.printStackTrace();
                 }
             }
@@ -154,25 +163,34 @@ public class FamilyOrderDetailFragment extends Fragment {
     }
 
     private void afterGetFamilyOrders(JSONArray familyOrdersAndUsers,LinearLayout linearLayout){
-        JSONArray familyOrders = null;
-        JSONArray familyUsers = null;
+        JSONArray familyOrders = new JSONArray();
+        JSONArray familyUsers = new JSONArray();
         dayMoney = 0.0;
         monthMoney = 0.0;
-        try {
-            familyOrders = familyOrdersAndUsers.getJSONArray(0);
-            familyUsers = familyOrdersAndUsers.getJSONArray(1);
-        } catch (JSONException e) {
-            e.printStackTrace();
+        if(familyOrdersAndUsers != null && familyOrdersAndUsers.length() >= 2){
+            familyOrders = familyOrdersAndUsers.optJSONArray(0);
+            familyUsers = familyOrdersAndUsers.optJSONArray(1);
+            if(familyOrders == null){
+                familyOrders = new JSONArray();
+            }
+            if(familyUsers == null){
+                familyUsers = new JSONArray();
+            }
         }
+
         //创建一个keyvalue用来存储各个用户的头像信息
         Map<String, Drawable> userPortrait = new HashMap<>();
         for(int i = 0;i < familyUsers.length();i++){
             try {
-                if(familyUsers.getJSONObject(i).getString("portrait")==null||"".equals(familyUsers.getJSONObject(i).getString("portrait"))){
-                    userPortrait.put(familyUsers.getJSONObject(i).getString("phoneNum"),getContext().getDrawable(R.drawable.ic_portrait));
+                JSONObject user = familyUsers.getJSONObject(i);
+                Drawable portrait = getSafePortrait(user.optString("portrait", ""));
+                String phoneNum = user.optString("phoneNum", "");
+                if(!phoneNum.isEmpty()){
+                    userPortrait.put(phoneNum, portrait);
                 }
-                else{
-                    userPortrait.put(familyUsers.getJSONObject(i).getString("phoneNum"), new BitmapDrawable(ImageUtil.base642bitmap(familyUsers.getJSONObject(i).getString("portrait"))));
+                String userId = user.optString("userId", "");
+                if(!userId.isEmpty()){
+                    userPortrait.put(userId, portrait);
                 }
             } catch (JSONException e) {
                 e.printStackTrace();
@@ -184,73 +202,68 @@ public class FamilyOrderDetailFragment extends Fragment {
             @Override
             public void run() {
                 linearLayout.removeAllViews();
-                //获取日总收支和日收支数目
-                List<Integer> daysCount = new ArrayList<>();
-                List<Double> dayCost = new ArrayList<>();
-                Integer nums = 0;
-                Double money = 0.0;
-                for(int i = 0; i < finalFamilyOrders.length()-1; i++){
-                    try {
-                        if(finalFamilyOrders.getJSONObject(i).getInt("day")== finalFamilyOrders.getJSONObject(i+1).getInt("day")){
-                            money+= finalFamilyOrders.getJSONObject(i).getDouble("money");
-                            nums++;
-                            //如果是最后一个,就也要加上
-                            if(i==finalFamilyOrders.length()-2){
-                                nums++;
-                                money+= finalFamilyOrders.getJSONObject(i+1).getDouble("money");
-                            }
-                        }
-                        else{
-                            nums++;
-                            money+= finalFamilyOrders.getJSONObject(i).getDouble("money");
-                            daysCount.add(nums);
-                            dayCost.add(money);
-                            monthMoney+=money;
-                            nums = 0;
-                            money = 0.0;
-                            continue;
-                        }
-                    } catch (JSONException e) {
-                        e.printStackTrace();
+                if(finalFamilyOrders.length() == 0){
+                    if(activity instanceof MainActivity){
+                        ((MainActivity) activity).showDayAndMonthMoney("0.00","0.00");
                     }
+                    StyledDialog.dismissLoading(getActivity());
+                    return;
                 }
-                Log.d("test",String.valueOf(nums));
-                daysCount.add(nums);
-                dayCost.add(money);
-                monthMoney+=money;
+
                 int orderIndex = 0;
-                for (int i =0;i < daysCount.size();i++){
+                while(orderIndex < finalFamilyOrders.length()){
                     try {
-                        if(finalFamilyOrders.getJSONObject(orderIndex).getInt("day")==ProjectUtil.getCurrentDay()){
-                            dayMoney = dayCost.get(i);
+                        JSONObject firstOrder = finalFamilyOrders.getJSONObject(orderIndex);
+                        int currentDay = firstOrder.optInt("day", -1);
+                        int groupStart = orderIndex;
+                        double groupMoney = 0.0;
+
+                        while(orderIndex < finalFamilyOrders.length()){
+                            JSONObject order = finalFamilyOrders.getJSONObject(orderIndex);
+                            if(order.optInt("day", -1) != currentDay){
+                                break;
+                            }
+                            groupMoney += order.optDouble("money", 0.0);
+                            orderIndex++;
                         }
 
-                        linearLayout.addView(ProjectUtil.setDayOrderTitle(finalFamilyOrders.getJSONObject(orderIndex).getString("clock").substring(0,6),(dayCost.get(i)+"元"),getContext()));
-                        for (int j = 0; j < daysCount.get(i); j++) {
+                        monthMoney += groupMoney;
+                        if(currentDay == ProjectUtil.getCurrentDay()){
+                            dayMoney = groupMoney;
+                        }
 
-                            JSONObject order = finalFamilyOrders.getJSONObject(orderIndex);
+                        String clock = firstOrder.optString("clock", "");
+                        String title = clock.length() >= 6 ? clock.substring(0, 6) : (ProjectUtil.getCurrentMonth()+"月"+currentDay+"日");
+                        linearLayout.addView(ProjectUtil.setDayOrderTitle(title,(String.format("%.2f",groupMoney)+"元"),getContext()));
+
+                        for (int i = groupStart; i < orderIndex; i++) {
+                            JSONObject order = finalFamilyOrders.getJSONObject(i);
                             ImageView imageView = new ImageView(getContext());
-                            Drawable portrait = userPortrait.get(order.getString("userId"));
-                            imageView.setImageDrawable(userPortrait.get(order.getString("userId")));
+                            Drawable portrait = userPortrait.get(order.optString("userId", ""));
+                            if(portrait == null){
+                                portrait = getContext().getDrawable(R.drawable.ic_portrait);
+                            }
+                            imageView.setImageDrawable(portrait);
                             imageView.setPadding(0,0,20,0);
                             imageView.setLayoutParams(new ViewGroup.LayoutParams(DensityUtil.dpToPx(getContext(),38f), DensityUtil.dpToPx(getContext(),38f)));
                             imageView.setForegroundGravity(Gravity.VERTICAL_GRAVITY_MASK);
 
+                            String orderRemark = order.optString("orderRemark", "");
+                            String clockText = order.optString("clock", "");
+                            String timeText = clockText.length() > 7 ? clockText.substring(7) : clockText;
                             LinearLayout familyOrderItem = ProjectUtil.setDayOrderItem(
-                                    order.getString("costType")+(order.getString("orderRemark").equals("")?"":("-"+order.getString("orderRemark"))),
-                                    order.getString("bankName"),
-                                     (order.getDouble("money")+"元"),
-                                    ProjectUtil.getWeek(new Date(order.getInt("year"), order.getInt("month"),order.getInt("day")))+" "+order.getString("clock").substring(7,order.getString("clock").length()),
+                                    order.optString("costType", "")+(orderRemark.equals("")?"":("-"+orderRemark)),
+                                    order.optString("bankName", ""),
+                                    (order.optDouble("money", 0.0)+"元"),
+                                    getWeekByYmd(order.optInt("year", 0), order.optInt("month", 0), order.optInt("day", 0))+" "+timeText,
                                     getContext(),
                                     imageView
                             );
-                            familyOrderItem.setTransitionName("familyOrderItem"+orderIndex);
-                            //设置点击事件
+                            familyOrderItem.setTransitionName("familyOrderItem"+i);
                             familyOrderItem.setOnClickListener(v->{
 //                                showDialog(v);
                             });
                             linearLayout.addView(familyOrderItem);
-                            orderIndex++;
                         }
                     }
                     catch (JSONException e) {
@@ -261,9 +274,42 @@ public class FamilyOrderDetailFragment extends Fragment {
                 if(activity instanceof MainActivity){
                     ((MainActivity) activity).showDayAndMonthMoney(String .format("%.2f",dayMoney),String .format("%.2f",monthMoney));
                 }
+                StyledDialog.dismissLoading(getActivity());
             }
         });
-        StyledDialog.dismissLoading(getActivity());
+    }
+
+    private Drawable getSafePortrait(String portraitBase64){
+        if(getContext() == null){
+            return null;
+        }
+        if(portraitBase64 == null || portraitBase64.trim().isEmpty() || "null".equalsIgnoreCase(portraitBase64.trim())){
+            return getContext().getDrawable(R.drawable.ic_portrait);
+        }
+        Bitmap bitmap = ImageUtil.base642bitmap(portraitBase64);
+        if(bitmap == null){
+            return getContext().getDrawable(R.drawable.ic_portrait);
+        }
+        return new BitmapDrawable(getResources(), bitmap);
+    }
+
+    private void dismissLoadingSafely(){
+        Activity currentActivity = getActivity();
+        if(currentActivity == null){
+            return;
+        }
+        currentActivity.runOnUiThread(() -> StyledDialog.dismissLoading(currentActivity));
+    }
+
+    private String getWeekByYmd(int year, int month, int day){
+        try {
+            Calendar calendar = Calendar.getInstance();
+            calendar.set(year, month - 1, day, 0, 0, 0);
+            calendar.set(Calendar.MILLISECOND, 0);
+            return ProjectUtil.getWeek(calendar.getTime());
+        } catch (Exception e) {
+            return "";
+        }
     }
 
     private void showDialog(View v){
