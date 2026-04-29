@@ -26,6 +26,11 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true">
         <activity
+            android:name=".activity.web.AiBillActivity"
+            android:excludeFromRecents="true"
+            android:exported="true"
+            android:theme="@style/Theme.AppCompat.DayNight.NoActionBar" />
+        <activity
             android:name=".activity.orderItemSearch.OrderItemSearchActivity"
             android:excludeFromRecents="true"
             android:exported="true"

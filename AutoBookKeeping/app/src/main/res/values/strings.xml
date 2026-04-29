@@ -4,6 +4,7 @@
     <string name="today_all_cost">今日累计</string>
     <string name="month_all_cost">本月累计</string>
     <string name="searchMonthlyReport">查看月度报告</string>
+    <string name="ai_bill">ai账单</string>
     <string name="deleteAllOrders">清空所有账单记录</string>
     <string name="OrderDetail">账单详情</string>
     <string name="hint_input_cost_number">请输入金额(元)</string>

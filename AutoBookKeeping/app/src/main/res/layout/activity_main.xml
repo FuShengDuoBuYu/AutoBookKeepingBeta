@@ -107,12 +107,26 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="5dp">
+        android:padding="5dp"
+        android:orientation="horizontal">
         <Button
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
             android:id="@+id/btnSearchMonthlyReport"
             android:text="@string/searchMonthlyReport"
+            android:gravity="center"
+            android:textSize="15sp"
+            android:background="@drawable/corner_btn"
+            android:textColor="@color/white">
+        </Button>
+        <Button
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="8dp"
+            android:id="@+id/btnAiBill"
+            android:text="@string/ai_bill"
             android:gravity="center"
             android:textSize="15sp"
             android:background="@drawable/corner_btn"

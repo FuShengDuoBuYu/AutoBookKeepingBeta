@@ -38,6 +38,7 @@ import com.beta.autobookkeeping.activity.main.entity.OrderInfo;
 import com.beta.autobookkeeping.activity.monthReport.MonthReportActivity;
 import com.beta.autobookkeeping.activity.orderDetail.OrderDetailActivity;
 import com.beta.autobookkeeping.activity.settings.SettingsActivity;
+import com.beta.autobookkeeping.activity.web.AiBillActivity;
 import com.beta.autobookkeeping.R;
 import com.beta.autobookkeeping.fragment.orderDetail.FamilyOrderDetailFragment;
 import com.beta.autobookkeeping.fragment.orderDetail.PersonalOrderDetailFragment;
@@ -70,7 +71,7 @@ public class MainActivity extends AppCompatActivity {
     private TabLayout tabLayout;
     private TabOrderDetailFragmentPagerAdapter tabOrderDetailFragmentPagerAdapter;
     private ImageView btnPlusNewOrder,btnSettings;
-    private Button btnSearchMonthlyReport;
+    private Button btnSearchMonthlyReport,btnAiBill;
     private TextView tvAllTodayOrder,tvAllMonthOrder,tv_title;
     private LinearLayout lvOrderDetail,llCostTitle;
     private ScrollView svOrderDetail;
@@ -222,11 +223,25 @@ public class MainActivity extends AppCompatActivity {
         });
         //找到<查找月度报告>的按钮
         btnSearchMonthlyReport = findViewById(R.id.btnSearchMonthlyReport);
+        btnAiBill = findViewById(R.id.btnAiBill);
         //设置该按钮的监听事件
         btnSearchMonthlyReport.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 Intent intent = new Intent(MainActivity.this, MonthReportActivity.class);
+                startActivity(intent);
+            }
+        });
+        btnAiBill.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                String phoneNum = (String) SpUtils.get(MainActivity.this,"phoneNum","");
+                if(phoneNum == null || phoneNum.trim().equals("")){
+                    toastMsg(MainActivity.this,"请先登录后再查看AI账单");
+                    return;
+                }
+                Intent intent = new Intent(MainActivity.this, AiBillActivity.class);
+                intent.putExtra("phoneNum", phoneNum.trim());
                 startActivity(intent);
             }
         });
