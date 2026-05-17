@@ -2,6 +2,30 @@ plugins {
     id 'com.android.application'
 }
 
+def localProperties = new Properties()
+def localPropertiesFile = rootProject.file('local.properties')
+if (localPropertiesFile.exists()) {
+    localPropertiesFile.withInputStream { stream ->
+        localProperties.load(stream)
+    }
+}
+
+def bookkeepingStoreFile = rootProject.file('../keys.jks')
+def bookkeepingStorePassword = localProperties.getProperty('BOOKKEEPING_STORE_PASSWORD')
+        ?: project.findProperty('BOOKKEEPING_STORE_PASSWORD')
+        ?: System.getenv('BOOKKEEPING_STORE_PASSWORD')
+def bookkeepingKeyAlias = localProperties.getProperty('BOOKKEEPING_KEY_ALIAS')
+        ?: project.findProperty('BOOKKEEPING_KEY_ALIAS')
+        ?: System.getenv('BOOKKEEPING_KEY_ALIAS')
+def bookkeepingKeyPassword = localProperties.getProperty('BOOKKEEPING_KEY_PASSWORD')
+        ?: project.findProperty('BOOKKEEPING_KEY_PASSWORD')
+        ?: System.getenv('BOOKKEEPING_KEY_PASSWORD')
+        ?: bookkeepingStorePassword
+def hasBookkeepingSigning = bookkeepingStoreFile.exists()
+        && bookkeepingStorePassword
+        && bookkeepingKeyAlias
+        && bookkeepingKeyPassword
+
 android {
     compileSdk 31
 
@@ -15,15 +39,32 @@ android {
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    signingConfigs {
+        if (hasBookkeepingSigning) {
+            bookkeeping {
+                storeFile bookkeepingStoreFile
+                storePassword bookkeepingStorePassword
+                keyAlias bookkeepingKeyAlias
+                keyPassword bookkeepingKeyPassword
+            }
+        }
+    }
+
     buildTypes {
         debug {
-            buildConfigField "String", "API_BASE_URL", '"http://10.0.2.2:8000"'
-            buildConfigField "String", "LLM_BASE_URL", '"http://10.0.2.2:8001/gzt_code_server/llm_interface"'
+            buildConfigField "String", "API_BASE_URL", '"https://autobookkeeping-fastapi.onrender.com"'
+            buildConfigField "String", "LLM_BASE_URL", '"http://lz1pe24291437.vicp.fun/gzt_code_server/llm_interface"'
+            if (hasBookkeepingSigning) {
+                signingConfig signingConfigs.bookkeeping
+            }
         }
         release {
             minifyEnabled false
             buildConfigField "String", "API_BASE_URL", '"https://autobookkeeping-fastapi.onrender.com"'
-            buildConfigField "String", "LLM_BASE_URL", '"http://10.0.2.2:8001/gzt_code_server/llm_interface"'
+            buildConfigField "String", "LLM_BASE_URL", '"http://lz1pe24291437.vicp.fun/gzt_code_server/llm_interface"'
+            if (hasBookkeepingSigning) {
+                signingConfig signingConfigs.bookkeeping
+            }
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }

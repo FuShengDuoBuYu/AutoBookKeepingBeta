@@ -41,6 +41,9 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
+import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
@@ -85,6 +88,9 @@ public class ProjectUtil {
     public final static int Gray = Color.rgb(235, 235, 235);
     private static final String TAG = "ProjectUtil";
     private static final String ORDER_NOTIFICATION_CHANNEL = "order_notification";
+    private static final String DEFAULT_LLM_MODEL = "qwen3:14b";
+    private static final int LOG_CHUNK_SIZE = 3000;
+    private static final long BILL_DEDUP_WINDOW_MS = 5 * 1000;
     private static final long NOTIFICATION_DEDUP_WINDOW_MS = 2 * 60 * 1000;
     private static String lastNotificationDedupKey = "";
     private static long lastNotificationDedupTime = 0L;
@@ -128,13 +134,46 @@ public class ProjectUtil {
 
     public static void handleNotificationBillWithLlm(Context context, StatusBarNotification sbn) {
         RawNotification rawNotification = RawNotification.from(sbn);
-        if (rawNotification == null || isEmpty(rawNotification.readableText())) {
+        handleRawNotificationBillWithLlm(context, rawNotification);
+    }
+
+    public static void handleNotificationBillWithLlmForDebug(Context context, String packageName, String title, String text, String subText, String bigText, ArrayList<String> lines) {
+        if (!BuildConfig.DEBUG) {
             return;
         }
+        RawNotification rawNotification = new RawNotification(
+                packageName,
+                title,
+                text,
+                subText,
+                bigText,
+                lines,
+                System.currentTimeMillis(),
+                "debug-" + packageName + "-" + System.currentTimeMillis());
+        handleRawNotificationBillWithLlm(context, rawNotification);
+    }
+
+    private static void handleRawNotificationBillWithLlm(Context context, RawNotification rawNotification) {
+        if (rawNotification == null || isEmpty(rawNotification.readableText())) {
+            debugLog("notification.ignore", "empty notification");
+            return;
+        }
+        debugLog("notification.raw", rawNotification.toDebugJson().toString());
+        debugLog("notification.readableText", rawNotification.readableText());
         if (context.getPackageName().equals(rawNotification.packageName)) {
+            debugLog("notification.ignore", "self package notification");
+            return;
+        }
+        if (shouldIgnoreNonXiaohebaoAlipayNotification(context, rawNotification)) {
+            debugLog("notification.ignore", "alipay xiaohebao enabled, ignore non-xiaohebao alipay notification");
+            return;
+        }
+        if (shouldIgnoreAlipayXiaohebaoNotification(context, rawNotification)) {
+            debugLog("notification.ignore", "alipay xiaohebao nickname mismatch or disabled");
             return;
         }
         if (isDuplicateNotification(rawNotification)) {
+            debugLog("notification.ignore", "duplicate notification: " + rawNotification.dedupKey());
             return;
         }
 
@@ -143,6 +182,12 @@ public class ProjectUtil {
             try {
                 BillParseResult bill = parseNotificationBillWithLlm(appContext, rawNotification);
                 if (bill == null || !bill.isBill) {
+                    debugLog("bill.ignore", "LLM result is not a bill or invalid");
+                    return;
+                }
+                debugLog("bill.parsed", bill.toDebugJson().toString());
+                if (isDuplicateBillByTransactionTime(appContext, bill)) {
+                    debugLog("bill.ignore", "duplicate bill by amount/payWay/time window");
                     return;
                 }
                 ContentValues values = buildOrderValues(appContext, bill);
@@ -159,31 +204,42 @@ public class ProjectUtil {
 
     private static BillParseResult parseNotificationBillWithLlm(Context context, RawNotification rawNotification) throws IOException, JSONException {
         JSONObject requestJson = new JSONObject();
-        requestJson.put("model", "qwen");
+        requestJson.put("model", DEFAULT_LLM_MODEL);
         requestJson.put("json", true);
         requestJson.put("think", false);
         requestJson.put("raw", false);
         requestJson.put("system", "你是一个账单通知解析器。你只能返回合法 JSON,不要解释。");
-        requestJson.put("prompt", buildBillPrompt(rawNotification).toString());
+        requestJson.put("prompt", buildBillPrompt(context, rawNotification).toString());
         requestJson.put("expect_schema", buildBillExpectSchema());
 
-        OkHttpClient client = new OkHttpClient();
-        RequestBody body = RequestBody.create(requestJson.toString(), MediaType.parse("application/json;charset=utf-8"));
+        OkHttpClient client = new OkHttpClient.Builder()
+                .connectTimeout(15, TimeUnit.SECONDS)
+                .writeTimeout(30, TimeUnit.SECONDS)
+                .readTimeout(120, TimeUnit.SECONDS)
+                .build();
+        String requestText = requestJson.toString();
+        debugLog("llm.url", joinUrl(BuildConfig.LLM_BASE_URL, "chat"));
+        debugLog("llm.request", requestText);
+        RequestBody body = RequestBody.create(requestText, MediaType.parse("application/json;charset=utf-8"));
         Request request = new Request.Builder()
                 .url(joinUrl(BuildConfig.LLM_BASE_URL, "chat"))
                 .post(body)
                 .build();
 
         try (Response response = client.newCall(request).execute()) {
-            if (response.code() != 200 || response.body() == null) {
+            String responseText = response.body() == null ? "" : response.body().string();
+            debugLog("llm.response.status", response.code() + " " + response.message());
+            debugLog("llm.response.body", responseText);
+            if (!response.isSuccessful() || isEmpty(responseText)) {
                 return null;
             }
-            JSONObject llmJson = normalizeLlmJson(response.body().string());
+            JSONObject llmJson = normalizeLlmJson(responseText);
+            debugLog("llm.response.normalized", llmJson.toString());
             return BillParseResult.fromJson(context, rawNotification, llmJson);
         }
     }
 
-    private static JSONObject buildBillPrompt(RawNotification rawNotification) throws JSONException {
+    private static JSONObject buildBillPrompt(Context context, RawNotification rawNotification) throws JSONException {
         JSONObject prompt = new JSONObject();
         JSONObject notification = new JSONObject();
         notification.put("packageName", rawNotification.packageName);
@@ -200,14 +256,93 @@ public class ProjectUtil {
         prompt.put("notification", notification);
         prompt.put("allowedCostTypes", new JSONArray(ConstVariable.COST_TYPE));
         prompt.put("allowedPayWays", new JSONArray(ConstVariable.PAY_WAY));
+        prompt.put("alipayXiaohebao", buildAlipayXiaohebaoPrompt(context));
+        prompt.put("outputSchema", buildBillExpectSchema());
+        prompt.put("outputExample", new JSONObject()
+                .put("isBill", true)
+                .put("year", getCurrentYear())
+                .put("month", getCurrentMonth())
+                .put("day", getCurrentDay())
+                .put("clock", getCurrentMonth() + "月" + getCurrentDay() + "日 " + getCurrentHour() + ":" + String.format("%02d", getCurrentMinute()))
+                .put("money", -28.5)
+                .put("bankName", "支付宝")
+                .put("orderRemark", "")
+                .put("costType", "消费")
+                .put("confidence", 0.92));
         prompt.put("rules", new JSONArray()
+                .put("只能返回一个 JSON 对象,不能返回 Markdown、代码块或解释。")
+                .put("返回 JSON 必须包含 outputSchema.required 中所有字段。")
                 .put("如果不是账单通知,isBill=false,其余字段给安全默认值。")
+                .put("如果 alipayXiaohebao.enabled=true,只解析支付宝小荷包通知;支付宝普通交易提醒、支付成功、交易记录等非小荷包通知必须返回 isBill=false,避免同一笔小荷包消费重复记账。")
+                .put("如果是支付宝小荷包通知,且通知内容出现“某某消费了”,只有“某某”与 alipayXiaohebao.nickname 完全对应时才算自己的账单;不对应或无法确认时 isBill=false。")
+                .put("如果 alipayXiaohebao.enabled=false,不要因为小荷包多人消费通知自动记账。")
                 .put("支出 money 必须为负数,收入 money 必须为正数。")
                 .put("bankName 必须优先从 allowedPayWays 中选择。")
-                .put("costType 必须优先从 allowedCostTypes 中选择;收入统一返回 收入。")
-                .put("orderRemark 填商户、对方、场景或简短备注;没有则为空字符串。")
+                .put("costType 必须优先从 allowedCostTypes 中选择;收入统一返回 收入;支出消费类型无法确定时返回 消费。")
+                .put("orderRemark 必须返回空字符串,不要根据商户、对方或场景主动填写备注,备注由用户自己编辑。")
                 .put("clock 使用 App 当前格式,例如 5月15日 10:32。"));
         return prompt;
+    }
+
+    private static JSONObject buildAlipayXiaohebaoPrompt(Context context) throws JSONException {
+        String nickname = (String) SpUtils.get(context, "is_alipay_xiaohebao", "");
+        return new JSONObject()
+                .put("enabled", !isEmpty(nickname))
+                .put("nickname", safeString(nickname))
+                .put("matchingRule", "小荷包通知中如果出现“xxx消费了”,xxx 必须与 nickname 对应才记录;其他成员消费返回 isBill=false");
+    }
+
+    private static boolean shouldIgnoreAlipayXiaohebaoNotification(Context context, RawNotification rawNotification) {
+        if (!"com.eg.android.AlipayGphone".equals(rawNotification.packageName)) {
+            return false;
+        }
+        String readableText = rawNotification.readableText();
+        if (!readableText.contains("小荷包") || !readableText.contains("消费了")) {
+            return false;
+        }
+        String nickname = (String) SpUtils.get(context, "is_alipay_xiaohebao", "");
+        if (isEmpty(nickname)) {
+            return true;
+        }
+        String consumerName = extractNameBefore(readableText, "消费了");
+        return !isEmpty(consumerName) && !nickname.equals(consumerName);
+    }
+
+    private static boolean shouldIgnoreNonXiaohebaoAlipayNotification(Context context, RawNotification rawNotification) {
+        if (!"com.eg.android.AlipayGphone".equals(rawNotification.packageName)) {
+            return false;
+        }
+        String nickname = (String) SpUtils.get(context, "is_alipay_xiaohebao", "");
+        if (isEmpty(nickname)) {
+            return false;
+        }
+        return !rawNotification.readableText().contains("小荷包");
+    }
+
+    private static String extractNameBefore(String text, String marker) {
+        int markerIndex = text.indexOf(marker);
+        if (markerIndex <= 0) {
+            return "";
+        }
+        int start = markerIndex - 1;
+        while (start >= 0 && !isNameSeparator(text.charAt(start))) {
+            start--;
+        }
+        return text.substring(start + 1, markerIndex).trim();
+    }
+
+    private static boolean isNameSeparator(char c) {
+        return Character.isWhitespace(c)
+                || c == ':'
+                || c == '：'
+                || c == ','
+                || c == '，'
+                || c == ';'
+                || c == '；'
+                || c == '('
+                || c == '（'
+                || c == ')'
+                || c == '）';
     }
 
     private static JSONObject buildBillExpectSchema() throws JSONException {
@@ -253,24 +388,105 @@ public class ProjectUtil {
         return values;
     }
 
+    private static boolean isDuplicateBillByTransactionTime(Context context, BillParseResult bill) {
+        SQLiteDatabase db = SQLiteDatabase.openOrCreateDatabase(context.getFilesDir().toString() + "/orderInfo.db", null);
+        Cursor cursor = null;
+        try {
+            ensureOrderTable(db);
+            cursor = db.query(
+                    "orderInfo",
+                    null,
+                    "year=? and month=? and day=?",
+                    new String[]{String.valueOf(bill.year), String.valueOf(bill.month), String.valueOf(bill.day)},
+                    null,
+                    null,
+                    "id desc");
+            long billTimeMs = parseBillTimeMs(bill.year, bill.month, bill.day, bill.clock);
+            while (cursor.moveToNext()) {
+                double existingMoney = cursor.getDouble(5);
+                String existingBankName = cursor.getString(6);
+                String existingClock = cursor.getString(4);
+                if (Math.abs(existingMoney - bill.money) >= 0.01) {
+                    continue;
+                }
+                if (!isEmpty(existingBankName) && !isEmpty(bill.bankName) && !existingBankName.equals(bill.bankName)) {
+                    continue;
+                }
+                long existingTimeMs = parseBillTimeMs(cursor.getInt(1), cursor.getInt(2), cursor.getInt(3), existingClock);
+                long diffMs = Math.abs(existingTimeMs - billTimeMs);
+                debugLog("bill.dedup.compare", "existingId=" + cursor.getInt(0) + ", money=" + existingMoney + ", bankName=" + existingBankName + ", existingClock=" + existingClock + ", newClock=" + bill.clock + ", diffMs=" + diffMs);
+                if (diffMs <= BILL_DEDUP_WINDOW_MS) {
+                    return true;
+                }
+            }
+            return false;
+        } catch (Exception e) {
+            Log.e(TAG, "check duplicate bill failed", e);
+            return false;
+        } finally {
+            if (cursor != null) {
+                cursor.close();
+            }
+            db.close();
+        }
+    }
+
+    private static long parseBillTimeMs(int year, int month, int day, String clock) {
+        int hour = 0;
+        int minute = 0;
+        Matcher matcher = Pattern.compile("(\\d{1,2})\\s*:\\s*(\\d{1,2})").matcher(safeString(clock));
+        if (matcher.find()) {
+            hour = safeParseInt(matcher.group(1), 0);
+            minute = safeParseInt(matcher.group(2), 0);
+        }
+        Calendar calendar = Calendar.getInstance();
+        calendar.set(Calendar.YEAR, year);
+        calendar.set(Calendar.MONTH, month - 1);
+        calendar.set(Calendar.DAY_OF_MONTH, day);
+        calendar.set(Calendar.HOUR_OF_DAY, hour);
+        calendar.set(Calendar.MINUTE, minute);
+        calendar.set(Calendar.SECOND, 0);
+        calendar.set(Calendar.MILLISECOND, 0);
+        return calendar.getTimeInMillis();
+    }
+
+    private static int safeParseInt(String value, int defaultValue) {
+        try {
+            return Integer.parseInt(value);
+        } catch (Exception e) {
+            return defaultValue;
+        }
+    }
+
     private static int addOrderToRemoteAndLocal(Context context, ContentValues values) throws IOException, JSONException {
         JSONObject jsonObject = new JSONObject();
         for (String key : values.keySet()) {
             jsonObject.put(key, values.get(key));
         }
 
-        OkHttpClient client = new OkHttpClient();
-        RequestBody body = RequestBody.create(jsonObject.toString(), MediaType.parse("application/json;charset=utf-8"));
+        OkHttpClient client = new OkHttpClient.Builder()
+                .connectTimeout(15, TimeUnit.SECONDS)
+                .writeTimeout(30, TimeUnit.SECONDS)
+                .readTimeout(60, TimeUnit.SECONDS)
+                .build();
+        String requestText = jsonObject.toString();
+        String addOrderUrl = ConstVariable.IP + "/addOrder";
+        debugLog("addOrder.url", addOrderUrl);
+        debugLog("addOrder.request", requestText);
+        RequestBody body = RequestBody.create(requestText, MediaType.parse("application/json;charset=utf-8"));
         Request request = new Request.Builder()
-                .url(ConstVariable.IP + "/addOrder")
+                .url(addOrderUrl)
                 .post(body)
                 .build();
 
         try (Response response = client.newCall(request).execute()) {
-            if (response.code() != 200 || response.body() == null) {
+            String responseText = response.body() == null ? "" : response.body().string();
+            debugLog("addOrder.response.status", response.code() + " " + response.message());
+            debugLog("addOrder.response.body", responseText);
+            if (response.code() != 200 || isEmpty(responseText)) {
                 return -1;
             }
-            JSONObject jsonResponse = new JSONObject(response.body().string());
+            JSONObject jsonResponse = new JSONObject(responseText);
             if (!jsonResponse.optBoolean("success", false)) {
                 return -1;
             }
@@ -280,10 +496,14 @@ public class ProjectUtil {
             }
             values.put("id", orderId);
             SQLiteDatabase db = SQLiteDatabase.openOrCreateDatabase(context.getFilesDir().toString() + "/orderInfo.db", null);
-            ensureOrderTable(db);
-            db.insert("orderInfo", null, values);
-            db.close();
-            return orderId;
+            try {
+                ensureOrderTable(db);
+                long insertResult = db.insert("orderInfo", null, values);
+                debugLog("sqlite.insert.orderInfo", "result=" + insertResult + ", orderId=" + orderId);
+                return insertResult >= 0 ? orderId : -1;
+            } finally {
+                db.close();
+            }
         }
     }
 
@@ -402,6 +622,23 @@ public class ProjectUtil {
         return value == null ? "" : value;
     }
 
+    private static void debugLog(String label, String message) {
+        if (!BuildConfig.DEBUG) {
+            return;
+        }
+        String safeMessage = message == null ? "null" : message;
+        if (safeMessage.length() <= LOG_CHUNK_SIZE) {
+            Log.d(TAG, label + ": " + safeMessage);
+            return;
+        }
+        int chunkIndex = 0;
+        for (int start = 0; start < safeMessage.length(); start += LOG_CHUNK_SIZE) {
+            int end = Math.min(start + LOG_CHUNK_SIZE, safeMessage.length());
+            Log.d(TAG, label + "[" + chunkIndex + "]: " + safeMessage.substring(start, end));
+            chunkIndex++;
+        }
+    }
+
     private static boolean contains(String[] values, String target) {
         if (target == null) {
             return false;
@@ -471,6 +708,23 @@ public class ProjectUtil {
             return packageName + "|" + title + "|" + text + "|" + subText + "|" + bigText;
         }
 
+        JSONObject toDebugJson() {
+            JSONObject jsonObject = new JSONObject();
+            try {
+                jsonObject.put("packageName", packageName);
+                jsonObject.put("title", title);
+                jsonObject.put("text", text);
+                jsonObject.put("subText", subText);
+                jsonObject.put("bigText", bigText);
+                jsonObject.put("lines", new JSONArray(lines));
+                jsonObject.put("postTime", postTime);
+                jsonObject.put("key", key);
+            } catch (JSONException e) {
+                Log.e(TAG, "build raw notification debug json failed", e);
+            }
+            return jsonObject;
+        }
+
         private static String charSequenceToString(CharSequence value) {
             return value == null ? "" : value.toString();
         }
@@ -522,7 +776,7 @@ public class ProjectUtil {
             if (money > 0) {
                 costType = "收入";
             } else if (!contains(ConstVariable.COST_TYPE, costType)) {
-                costType = "其他";
+                costType = "消费";
             }
 
             return new BillParseResult(
@@ -533,7 +787,7 @@ public class ProjectUtil {
                     jsonObject.optString("clock", getCurrentTime()),
                     money,
                     bankName,
-                    jsonObject.optString("orderRemark", ""),
+                    "",
                     costType,
                     jsonObject.optDouble("confidence", 0));
         }
@@ -549,6 +803,26 @@ public class ProjectUtil {
                 return fallback;
             }
             return "银行卡";
+        }
+
+        JSONObject toDebugJson() {
+            JSONObject jsonObject = new JSONObject();
+            try {
+                jsonObject.put("id", id);
+                jsonObject.put("isBill", isBill);
+                jsonObject.put("year", year);
+                jsonObject.put("month", month);
+                jsonObject.put("day", day);
+                jsonObject.put("clock", clock);
+                jsonObject.put("money", money);
+                jsonObject.put("bankName", bankName);
+                jsonObject.put("orderRemark", orderRemark);
+                jsonObject.put("costType", costType);
+                jsonObject.put("confidence", confidence);
+            } catch (JSONException e) {
+                Log.e(TAG, "build bill debug json failed", e);
+            }
+            return jsonObject;
         }
     }
 
