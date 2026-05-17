@@ -1,6 +1,7 @@
 package Util;
 
 import android.annotation.SuppressLint;
+import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.ContentValues;
@@ -11,14 +12,18 @@ import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.service.notification.StatusBarNotification;
 import android.util.Log;
 
 import androidx.core.app.NotificationCompat;
+import androidx.core.app.RemoteInput;
 
 import com.beta.autobookkeeping.BuildConfig;
 import com.beta.autobookkeeping.activity.main.entity.OrderInfo;
 import com.beta.autobookkeeping.activity.orderDetail.OrderDetailActivity;
+import com.beta.autobookkeeping.service.AutoBillNotificationActionReceiver;
 
 
 import android.util.TypedValue;
@@ -90,6 +95,7 @@ public class ProjectUtil {
     private static final String ORDER_NOTIFICATION_CHANNEL = "order_notification";
     private static final String DEFAULT_LLM_MODEL = "qwen3:14b";
     private static final int LOG_CHUNK_SIZE = 3000;
+    private static final int CATEGORY_ACTIONS_PER_PAGE = 2;
     private static final long BILL_DEDUP_WINDOW_MS = 5 * 1000;
     private static final long NOTIFICATION_DEDUP_WINDOW_MS = 2 * 60 * 1000;
     private static String lastNotificationDedupKey = "";
@@ -409,9 +415,6 @@ public class ProjectUtil {
                 if (Math.abs(existingMoney - bill.money) >= 0.01) {
                     continue;
                 }
-                if (!isEmpty(existingBankName) && !isEmpty(bill.bankName) && !existingBankName.equals(bill.bankName)) {
-                    continue;
-                }
                 long existingTimeMs = parseBillTimeMs(cursor.getInt(1), cursor.getInt(2), cursor.getInt(3), existingClock);
                 long diffMs = Math.abs(existingTimeMs - billTimeMs);
                 debugLog("bill.dedup.compare", "existingId=" + cursor.getInt(0) + ", money=" + existingMoney + ", bankName=" + existingBankName + ", existingClock=" + existingClock + ", newClock=" + bill.clock + ", diffMs=" + diffMs);
@@ -508,49 +511,351 @@ public class ProjectUtil {
     }
 
     private static void showAutoBillNotification(Context context, BillParseResult bill) {
+        showAutoBillMainNotification(context, buildAutoBillBundle(bill));
+        Log.d(TAG, "auto bill notification shown: " + (bill.money >= 0 ? "收入" : "支出") + " " + String.format("%.2f", Math.abs(bill.money)));
+    }
+
+    private static Bundle buildAutoBillBundle(BillParseResult bill) {
         Bundle bundle = new Bundle();
         bundle.putInt("id", bill.id);
         bundle.putInt("year", bill.year);
         bundle.putInt("month", bill.month);
         bundle.putInt("day", bill.day);
         bundle.putString("clock", bill.clock);
-        bundle.putFloat("money", (float) bill.money);
+        bundle.putDouble("money", bill.money);
         bundle.putString("bankName", bill.bankName);
         bundle.putString("orderRemark", bill.orderRemark);
         bundle.putString("costType", bill.costType);
+        return bundle;
+    }
 
+    private static void showAutoBillMainNotification(Context context, Bundle billBundle) {
         Intent orderDetail = new Intent(context, OrderDetailActivity.class);
         orderDetail.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
-        orderDetail.putExtras(bundle);
-        PendingIntent pendingIntent = PendingIntent.getActivity(
+        orderDetail.putExtras(billBundle);
+        int orderId = billBundle.getInt("id");
+        double money = billBundle.getDouble("money");
+        String bankName = safeString(billBundle.getString("bankName"));
+        String costType = safeString(billBundle.getString("costType"));
+        String clock = safeString(billBundle.getString("clock"));
+        PendingIntent detailPendingIntent = PendingIntent.getActivity(
                 context,
-                bill.id,
+                orderId,
                 orderDetail,
                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
 
-        String orderType = bill.money >= 0 ? "收入" : "支出";
-        String amount = String.format("%.2f", Math.abs(bill.money));
-        String summary = bill.bankName + " · " + safeString(bill.orderRemark) + " · " + bill.costType;
-        String confidence = bill.confidence > 0 ? "置信度 " + Math.round(bill.confidence * 100) + "% · 点击可编辑账单" : "点击可编辑账单";
+        String orderType = money >= 0 ? "收入" : "支出";
+        String amount = String.format("%.2f", Math.abs(money));
+        String summary = bankName + " · " + costType + " · " + clock;
+        PendingIntent undoPendingIntent = PendingIntent.getBroadcast(
+                context,
+                orderId * 10 + 1,
+                buildNotificationActionIntent(context, AutoBillNotificationActionReceiver.ACTION_UNDO_AUTO_BILL, billBundle),
+                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+        RemoteInput remarkInput = new RemoteInput.Builder(AutoBillNotificationActionReceiver.KEY_TEXT_REPLY)
+                .setLabel("添加备注")
+                .build();
+        PendingIntent remarkPendingIntent = PendingIntent.getBroadcast(
+                context,
+                orderId * 10 + 2,
+                buildNotificationActionIntent(context, AutoBillNotificationActionReceiver.ACTION_ADD_AUTO_BILL_REMARK, billBundle),
+                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_MUTABLE);
+        PendingIntent categoryPendingIntent = PendingIntent.getBroadcast(
+                context,
+                orderId * 10 + 3,
+                buildCategoryPageActionIntent(context, billBundle, 0),
+                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(context, ORDER_NOTIFICATION_CHANNEL)
                 .setSmallIcon(R.drawable.ic_launcher_foreground)
-                .setContentTitle("自动记账")
-                .setContentText("已记录:" + orderType + " ¥" + amount)
+                .setContentTitle(orderType + " " + amount + "元")
+                .setContentText(summary)
                 .setStyle(new NotificationCompat.BigTextStyle()
-                        .setBigContentTitle("已自动记录一笔" + orderType)
-                        .bigText("金额: ¥" + amount + "\n来源: " + bill.bankName + "\n备注: " + safeString(bill.orderRemark) + "\n类型: " + bill.costType + "\n时间: " + bill.clock + "\n状态: 已记录,可编辑"))
+                        .setBigContentTitle(orderType + " " + amount + "元")
+                        .bigText("来源: " + bankName + "\n分类: " + costType + "\n时间: " + clock + "\n状态: 已记录,可编辑"))
                 .setSubText(summary)
-                .setContentIntent(pendingIntent)
+                .setContentIntent(detailPendingIntent)
                 .setAutoCancel(true)
-                .setPriority(NotificationCompat.PRIORITY_HIGH)
-                .addAction(R.drawable.ic_launcher_foreground, "撤销记录", pendingIntent)
-                .addAction(R.drawable.ic_launcher_foreground, "改分类", pendingIntent)
-                .addAction(R.drawable.ic_launcher_foreground, "加备注", pendingIntent);
+                .setPriority(NotificationCompat.PRIORITY_MAX)
+                .setCategory(NotificationCompat.CATEGORY_STATUS)
+                .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+                .setDefaults(Notification.DEFAULT_ALL)
+                .addAction(R.drawable.ic_launcher_foreground, "撤销记录", undoPendingIntent)
+                .addAction(R.drawable.ic_launcher_foreground, "更多分类", categoryPendingIntent)
+                .addAction(new NotificationCompat.Action.Builder(R.drawable.ic_launcher_foreground, "添加备注", remarkPendingIntent)
+                        .addRemoteInput(remarkInput)
+                        .setAllowGeneratedReplies(false)
+                        .build());
 
         NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
-        notificationManager.notify(10000 + bill.id, builder.build());
-        Log.d(TAG, "auto bill notification shown: " + orderType + " " + amount + " " + summary + " " + confidence);
+        notificationManager.notify(10000 + orderId, builder.build());
+    }
+
+    private static Intent buildNotificationActionIntent(Context context, String action, Bundle billBundle) {
+        Intent intent = new Intent(context, AutoBillNotificationActionReceiver.class);
+        intent.setAction(action);
+        intent.putExtra(AutoBillNotificationActionReceiver.EXTRA_ORDER_ID, billBundle.getInt("id"));
+        intent.putExtra(AutoBillNotificationActionReceiver.EXTRA_NOTIFICATION_ID, 10000 + billBundle.getInt("id"));
+        intent.putExtra(AutoBillNotificationActionReceiver.EXTRA_YEAR, billBundle.getInt("year"));
+        intent.putExtra(AutoBillNotificationActionReceiver.EXTRA_MONTH, billBundle.getInt("month"));
+        intent.putExtra(AutoBillNotificationActionReceiver.EXTRA_DAY, billBundle.getInt("day"));
+        intent.putExtra(AutoBillNotificationActionReceiver.EXTRA_CLOCK, billBundle.getString("clock"));
+        intent.putExtra(AutoBillNotificationActionReceiver.EXTRA_MONEY, billBundle.getDouble("money"));
+        intent.putExtra(AutoBillNotificationActionReceiver.EXTRA_BANK_NAME, billBundle.getString("bankName"));
+        intent.putExtra(AutoBillNotificationActionReceiver.EXTRA_ORDER_REMARK, billBundle.getString("orderRemark"));
+        intent.putExtra(AutoBillNotificationActionReceiver.EXTRA_COST_TYPE, billBundle.getString("costType"));
+        return intent;
+    }
+
+    private static Intent buildCategoryActionIntent(Context context, Bundle billBundle, String costType) {
+        Intent intent = buildNotificationActionIntent(context, AutoBillNotificationActionReceiver.ACTION_UPDATE_AUTO_BILL_CATEGORY, billBundle);
+        intent.putExtra(AutoBillNotificationActionReceiver.EXTRA_SELECTED_COST_TYPE, costType);
+        return intent;
+    }
+
+    private static Intent buildCategoryPageActionIntent(Context context, Bundle billBundle, int page) {
+        Intent intent = buildNotificationActionIntent(context, AutoBillNotificationActionReceiver.ACTION_SHOW_AUTO_BILL_CATEGORIES, billBundle);
+        intent.putExtra(AutoBillNotificationActionReceiver.EXTRA_CATEGORY_PAGE, page);
+        return intent;
+    }
+
+    private static Intent buildMainNotificationActionIntent(Context context, Bundle billBundle) {
+        return buildNotificationActionIntent(context, AutoBillNotificationActionReceiver.ACTION_SHOW_AUTO_BILL_MAIN, billBundle);
+    }
+
+    public static void showAutoBillMainNotificationFromAction(Context context, Intent intent) {
+        showAutoBillMainNotification(context, buildAutoBillBundleFromIntent(intent));
+    }
+
+    public static void showAutoBillCategoryNotificationFromAction(Context context, Intent intent) {
+        showAutoBillCategoryNotification(context, buildAutoBillBundleFromIntent(intent), intent.getIntExtra(AutoBillNotificationActionReceiver.EXTRA_CATEGORY_PAGE, 0));
+    }
+
+    private static void showAutoBillCategoryNotification(Context context, Bundle billBundle, int page) {
+        int orderId = billBundle.getInt("id");
+        if (orderId <= 0) {
+            return;
+        }
+        int pageCount = (int) Math.ceil((double) ConstVariable.COST_TYPE.length / CATEGORY_ACTIONS_PER_PAGE);
+        int safePage = Math.max(0, Math.min(page, pageCount - 1));
+        int start = safePage * CATEGORY_ACTIONS_PER_PAGE;
+        int end = Math.min(start + CATEGORY_ACTIONS_PER_PAGE, ConstVariable.COST_TYPE.length);
+        double money = billBundle.getDouble("money");
+        String orderType = money >= 0 ? "收入" : "支出";
+        String amount = String.format("%.2f", Math.abs(money));
+
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(context, ORDER_NOTIFICATION_CHANNEL)
+                .setSmallIcon(R.drawable.ic_launcher_foreground)
+                .setContentTitle("选择类别 · " + orderType + " " + amount + "元")
+                .setContentText("第 " + (safePage + 1) + "/" + pageCount + " 页")
+                .setStyle(new NotificationCompat.BigTextStyle()
+                        .setBigContentTitle("选择消费类别")
+                        .bigText("当前分类: " + safeString(billBundle.getString("costType")) + "\n选择后将自动保存到账单"))
+                .setAutoCancel(false)
+                .setPriority(NotificationCompat.PRIORITY_MAX)
+                .setCategory(NotificationCompat.CATEGORY_STATUS)
+                .setVisibility(NotificationCompat.VISIBILITY_PUBLIC);
+
+        for (int i = start; i < end; i++) {
+            String costType = ConstVariable.COST_TYPE[i];
+            builder.addAction(
+                    R.drawable.ic_launcher_foreground,
+                    costType,
+                    PendingIntent.getBroadcast(
+                            context,
+                            orderId * 100 + i,
+                            buildCategoryActionIntent(context, billBundle, costType),
+                            PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE));
+        }
+
+        boolean hasNextPage = safePage < pageCount - 1;
+        Intent navIntent = hasNextPage
+                ? buildCategoryPageActionIntent(context, billBundle, safePage + 1)
+                : buildMainNotificationActionIntent(context, billBundle);
+        builder.addAction(
+                R.drawable.ic_launcher_foreground,
+                hasNextPage ? "下一页" : "返回",
+                PendingIntent.getBroadcast(
+                        context,
+                        orderId * 100 + 90 + safePage,
+                        navIntent,
+                        PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE));
+
+        NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+        notificationManager.notify(10000 + orderId, builder.build());
+        debugLog("autoBill.categoryPage", "orderId=" + orderId + ", page=" + safePage);
+    }
+
+    private static Bundle buildAutoBillBundleFromIntent(Intent intent) {
+        Bundle bundle = new Bundle();
+        bundle.putInt("id", intent.getIntExtra(AutoBillNotificationActionReceiver.EXTRA_ORDER_ID, -1));
+        bundle.putInt("year", intent.getIntExtra(AutoBillNotificationActionReceiver.EXTRA_YEAR, getCurrentYear()));
+        bundle.putInt("month", intent.getIntExtra(AutoBillNotificationActionReceiver.EXTRA_MONTH, getCurrentMonth()));
+        bundle.putInt("day", intent.getIntExtra(AutoBillNotificationActionReceiver.EXTRA_DAY, getCurrentDay()));
+        bundle.putString("clock", intent.getStringExtra(AutoBillNotificationActionReceiver.EXTRA_CLOCK));
+        bundle.putDouble("money", intent.getDoubleExtra(AutoBillNotificationActionReceiver.EXTRA_MONEY, 0));
+        bundle.putString("bankName", intent.getStringExtra(AutoBillNotificationActionReceiver.EXTRA_BANK_NAME));
+        bundle.putString("orderRemark", intent.getStringExtra(AutoBillNotificationActionReceiver.EXTRA_ORDER_REMARK));
+        bundle.putString("costType", intent.getStringExtra(AutoBillNotificationActionReceiver.EXTRA_COST_TYPE));
+        return bundle;
+    }
+
+    public static void undoAutoBillFromNotification(Context context, Intent intent) {
+        int orderId = intent.getIntExtra(AutoBillNotificationActionReceiver.EXTRA_ORDER_ID, -1);
+        int notificationId = intent.getIntExtra(AutoBillNotificationActionReceiver.EXTRA_NOTIFICATION_ID, 10000 + orderId);
+        if (orderId <= 0) {
+            return;
+        }
+        new Thread(() -> {
+            boolean success = deleteOrderRemote(orderId);
+            if (success) {
+                deleteOrderLocal(context, orderId);
+                NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+                notificationManager.cancel(notificationId);
+                showToastOnMainThread(context, "记录已撤销");
+                debugLog("autoBill.undo", "orderId=" + orderId);
+            }
+        }).start();
+    }
+
+    public static void updateAutoBillRemarkFromNotification(Context context, Intent intent, String remark) {
+        int orderId = intent.getIntExtra(AutoBillNotificationActionReceiver.EXTRA_ORDER_ID, -1);
+        if (orderId <= 0 || isEmpty(remark)) {
+            return;
+        }
+        new Thread(() -> {
+            try {
+                JSONObject jsonObject = buildOrderUpdateJsonFromIntent(context, intent);
+                jsonObject.put("orderRemark", remark);
+                boolean success = modifyOrderRemote(orderId, jsonObject);
+                if (success) {
+                    updateOrderLocal(context, orderId, "orderRemark", remark);
+                    cancelNotification(context, intent);
+                    showToastOnMainThread(context, "备注已修改");
+                    debugLog("autoBill.remark", "orderId=" + orderId + ", remark=" + remark);
+                }
+            } catch (JSONException e) {
+                Log.e(TAG, "update auto bill remark failed", e);
+            }
+        }).start();
+    }
+
+    public static void updateAutoBillCategoryFromNotification(Context context, Intent intent, String costType) {
+        int orderId = intent.getIntExtra(AutoBillNotificationActionReceiver.EXTRA_ORDER_ID, -1);
+        if (orderId <= 0 || isEmpty(costType) || !contains(ConstVariable.COST_TYPE, costType)) {
+            return;
+        }
+        new Thread(() -> {
+            try {
+                JSONObject jsonObject = buildOrderUpdateJsonFromIntent(context, intent);
+                jsonObject.put("costType", costType);
+                boolean success = modifyOrderRemote(orderId, jsonObject);
+                if (success) {
+                    updateOrderLocal(context, orderId, "costType", costType);
+                    cancelNotification(context, intent);
+                    showToastOnMainThread(context, "类别已修改");
+                    debugLog("autoBill.category", "orderId=" + orderId + ", costType=" + costType);
+                }
+            } catch (JSONException e) {
+                Log.e(TAG, "update auto bill category failed", e);
+            }
+        }).start();
+    }
+
+    private static JSONObject buildOrderUpdateJsonFromIntent(Context context, Intent intent) throws JSONException {
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("month", intent.getIntExtra(AutoBillNotificationActionReceiver.EXTRA_MONTH, getCurrentMonth()));
+        jsonObject.put("day", intent.getIntExtra(AutoBillNotificationActionReceiver.EXTRA_DAY, getCurrentDay()));
+        jsonObject.put("clock", intent.getStringExtra(AutoBillNotificationActionReceiver.EXTRA_CLOCK));
+        jsonObject.put("money", intent.getDoubleExtra(AutoBillNotificationActionReceiver.EXTRA_MONEY, 0));
+        jsonObject.put("bankName", intent.getStringExtra(AutoBillNotificationActionReceiver.EXTRA_BANK_NAME));
+        jsonObject.put("orderRemark", intent.getStringExtra(AutoBillNotificationActionReceiver.EXTRA_ORDER_REMARK));
+        jsonObject.put("costType", intent.getStringExtra(AutoBillNotificationActionReceiver.EXTRA_COST_TYPE));
+        return jsonObject;
+    }
+
+    private static boolean deleteOrderRemote(int orderId) {
+        String url = ConstVariable.IP + "/deleteOrder/" + orderId;
+        debugLog("deleteOrder.url", url);
+        OkHttpClient client = new OkHttpClient.Builder()
+                .connectTimeout(15, TimeUnit.SECONDS)
+                .writeTimeout(30, TimeUnit.SECONDS)
+                .readTimeout(60, TimeUnit.SECONDS)
+                .build();
+        Request request = new Request.Builder().url(url).delete().build();
+        try (Response response = client.newCall(request).execute()) {
+            String responseText = response.body() == null ? "" : response.body().string();
+            debugLog("deleteOrder.response.status", response.code() + " " + response.message());
+            debugLog("deleteOrder.response.body", responseText);
+            if (response.code() != 200 || isEmpty(responseText)) {
+                return false;
+            }
+            return new JSONObject(responseText).optBoolean("success", false);
+        } catch (IOException | JSONException e) {
+            Log.e(TAG, "delete order failed", e);
+            return false;
+        }
+    }
+
+    private static boolean modifyOrderRemote(int orderId, JSONObject jsonObject) {
+        String url = ConstVariable.IP + "/modifyOrder/" + orderId;
+        String requestText = jsonObject.toString();
+        debugLog("modifyOrder.url", url);
+        debugLog("modifyOrder.request", requestText);
+        OkHttpClient client = new OkHttpClient.Builder()
+                .connectTimeout(15, TimeUnit.SECONDS)
+                .writeTimeout(30, TimeUnit.SECONDS)
+                .readTimeout(60, TimeUnit.SECONDS)
+                .build();
+        RequestBody body = RequestBody.create(requestText, MediaType.parse("application/json;charset=utf-8"));
+        Request request = new Request.Builder().url(url).put(body).build();
+        try (Response response = client.newCall(request).execute()) {
+            String responseText = response.body() == null ? "" : response.body().string();
+            debugLog("modifyOrder.response.status", response.code() + " " + response.message());
+            debugLog("modifyOrder.response.body", responseText);
+            if (response.code() != 200 || isEmpty(responseText)) {
+                return false;
+            }
+            return new JSONObject(responseText).optBoolean("success", false);
+        } catch (IOException | JSONException e) {
+            Log.e(TAG, "modify order failed", e);
+            return false;
+        }
+    }
+
+    private static void deleteOrderLocal(Context context, int orderId) {
+        SQLiteDatabase db = SQLiteDatabase.openOrCreateDatabase(context.getFilesDir().toString() + "/orderInfo.db", null);
+        try {
+            ensureOrderTable(db);
+            int deleted = db.delete("orderInfo", "id=?", new String[]{String.valueOf(orderId)});
+            debugLog("sqlite.delete.orderInfo", "orderId=" + orderId + ", deleted=" + deleted);
+        } finally {
+            db.close();
+        }
+    }
+
+    private static void updateOrderLocal(Context context, int orderId, String column, String value) {
+        SQLiteDatabase db = SQLiteDatabase.openOrCreateDatabase(context.getFilesDir().toString() + "/orderInfo.db", null);
+        try {
+            ensureOrderTable(db);
+            ContentValues values = new ContentValues();
+            values.put(column, value);
+            int updated = db.update("orderInfo", values, "id=?", new String[]{String.valueOf(orderId)});
+            debugLog("sqlite.update.orderInfo", "orderId=" + orderId + ", column=" + column + ", updated=" + updated);
+        } finally {
+            db.close();
+        }
+    }
+
+    private static void cancelNotification(Context context, Intent intent) {
+        int orderId = intent.getIntExtra(AutoBillNotificationActionReceiver.EXTRA_ORDER_ID, -1);
+        int notificationId = intent.getIntExtra(AutoBillNotificationActionReceiver.EXTRA_NOTIFICATION_ID, 10000 + orderId);
+        NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+        notificationManager.cancel(notificationId);
+    }
+
+    private static void showToastOnMainThread(Context context, String message) {
+        new Handler(Looper.getMainLooper()).post(() -> Toast.makeText(context.getApplicationContext(), message, Toast.LENGTH_SHORT).show());
     }
 
     private static void ensureOrderTable(SQLiteDatabase db) {
