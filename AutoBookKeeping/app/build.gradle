@@ -18,10 +18,12 @@ android {
     buildTypes {
         debug {
             buildConfigField "String", "API_BASE_URL", '"http://10.0.2.2:8000"'
+            buildConfigField "String", "LLM_BASE_URL", '"http://10.0.2.2:8001/gzt_code_server/llm_interface"'
         }
         release {
             minifyEnabled false
             buildConfigField "String", "API_BASE_URL", '"https://autobookkeeping-fastapi.onrender.com"'
+            buildConfigField "String", "LLM_BASE_URL", '"http://10.0.2.2:8001/gzt_code_server/llm_interface"'
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }

@@ -1,15 +1,24 @@
 package Util;
 
 import android.annotation.SuppressLint;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
+import android.content.ContentValues;
 import android.content.Context;
+import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
-import android.graphics.drawable.VectorDrawable;
+import android.os.Bundle;
+import android.service.notification.StatusBarNotification;
 import android.util.Log;
 
+import androidx.core.app.NotificationCompat;
+
+import com.beta.autobookkeeping.BuildConfig;
 import com.beta.autobookkeeping.activity.main.entity.OrderInfo;
+import com.beta.autobookkeeping.activity.orderDetail.OrderDetailActivity;
 
 
 import android.util.TypedValue;
@@ -21,15 +30,23 @@ import android.widget.Toast;
 
 import com.beta.autobookkeeping.R;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+
+import okhttp3.MediaType;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
 
 public class ProjectUtil {
     public final static int[] colors = new int[]{
@@ -66,12 +83,11 @@ public class ProjectUtil {
 
     public final static int BLUE = Color.parseColor("#5091F3");
     public final static int Gray = Color.rgb(235, 235, 235);
-    //匹配银行账单信息的正则表达式
-    //获取【】之内的内容
-    private final static String regExBank = "【(.*?)】";
-//    private final static String regExBank = "[农业银行|建设银行|郑州银行|工商银行|招商银行|中国银行]";
-    private final static String regExMoneyType = "[-|出|入|代|取]";
-    private final static String regExMoney = "\\d*\\.\\d*";
+    private static final String TAG = "ProjectUtil";
+    private static final String ORDER_NOTIFICATION_CHANNEL = "order_notification";
+    private static final long NOTIFICATION_DEDUP_WINDOW_MS = 2 * 60 * 1000;
+    private static String lastNotificationDedupKey = "";
+    private static long lastNotificationDedupTime = 0L;
 
     //弹出Toast的方法
     public static void toastMsg(Context context, String s) {
@@ -110,65 +126,437 @@ public class ProjectUtil {
         return cal.get(Calendar.MINUTE);
     }
 
-    //获取字符串中的银行账单数据的方法
+    public static void handleNotificationBillWithLlm(Context context, StatusBarNotification sbn) {
+        RawNotification rawNotification = RawNotification.from(sbn);
+        if (rawNotification == null || isEmpty(rawNotification.readableText())) {
+            return;
+        }
+        if (context.getPackageName().equals(rawNotification.packageName)) {
+            return;
+        }
+        if (isDuplicateNotification(rawNotification)) {
+            return;
+        }
+
+        Context appContext = context.getApplicationContext();
+        new Thread(() -> {
+            try {
+                BillParseResult bill = parseNotificationBillWithLlm(appContext, rawNotification);
+                if (bill == null || !bill.isBill) {
+                    return;
+                }
+                ContentValues values = buildOrderValues(appContext, bill);
+                int orderId = addOrderToRemoteAndLocal(appContext, values);
+                if (orderId > 0) {
+                    bill.id = orderId;
+                    showAutoBillNotification(appContext, bill);
+                }
+            } catch (Exception e) {
+                Log.e(TAG, "handle notification bill failed", e);
+            }
+        }).start();
+    }
+
+    private static BillParseResult parseNotificationBillWithLlm(Context context, RawNotification rawNotification) throws IOException, JSONException {
+        JSONObject requestJson = new JSONObject();
+        requestJson.put("model", "qwen");
+        requestJson.put("json", true);
+        requestJson.put("think", false);
+        requestJson.put("raw", false);
+        requestJson.put("system", "你是一个账单通知解析器。你只能返回合法 JSON,不要解释。");
+        requestJson.put("prompt", buildBillPrompt(rawNotification).toString());
+        requestJson.put("expect_schema", buildBillExpectSchema());
+
+        OkHttpClient client = new OkHttpClient();
+        RequestBody body = RequestBody.create(requestJson.toString(), MediaType.parse("application/json;charset=utf-8"));
+        Request request = new Request.Builder()
+                .url(joinUrl(BuildConfig.LLM_BASE_URL, "chat"))
+                .post(body)
+                .build();
+
+        try (Response response = client.newCall(request).execute()) {
+            if (response.code() != 200 || response.body() == null) {
+                return null;
+            }
+            JSONObject llmJson = normalizeLlmJson(response.body().string());
+            return BillParseResult.fromJson(context, rawNotification, llmJson);
+        }
+    }
+
+    private static JSONObject buildBillPrompt(RawNotification rawNotification) throws JSONException {
+        JSONObject prompt = new JSONObject();
+        JSONObject notification = new JSONObject();
+        notification.put("packageName", rawNotification.packageName);
+        notification.put("title", safeString(rawNotification.title));
+        notification.put("text", safeString(rawNotification.text));
+        notification.put("subText", safeString(rawNotification.subText));
+        notification.put("bigText", safeString(rawNotification.bigText));
+        notification.put("lines", new JSONArray(rawNotification.lines));
+        notification.put("postTime", rawNotification.postTime);
+        notification.put("key", safeString(rawNotification.key));
+
+        prompt.put("task", "parse_android_notification_bill");
+        prompt.put("currentDate", new SimpleDateFormat("yyyy-MM-dd").format(new Date()));
+        prompt.put("notification", notification);
+        prompt.put("allowedCostTypes", new JSONArray(ConstVariable.COST_TYPE));
+        prompt.put("allowedPayWays", new JSONArray(ConstVariable.PAY_WAY));
+        prompt.put("rules", new JSONArray()
+                .put("如果不是账单通知,isBill=false,其余字段给安全默认值。")
+                .put("支出 money 必须为负数,收入 money 必须为正数。")
+                .put("bankName 必须优先从 allowedPayWays 中选择。")
+                .put("costType 必须优先从 allowedCostTypes 中选择;收入统一返回 收入。")
+                .put("orderRemark 填商户、对方、场景或简短备注;没有则为空字符串。")
+                .put("clock 使用 App 当前格式,例如 5月15日 10:32。"));
+        return prompt;
+    }
+
+    private static JSONObject buildBillExpectSchema() throws JSONException {
+        JSONObject properties = new JSONObject();
+        properties.put("isBill", new JSONObject().put("type", "boolean"));
+        properties.put("year", new JSONObject().put("type", "integer"));
+        properties.put("month", new JSONObject().put("type", "integer"));
+        properties.put("day", new JSONObject().put("type", "integer"));
+        properties.put("clock", new JSONObject().put("type", "string"));
+        properties.put("money", new JSONObject().put("type", "number"));
+        properties.put("bankName", new JSONObject().put("type", "string"));
+        properties.put("orderRemark", new JSONObject().put("type", "string"));
+        properties.put("costType", new JSONObject().put("type", "string"));
+        properties.put("confidence", new JSONObject().put("type", "number"));
+
+        return new JSONObject()
+                .put("type", "object")
+                .put("required", new JSONArray()
+                        .put("isBill")
+                        .put("year")
+                        .put("month")
+                        .put("day")
+                        .put("clock")
+                        .put("money")
+                        .put("bankName")
+                        .put("orderRemark")
+                        .put("costType")
+                        .put("confidence"))
+                .put("properties", properties);
+    }
+
+    private static ContentValues buildOrderValues(Context context, BillParseResult bill) {
+        ContentValues values = new ContentValues();
+        values.put("year", bill.year);
+        values.put("month", bill.month);
+        values.put("day", bill.day);
+        values.put("clock", bill.clock);
+        values.put("money", bill.money);
+        values.put("bankName", bill.bankName);
+        values.put("orderRemark", bill.orderRemark);
+        values.put("costType", bill.costType);
+        values.put("userId", (String) SpUtils.get(context, "phoneNum", ""));
+        return values;
+    }
+
+    private static int addOrderToRemoteAndLocal(Context context, ContentValues values) throws IOException, JSONException {
+        JSONObject jsonObject = new JSONObject();
+        for (String key : values.keySet()) {
+            jsonObject.put(key, values.get(key));
+        }
+
+        OkHttpClient client = new OkHttpClient();
+        RequestBody body = RequestBody.create(jsonObject.toString(), MediaType.parse("application/json;charset=utf-8"));
+        Request request = new Request.Builder()
+                .url(ConstVariable.IP + "/addOrder")
+                .post(body)
+                .build();
+
+        try (Response response = client.newCall(request).execute()) {
+            if (response.code() != 200 || response.body() == null) {
+                return -1;
+            }
+            JSONObject jsonResponse = new JSONObject(response.body().string());
+            if (!jsonResponse.optBoolean("success", false)) {
+                return -1;
+            }
+            int orderId = Integer.parseInt(jsonResponse.optString("data", "-1"));
+            if (orderId <= 0) {
+                return -1;
+            }
+            values.put("id", orderId);
+            SQLiteDatabase db = SQLiteDatabase.openOrCreateDatabase(context.getFilesDir().toString() + "/orderInfo.db", null);
+            ensureOrderTable(db);
+            db.insert("orderInfo", null, values);
+            db.close();
+            return orderId;
+        }
+    }
+
+    private static void showAutoBillNotification(Context context, BillParseResult bill) {
+        Bundle bundle = new Bundle();
+        bundle.putInt("id", bill.id);
+        bundle.putInt("year", bill.year);
+        bundle.putInt("month", bill.month);
+        bundle.putInt("day", bill.day);
+        bundle.putString("clock", bill.clock);
+        bundle.putFloat("money", (float) bill.money);
+        bundle.putString("bankName", bill.bankName);
+        bundle.putString("orderRemark", bill.orderRemark);
+        bundle.putString("costType", bill.costType);
+
+        Intent orderDetail = new Intent(context, OrderDetailActivity.class);
+        orderDetail.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        orderDetail.putExtras(bundle);
+        PendingIntent pendingIntent = PendingIntent.getActivity(
+                context,
+                bill.id,
+                orderDetail,
+                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+
+        String orderType = bill.money >= 0 ? "收入" : "支出";
+        String amount = String.format("%.2f", Math.abs(bill.money));
+        String summary = bill.bankName + " · " + safeString(bill.orderRemark) + " · " + bill.costType;
+        String confidence = bill.confidence > 0 ? "置信度 " + Math.round(bill.confidence * 100) + "% · 点击可编辑账单" : "点击可编辑账单";
+
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(context, ORDER_NOTIFICATION_CHANNEL)
+                .setSmallIcon(R.drawable.ic_launcher_foreground)
+                .setContentTitle("自动记账")
+                .setContentText("已记录:" + orderType + " ¥" + amount)
+                .setStyle(new NotificationCompat.BigTextStyle()
+                        .setBigContentTitle("已自动记录一笔" + orderType)
+                        .bigText("金额: ¥" + amount + "\n来源: " + bill.bankName + "\n备注: " + safeString(bill.orderRemark) + "\n类型: " + bill.costType + "\n时间: " + bill.clock + "\n状态: 已记录,可编辑"))
+                .setSubText(summary)
+                .setContentIntent(pendingIntent)
+                .setAutoCancel(true)
+                .setPriority(NotificationCompat.PRIORITY_HIGH)
+                .addAction(R.drawable.ic_launcher_foreground, "撤销记录", pendingIntent)
+                .addAction(R.drawable.ic_launcher_foreground, "改分类", pendingIntent)
+                .addAction(R.drawable.ic_launcher_foreground, "加备注", pendingIntent);
+
+        NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+        notificationManager.notify(10000 + bill.id, builder.build());
+        Log.d(TAG, "auto bill notification shown: " + orderType + " " + amount + " " + summary + " " + confidence);
+    }
+
+    private static void ensureOrderTable(SQLiteDatabase db) {
+        Cursor cursor = db.rawQuery("select name from sqlite_master where type='table' and name='orderInfo'", null);
+        boolean exists = cursor.moveToFirst();
+        cursor.close();
+        if (!exists) {
+            db.execSQL("create table orderInfo(id int(8),year int(4),month int(2),day int(2),clock varchar(20),money numeric(10,2),bankName varchar(255),orderRemark varchar(255),costType varchar(255),userId varchar(255))");
+        }
+    }
+
+    private static JSONObject normalizeLlmJson(String responseText) throws JSONException {
+        JSONObject root = new JSONObject(extractFirstJsonObject(responseText));
+        if (root.has("isBill")) {
+            return root;
+        }
+
+        String[] keys = new String[]{"data", "result", "response", "message", "content"};
+        for (String key : keys) {
+            Object value = root.opt(key);
+            if (value instanceof JSONObject && ((JSONObject) value).has("isBill")) {
+                return (JSONObject) value;
+            }
+            if (value instanceof String && !isEmpty((String) value)) {
+                JSONObject nested = new JSONObject(extractFirstJsonObject((String) value));
+                if (nested.has("isBill")) {
+                    return nested;
+                }
+            }
+        }
+        return root;
+    }
+
+    private static String extractFirstJsonObject(String text) throws JSONException {
+        if (isEmpty(text)) {
+            throw new JSONException("empty json");
+        }
+        int start = text.indexOf('{');
+        int end = text.lastIndexOf('}');
+        if (start < 0 || end <= start) {
+            throw new JSONException("json object not found");
+        }
+        return text.substring(start, end + 1);
+    }
+
+    private static String joinUrl(String baseUrl, String path) {
+        if (baseUrl.endsWith("/")) {
+            return baseUrl + path;
+        }
+        return baseUrl + "/" + path;
+    }
+
+    private static synchronized boolean isDuplicateNotification(RawNotification rawNotification) {
+        String key = rawNotification.dedupKey();
+        long now = System.currentTimeMillis();
+        if (key.equals(lastNotificationDedupKey) && now - lastNotificationDedupTime < NOTIFICATION_DEDUP_WINDOW_MS) {
+            return true;
+        }
+        lastNotificationDedupKey = key;
+        lastNotificationDedupTime = now;
+        return false;
+    }
+
+    private static boolean isEmpty(String value) {
+        return value == null || value.trim().equals("");
+    }
+
+    private static String safeString(String value) {
+        return value == null ? "" : value;
+    }
+
+    private static boolean contains(String[] values, String target) {
+        if (target == null) {
+            return false;
+        }
+        for (String value : values) {
+            if (target.equals(value)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static class RawNotification {
+        final String packageName;
+        final String title;
+        final String text;
+        final String subText;
+        final String bigText;
+        final ArrayList<String> lines;
+        final long postTime;
+        final String key;
+
+        RawNotification(String packageName, String title, String text, String subText, String bigText, ArrayList<String> lines, long postTime, String key) {
+            this.packageName = safeString(packageName);
+            this.title = safeString(title);
+            this.text = safeString(text);
+            this.subText = safeString(subText);
+            this.bigText = safeString(bigText);
+            this.lines = lines == null ? new ArrayList<>() : lines;
+            this.postTime = postTime;
+            this.key = safeString(key);
+        }
+
+        static RawNotification from(StatusBarNotification sbn) {
+            if (sbn == null || sbn.getNotification() == null || sbn.getNotification().extras == null) {
+                return null;
+            }
+            Bundle extras = sbn.getNotification().extras;
+            ArrayList<String> lines = new ArrayList<>();
+            CharSequence[] textLines = extras.getCharSequenceArray("android.textLines");
+            if (textLines != null) {
+                for (CharSequence line : textLines) {
+                    if (line != null) {
+                        lines.add(line.toString());
+                    }
+                }
+            }
+            return new RawNotification(
+                    sbn.getPackageName(),
+                    charSequenceToString(extras.getCharSequence("android.title")),
+                    charSequenceToString(extras.getCharSequence("android.text")),
+                    charSequenceToString(extras.getCharSequence("android.subText")),
+                    charSequenceToString(extras.getCharSequence("android.bigText")),
+                    lines,
+                    sbn.getPostTime(),
+                    sbn.getKey());
+        }
+
+        String readableText() {
+            return title + "\n" + text + "\n" + subText + "\n" + bigText + "\n" + lines.toString();
+        }
+
+        String dedupKey() {
+            if (!isEmpty(key)) {
+                return key;
+            }
+            return packageName + "|" + title + "|" + text + "|" + subText + "|" + bigText;
+        }
+
+        private static String charSequenceToString(CharSequence value) {
+            return value == null ? "" : value.toString();
+        }
+    }
+
+    private static class BillParseResult {
+        int id;
+        final boolean isBill;
+        final int year;
+        final int month;
+        final int day;
+        final String clock;
+        final double money;
+        final String bankName;
+        final String orderRemark;
+        final String costType;
+        final double confidence;
+
+        BillParseResult(boolean isBill, int year, int month, int day, String clock, double money, String bankName, String orderRemark, String costType, double confidence) {
+            this.isBill = isBill;
+            this.year = year;
+            this.month = month;
+            this.day = day;
+            this.clock = clock;
+            this.money = money;
+            this.bankName = bankName;
+            this.orderRemark = orderRemark;
+            this.costType = costType;
+            this.confidence = confidence;
+        }
+
+        static BillParseResult fromJson(Context context, RawNotification rawNotification, JSONObject jsonObject) {
+            boolean isBill = jsonObject.optBoolean("isBill", false);
+            if (!isBill) {
+                return new BillParseResult(false, getCurrentYear(), getCurrentMonth(), getCurrentDay(), getCurrentTime(), 0, "", "", "其他", 0);
+            }
+
+            double money = jsonObject.optDouble("money", 0);
+            if (money == 0) {
+                return null;
+            }
+
+            String bankName = jsonObject.optString("bankName", "");
+            if (!contains(ConstVariable.PAY_WAY, bankName)) {
+                bankName = inferPayWay(rawNotification.packageName, bankName);
+            }
+
+            String costType = jsonObject.optString("costType", "");
+            if (money > 0) {
+                costType = "收入";
+            } else if (!contains(ConstVariable.COST_TYPE, costType)) {
+                costType = "其他";
+            }
+
+            return new BillParseResult(
+                    true,
+                    jsonObject.optInt("year", getCurrentYear()),
+                    jsonObject.optInt("month", getCurrentMonth()),
+                    jsonObject.optInt("day", getCurrentDay()),
+                    jsonObject.optString("clock", getCurrentTime()),
+                    money,
+                    bankName,
+                    jsonObject.optString("orderRemark", ""),
+                    costType,
+                    jsonObject.optDouble("confidence", 0));
+        }
+
+        private static String inferPayWay(String packageName, String fallback) {
+            if ("com.tencent.mm".equals(packageName)) {
+                return "微信";
+            }
+            if ("com.eg.android.AlipayGphone".equals(packageName)) {
+                return "支付宝";
+            }
+            if (!isEmpty(fallback)) {
+                return fallback;
+            }
+            return "银行卡";
+        }
+    }
+
+    //旧短信正则解析入口已废弃,账单解析统一走 handleNotificationBillWithLlm。
+    @Deprecated
     public static String[] getBankOrderInfo(String bankOrder) {
-        //将[]替换为【】
-        bankOrder = bankOrder.replace("[", "【");
-        bankOrder = bankOrder.replace("]", "】");
-        String[] result = new String[3];
-        //获取银行名称
-        Matcher matchBank = Pattern.compile(regExBank).matcher(bankOrder);
-        String bankName = getString(matchBank, false);
-        result[0] = bankName.substring(1, bankName.length() - 1);
-        Log.d("bank", result[0]);
-        //对工商银行进行单独适配
-        if ("工商银行".equals(result[0])) {
-            result[1] = getICBCInfo(bankOrder)[0];
-            result[2] = getICBCInfo(bankOrder)[1];
-            return result;
-        }
-        //获取支付类型
-        Matcher matchMoneyType = Pattern.compile(regExMoneyType).matcher(bankOrder);
-        result[1] = getString(matchMoneyType, false);
-        //获取收入或支出金额
-        Matcher matchMoney = Pattern.compile(regExMoney).matcher(bankOrder);
-        result[2] = getString(matchMoney, true);
-        return result;
-    }
-
-    //获取账单单个数据的方法,第二个参数为是否匹配到第一个符合条件的就结束
-    public static String getString(Matcher matcher, boolean stopAtFirstResult) {
-        StringBuffer sb = new StringBuffer();
-        while (matcher.find()) {
-            sb.append(matcher.group());
-            if (stopAtFirstResult && (!sb.toString().equals("")))
-                break;
-
-        }
-        String result = sb.toString();
-        if (result.equals("出") || result.equals("-")|| result.equals("取")) {
-            return "支出";
-        } else if (result.equals("入") || result.equals("代")) {
-            return "收入";
-        }
-        return result;
-    }
-
-    //获取工商银行短信中的数据的方法
-    public static String[] getICBCInfo(String msg) {
-        String[] result = new String[2];
-        //判断支出还是收入
-        if (msg.contains("支出")) {
-            result[0] = "支出";
-        } else {
-            result[0] = "收入";
-        }
-        //获取收支金额
-        int startIndex, endIndex;
-        startIndex = msg.indexOf(")");
-        endIndex = msg.indexOf("元");
-        result[1] = msg.substring(startIndex + 1, endIndex);
-        return result;
+        Log.d(TAG, "getBankOrderInfo is deprecated. Use handleNotificationBillWithLlm instead.");
+        return new String[]{"", "", "0"};
     }
 
     //获取当日收支金额的方法
@@ -645,4 +1033,3 @@ public class ProjectUtil {
         return cursor;
     }
 }
-
