@@ -1,107 +1,116 @@
-# 自动记账(for android)  v1.4
+# AutoBookKeepingBeta
 
----
+![Android](https://img.shields.io/badge/platform-Android-3DDC84?logo=android&logoColor=white)
+![License](https://img.shields.io/github/license/FuShengDuoBuYu/AutoBookKeepingBeta)
+![Stars](https://img.shields.io/github/stars/FuShengDuoBuYu/AutoBookKeepingBeta?style=social)
+![Release](https://img.shields.io/github/v/release/FuShengDuoBuYu/AutoBookKeepingBeta?include_prereleases)
+![Last Commit](https://img.shields.io/github/last-commit/FuShengDuoBuYu/AutoBookKeepingBeta)
+![Issues](https://img.shields.io/github/issues/FuShengDuoBuYu/AutoBookKeepingBeta)
+![Pull Requests](https://img.shields.io/github/issues-pr/FuShengDuoBuYu/AutoBookKeepingBeta)
+![Repo Size](https://img.shields.io/github/repo-size/FuShengDuoBuYu/AutoBookKeepingBeta)
+![Language](https://img.shields.io/github/languages/top/FuShengDuoBuYu/AutoBookKeepingBeta)
+![minSdk](https://img.shields.io/badge/minSdk-29-blue)
+![targetSdk](https://img.shields.io/badge/targetSdk-31-blue)
 
-## 使用说明
+自动记账是一个 Android 端个人/家庭账本应用，目标是用尽量少的手动输入完成日常收支记录、分类统计和云端同步。项目当前重点能力包括通知账单识别、家庭账本、多维账单查询、月度报表、自定义分类和本地/云端数据同步。
 
-本软件的所有使用说明已更新至wiki,还请移步wiki查看
+> 使用文档已迁移到 [Wiki](https://github.com/FuShengDuoBuYu/AutoBookKeepingBeta/wiki)。
 
-https://github.com/FuShengDuoBuYu/AutoBookKeepingBeta/wiki
+## 功能特性
 
-> 注 : 因为阿里云服务器到期(一核一G一年居然收我一千多块钱...),所以换用免费的Render后端和MongoDB atlas部署了,由于该后端服务器可能被自动挂起,所以可能会出现网络卡顿(约1min)左右的情况,属于正常.
----
+- **通知账单识别**：监听支付宝、微信、银行、美团、京东等候选 App 的通知，并通过云端 LLM 解析账单结构。
+- **AI 防误判策略**：用严格 prompt 让 LLM 判断小荷包成员、待支付提醒、金额来源和账单真伪，App 侧只保留必要的来源过滤、去重和结果校验。
+- **个人/家庭账本**：支持个人账本和家庭账本切换，家庭成员账单可统一查看。
+- **月度报表**：提供支出分布、历史月份切换、个人/家庭维度报表。
+- **账单管理**：支持新增、删除、修改、按时间/类别/关键字等组合查询历史账单。
+- **云端同步**：登录后同步用户资料和账单数据，降低换机或重装后的数据迁移成本。
+- **自定义分类**：支持自定义账单类型，并在图表和筛选中复用。
 
-## 版本更新日志
+## 预览
+
+| 首页 | 月度报表 | 设置 |
+| --- | --- | --- |
+| ![main](ReadmeImage/main_activity/1.gif) | ![month-report](ReadmeImage/month_report_activity/1.jpg) | ![settings](ReadmeImage/settings_activity/settings.gif) |
+
+## 项目架构
+
+```text
+AutoBookKeepingBeta
+├── AutoBookKeeping/              # Android 工程
+│   ├── app/
+│   │   ├── src/main/java/Util/   # 通用工具、账单解析、网络与数据写入逻辑
+│   │   ├── src/main/java/com/beta/autobookkeeping/
+│   │   │   ├── activity/         # 页面与交互
+│   │   │   ├── fragment/         # 首页、报表、账单详情等组件
+│   │   │   ├── service/          # 通知监听、快捷开关、通知操作
+│   │   │   └── widget/           # 桌面小组件
+│   │   └── src/main/res/         # 布局、图标、主题、动画资源
+│   ├── build.gradle
+│   └── settings.gradle
+├── ReadmeImage/                  # README 和 Wiki 使用的截图素材
+├── LICENSE
+└── Readme.md
+```
+
+## AI 账单解析流程
+
+```mermaid
+flowchart LR
+    A["Android 通知"] --> B["候选 App 过滤"]
+    B --> C["5 分钟内容去重"]
+    C --> D["LLM JSON 解析"]
+    D --> E["金额/置信度二次校验"]
+    E --> F["写入账本并发送确认通知"]
+```
+
+当前 LLM 接口使用 OpenAI-compatible API：
+
+- Endpoint: `POST /v1/chat/completions`
+- 默认模型：`qwen3.5:9b`
+- 推荐参数：`think=false`、`stream=false`、`response_format={"type":"json_object"}`、`num_ctx=93696`
+
+## 通知识别范围
+
+为了减少隐私暴露和无意义调用，应用只会把潜在账单来源发送给 LLM。当前候选范围包括：
+
+- 支付宝、微信、云闪付
+- 美团、大众点评、京东、京东金融
+- 主流银行与信用卡 App
+- App 名称包含“银行 / 信用卡 / 支付宝 / 微信 / 云闪付 / 美团 / 京东”等关键词的应用
+
+App 侧尽量不做账单语义判断。待支付、未支付、自动取消、验证码、登录、配置更新、小荷包成员匹配、是否存在明确金额等判断主要由 LLM 根据 prompt 完成；本地只保留 5 分钟内相同内容和金额的重复通知拦截，以及 LLM 返回后的金额/置信度兜底校验。
+
+## 版本记录
 
 ### v1.4
 
-#### 新增
-- 新增`全局公告`能力: 首页可接收后端下发公告弹窗
-- 新增后端公告管理能力: 支持按版本号控制展示范围
-- 新增登录后`用户资料+账单云端同步`流程,首次进入可自动拉取云端账单
+- 新增全局公告能力，首页可接收后端下发公告弹窗。
+- 新增登录后用户资料和账单云端同步流程。
+- 后端升级为模块化 FastAPI 路由架构。
+- 修复月度报告历史月份切换、数据库资源关闭、账单修改文案等问题。
 
-#### 架构与接口升级
-- 后端升级为模块化`FastAPI`路由架构(认证/用户资料/家庭/账单写入/账单查询/公告)
-- 新增接口请求模型,`Swagger/OpenAPI`文档可读性增强
-- 订单数据层对齐数据库字段规范(`user_id/date/way/text/category`),并保持前端兼容返回
-- 用户数据层对齐数据库字段规范(`phone_num/family_id/family_identity`),统一服务层映射
+### v1.3
 
-#### 安全与稳定性
-- 登录鉴权从明文密码比对升级为哈希校验,并兼容历史明文账号自动迁移
-- 账单下载流程改为`成功拉取后事务覆盖本地`,避免网络异常导致本地数据被清空
-- 补充多处网络资源释放与异常分支处理,降低卡死与连接泄漏风险
-
-#### 前端体验优化
-- 登录/注册弹窗增加输入提示,并优化自动注册文案
-- 家庭检查时机后置到用户资料同步后,减少误触发提醒
-- 头像展示增加无效Base64兜底,避免头像解码异常引发崩溃
-- 个人页/家庭页/设置页的云端同步后刷新逻辑优化,账单展示更及时
-
-#### 关键修复
-- 修复月度报告中历史月份切换异常,支持查看过往月份
-- 修复部分页面数据库/游标资源未及时关闭的问题
-- 修复账单修改接口返回文案错误(由“添加成功”改为“修改成功”)
-
----
-
-### v1.3 
-
-#### 移除
-- 移除短信读取接口,全面改为通知读取接口
-- 移除`LBS`定位功能,回归纯粹记账功能
-- 移除`银行号码`功能
-- 移除~~影响开屏速度~~的开屏动画
-- 移除`家庭代办`功能
-- 移除家庭代办`通知`
-
-#### 新增
-- 新增支持`支付宝`小荷包账单识别
-- 新增饼状图选择自定义条目
-- 新增`自定义账单类型`功能
-- 新增支持删除和修改过往任意时间的账单
-
-#### 优化
-- 优化`账单详细查找功能`,支持排序和筛选
-- 优化饼状图展示效果
-- 优化部分代码结构
-- 优化后台弹窗逻辑,改为通知栏提出通知
-
-#### 修复
-- 修复`收入进度条`一直显示为`1元`的bug
-
----
+- 通知读取替代短信读取。
+- 新增支付宝小荷包账单识别。
+- 新增自定义账单类型。
+- 支持删除和修改过往任意时间的账单。
 
 ### v1.2
 
-##### 本次更新带来了巨大的更新变化,希望大家用的更加高效便捷
+- 新增家庭版和个人版快速切换。
+- 新增家庭信息与成员管理。
+- 重构 UI、动画、设置页和月度报告。
+- 支持云端账单备份。
 
-###### 家庭版更新
-- 用户可以在首页通过滑动快速切换家庭版/个人版
-- 用户可以在月度报告滑动查看家庭/个人的月度报告
-- 新增家庭信息,可以灵活添加家庭成员
-###### UI
-- 所有UI图标重绘svg格式,更加清晰生动
-- 新增部分动画,更加流畅美观
-- 设置页面重新布局,更加符合开发使用逻辑
-- 所有提示框,dialog等采用**仿IOS格式**,更加友好
-###### 架构
-- 完全采用**前后端分离**,账单信息云端备份
-  - **需要联网才能正常使用本应用**
-- 重构前端代码,降低耦合度,使用fragment等进行组件化设计
-###### 个人信息
-- 新增**个人信息**完善,可以设置头像,账号,家庭成员,昵称等信息
-###### 功能
-- 新增**银行号码**功能,设置银行号码可以精确识别账单
-- 新增详细账单查询,可以根据时间,版本,类别,关键字等信息**联合查询**账单详情
-- **进程隐藏**,用户进入多任务栏时,不会看到本应用运行在后台
+## Star History
 
----
+[![Star History Chart](https://api.star-history.com/svg?repos=FuShengDuoBuYu/AutoBookKeepingBeta&type=Date)](https://star-history.com/#FuShengDuoBuYu/AutoBookKeepingBeta&Date)
 
+## 贡献
 
+欢迎提交 Issue 或 Pull Request。建议在提交前说明问题场景、复现步骤、期望行为和相关日志；涉及通知识别的改动，请尽量附上脱敏后的通知样例。
 
+## 许可证
 
-
-
-
-
-
+本项目基于 [MIT License](LICENSE) 开源。

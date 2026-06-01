@@ -53,7 +53,7 @@ android {
     buildTypes {
         debug {
             buildConfigField "String", "API_BASE_URL", '"https://autobookkeeping-fastapi.onrender.com"'
-            buildConfigField "String", "LLM_BASE_URL", '"http://lz1pe24291437.vicp.fun/gzt_code_server/llm_interface"'
+            buildConfigField "String", "LLM_BASE_URL", '"https://recollected-accelerable-lynn.ngrok-free.dev"'
             if (hasBookkeepingSigning) {
                 signingConfig signingConfigs.bookkeeping
             }
@@ -61,7 +61,7 @@ android {
         release {
             minifyEnabled false
             buildConfigField "String", "API_BASE_URL", '"https://autobookkeeping-fastapi.onrender.com"'
-            buildConfigField "String", "LLM_BASE_URL", '"http://lz1pe24291437.vicp.fun/gzt_code_server/llm_interface"'
+            buildConfigField "String", "LLM_BASE_URL", '"https://recollected-accelerable-lynn.ngrok-free.dev"'
             if (hasBookkeepingSigning) {
                 signingConfig signingConfigs.bookkeeping
             }

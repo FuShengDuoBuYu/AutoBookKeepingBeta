@@ -7,6 +7,8 @@ import android.app.PendingIntent;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.ApplicationInfo;
+import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Color;
@@ -46,6 +48,10 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Locale;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -93,13 +99,75 @@ public class ProjectUtil {
     public final static int Gray = Color.rgb(235, 235, 235);
     private static final String TAG = "ProjectUtil";
     private static final String ORDER_NOTIFICATION_CHANNEL = "order_notification";
-    private static final String DEFAULT_LLM_MODEL = "qwen3:14b";
+    private static final String DEFAULT_LLM_MODEL = "qwen3.5:9b";
+    private static final int LLM_CONTEXT_TOKENS = 93696;
+    private static final int LLM_MAX_COMPLETION_TOKENS = 512;
+    private static final double LLM_MIN_CONFIDENCE = 0.60;
     private static final int LOG_CHUNK_SIZE = 3000;
     private static final int CATEGORY_ACTIONS_PER_PAGE = 2;
-    private static final long BILL_DEDUP_WINDOW_MS = 5 * 1000;
-    private static final long NOTIFICATION_DEDUP_WINDOW_MS = 2 * 60 * 1000;
-    private static String lastNotificationDedupKey = "";
-    private static long lastNotificationDedupTime = 0L;
+    private static final long BILL_DEDUP_WINDOW_MS = 2 * 60 * 1000;
+    private static final long NOTIFICATION_DEDUP_WINDOW_MS = 5 * 60 * 1000;
+    private static final HashMap<String, Long> recentNotificationDedupTimes = new HashMap<>();
+    private static final String[] BILL_APP_PACKAGE_NAMES = new String[]{
+            "com.eg.android.AlipayGphone",
+            "com.tencent.mm",
+            "com.unionpay",
+            "com.unionpay.tsmservice",
+            "com.sankuai.meituan",
+            "com.sankuai.meituan.takeoutnew",
+            "com.dianping.v1",
+            "com.jingdong.app.mall",
+            "com.jd.jrapp",
+            "com.icbc",
+            "com.chinamworld.main",
+            "com.cmbchina.ccd.pluto.cmbActivity",
+            "com.ccb.longjiLife",
+            "com.bankcomm.Bankcomm",
+            "cn.com.cmbc.newmbank",
+            "com.cib.cibmb",
+            "com.cebbank.mobile.cemb",
+            "com.spdbccc.app",
+            "com.pingan.paces.ccms",
+            "com.citicbank.mobile",
+            "com.hxb.mobile.client",
+            "com.psbc.mobilebank",
+            "com.boc.bocsoft.mobile"
+    };
+    private static final String[] BILL_APP_PACKAGE_PREFIXES = new String[]{
+            "com.alipay.",
+            "com.tencent.mm",
+            "com.unionpay",
+            "com.jingdong.",
+            "com.jd.",
+            "com.sankuai.",
+            "com.dianping.",
+            "com.icbc",
+            "com.cmbchina.",
+            "com.ccb.",
+            "com.bankcomm.",
+            "cn.com.cmbc.",
+            "com.cib.",
+            "com.cebbank.",
+            "com.spdb",
+            "com.pingan.",
+            "com.citicbank.",
+            "com.hxb.",
+            "com.psbc.",
+            "com.boc."
+    };
+    private static final String[] BILL_APP_LABEL_KEYWORDS = new String[]{
+            "银行",
+            "信用卡",
+            "支付宝",
+            "微信",
+            "云闪付",
+            "美团",
+            "大众点评",
+            "京东",
+            "京东金融",
+            "翼支付",
+            "数字人民币"
+    };
 
     //弹出Toast的方法
     public static void toastMsg(Context context, String s) {
@@ -170,16 +238,12 @@ public class ProjectUtil {
             debugLog("notification.ignore", "self package notification");
             return;
         }
-        if (shouldIgnoreNonXiaohebaoAlipayNotification(context, rawNotification)) {
-            debugLog("notification.ignore", "alipay xiaohebao enabled, ignore non-xiaohebao alipay notification");
-            return;
-        }
-        if (shouldIgnoreAlipayXiaohebaoNotification(context, rawNotification)) {
-            debugLog("notification.ignore", "alipay xiaohebao nickname mismatch or disabled");
+        if (!isPotentialBillApp(context, rawNotification)) {
+            debugLog("notification.ignore", "not a bill candidate app: " + rawNotification.packageName);
             return;
         }
         if (isDuplicateNotification(rawNotification)) {
-            debugLog("notification.ignore", "duplicate notification: " + rawNotification.dedupKey());
+            debugLog("notification.ignore", "duplicate notification: " + rawNotification.contentDedupKey());
             return;
         }
 
@@ -211,24 +275,33 @@ public class ProjectUtil {
     private static BillParseResult parseNotificationBillWithLlm(Context context, RawNotification rawNotification) throws IOException, JSONException {
         JSONObject requestJson = new JSONObject();
         requestJson.put("model", DEFAULT_LLM_MODEL);
-        requestJson.put("json", true);
+        requestJson.put("messages", new JSONArray()
+                .put(new JSONObject()
+                        .put("role", "system")
+                        .put("content", "你是一个账单通知解析器。最终只能返回合法 JSON 对象，不要 Markdown、代码块或解释。"))
+                .put(new JSONObject()
+                        .put("role", "user")
+                        .put("content", buildBillPrompt(context, rawNotification).toString())));
+        requestJson.put("stream", false);
+        requestJson.put("temperature", 0);
+        requestJson.put("top_p", 0.95);
+        requestJson.put("max_completion_tokens", LLM_MAX_COMPLETION_TOKENS);
+        requestJson.put("num_ctx", LLM_CONTEXT_TOKENS);
         requestJson.put("think", false);
-        requestJson.put("raw", false);
-        requestJson.put("system", "你是一个账单通知解析器。你只能返回合法 JSON,不要解释。");
-        requestJson.put("prompt", buildBillPrompt(context, rawNotification).toString());
-        requestJson.put("expect_schema", buildBillExpectSchema());
+        requestJson.put("response_format", new JSONObject().put("type", "json_object"));
 
         OkHttpClient client = new OkHttpClient.Builder()
                 .connectTimeout(15, TimeUnit.SECONDS)
                 .writeTimeout(30, TimeUnit.SECONDS)
-                .readTimeout(120, TimeUnit.SECONDS)
+                .readTimeout(300, TimeUnit.SECONDS)
                 .build();
         String requestText = requestJson.toString();
-        debugLog("llm.url", joinUrl(BuildConfig.LLM_BASE_URL, "chat"));
+        String llmUrl = joinUrl(BuildConfig.LLM_BASE_URL, "v1/chat/completions");
+        debugLog("llm.url", llmUrl);
         debugLog("llm.request", requestText);
         RequestBody body = RequestBody.create(requestText, MediaType.parse("application/json;charset=utf-8"));
         Request request = new Request.Builder()
-                .url(joinUrl(BuildConfig.LLM_BASE_URL, "chat"))
+                .url(llmUrl)
                 .post(body)
                 .build();
 
@@ -264,30 +337,135 @@ public class ProjectUtil {
         prompt.put("allowedPayWays", new JSONArray(ConstVariable.PAY_WAY));
         prompt.put("alipayXiaohebao", buildAlipayXiaohebaoPrompt(context));
         prompt.put("outputSchema", buildBillExpectSchema());
-        prompt.put("outputExample", new JSONObject()
-                .put("isBill", true)
+        prompt.put("emptyResultExample", new JSONObject()
+                .put("isBill", false)
                 .put("year", getCurrentYear())
                 .put("month", getCurrentMonth())
                 .put("day", getCurrentDay())
-                .put("clock", getCurrentMonth() + "月" + getCurrentDay() + "日 " + getCurrentHour() + ":" + String.format("%02d", getCurrentMinute()))
-                .put("money", -28.5)
-                .put("bankName", "支付宝")
+                .put("clock", "")
+                .put("money", 0)
+                .put("bankName", "")
                 .put("orderRemark", "")
-                .put("costType", "消费")
-                .put("confidence", 0.92));
+                .put("costType", "其他")
+                .put("confidence", 0));
         prompt.put("rules", new JSONArray()
                 .put("只能返回一个 JSON 对象,不能返回 Markdown、代码块或解释。")
                 .put("返回 JSON 必须包含 outputSchema.required 中所有字段。")
                 .put("如果不是账单通知,isBill=false,其余字段给安全默认值。")
-                .put("如果 alipayXiaohebao.enabled=true,只解析支付宝小荷包通知;支付宝普通交易提醒、支付成功、交易记录等非小荷包通知必须返回 isBill=false,避免同一笔小荷包消费重复记账。")
-                .put("如果是支付宝小荷包通知,且通知内容出现“某某消费了”,只有“某某”与 alipayXiaohebao.nickname 完全对应时才算自己的账单;不对应或无法确认时 isBill=false。")
+                .put("alipayXiaohebao 只用于支付宝小荷包多人消费通知的成员匹配,不要因此拒绝微信、银行或其他来源的真实账单。")
+                .put("alipayXiaohebao.enabled=true 不代表只解析小荷包;如果支付宝通知标题和正文没有出现“小荷包”,必须按普通支付宝交易提醒判断。")
+                .put("如果是支付宝小荷包通知,且通知内容出现“某某消费了、支付了、付款了、支出了”,只有“某某”与 alipayXiaohebao.nickname 完全对应时才算自己的账单;不对应或无法确认时 isBill=false。")
                 .put("如果 alipayXiaohebao.enabled=false,不要因为小荷包多人消费通知自动记账。")
+                .put("普通支付宝、微信、银行卡交易提醒中,如果出现“你有一笔X元的支出/收入”、“支出X元”、“收入X元”、“支付成功”、“扣款成功”、“收款成功”、“入账”等明确交易语义且金额明确,必须返回 isBill=true。")
+                .put("例如支付宝普通通知“你有一笔0.10元的支出”是账单,应返回 isBill=true、money=-0.10、bankName=支付宝;不要因为金额小、出现积分、或小荷包功能开启而返回 false。")
                 .put("支出 money 必须为负数,收入 money 必须为正数。")
                 .put("bankName 必须优先从 allowedPayWays 中选择。")
                 .put("costType 必须优先从 allowedCostTypes 中选择;收入统一返回 收入;支出消费类型无法确定时返回 消费。")
                 .put("orderRemark 必须返回空字符串,不要根据商户、对方或场景主动填写备注,备注由用户自己编辑。")
-                .put("clock 使用 App 当前格式,例如 5月15日 10:32。"));
+                .put("money 必须来自 notification.title、text、subText、bigText 或 lines 原文中的明确金额;如果原文没有金额,必须返回 isBill=false。")
+                .put("禁止使用示例中的金额、时间、支付方式作为真实结果;不能根据常识或上下文补金额。")
+                .put("出现待支付、未支付、还未支付、自动取消、配置更新、登录、验证码等内容时必须返回 isBill=false。")
+                .put("clock 使用 App 当前格式,例如 5月15日 10:32。")
+                .put("返回前逐项自检: 金额必须匹配原文明确金额, 收支正负号必须符合语义, bankName 和 costType 必须在候选中尽量选择最准确项。")
+                .put("如果金额、收支方向、支付方式或是否账单存在不确定,优先返回 isBill=false 或降低 confidence;不要为了自动记账而猜测。"));
         return prompt;
+    }
+
+    private static boolean isPotentialBillApp(Context context, RawNotification rawNotification) {
+        String packageName = rawNotification.packageName;
+        if (contains(BILL_APP_PACKAGE_NAMES, packageName)) {
+            return true;
+        }
+        for (String prefix : BILL_APP_PACKAGE_PREFIXES) {
+            if (packageName.startsWith(prefix)) {
+                return true;
+            }
+        }
+
+        String appLabel = getApplicationLabel(context, packageName);
+        for (String keyword : BILL_APP_LABEL_KEYWORDS) {
+            if (appLabel.contains(keyword)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static String getApplicationLabel(Context context, String packageName) {
+        try {
+            PackageManager packageManager = context.getPackageManager();
+            ApplicationInfo applicationInfo = packageManager.getApplicationInfo(packageName, 0);
+            CharSequence label = packageManager.getApplicationLabel(applicationInfo);
+            return label == null ? "" : label.toString();
+        } catch (Exception e) {
+            return "";
+        }
+    }
+
+    private static boolean amountMatchesNotification(RawNotification rawNotification, double money) {
+        double expected = Math.abs(money);
+        for (double amount : extractAmounts(rawNotification.readableText())) {
+            if (Math.abs(amount - expected) < 0.01) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static ArrayList<Double> extractAmounts(String text) {
+        ArrayList<Double> amounts = new ArrayList<>();
+        if (isEmpty(text)) {
+            return amounts;
+        }
+        addMatchedAmounts(amounts, text, Pattern.compile("(?:(?:￥|¥|人民币|RMB|CNY)\\s*([0-9]+(?:,[0-9]{3})*(?:\\.\\d{1,2})?|[0-9]+(?:\\.\\d{1,2})?)|([0-9]+(?:,[0-9]{3})*(?:\\.\\d{1,2})?|[0-9]+(?:\\.\\d{1,2})?)\\s*(?:元|块|圆))"));
+        addMatchedAmounts(amounts, text, Pattern.compile("(?:金额|消费|支付|支出|收入|转入|转出|扣款|付款|收款|入账|提现|退款)[^0-9￥¥]{0,8}(?:￥|¥)?\\s*([0-9]+(?:,[0-9]{3})*(?:\\.\\d{1,2})?|[0-9]+(?:\\.\\d{1,2})?)"));
+        return amounts;
+    }
+
+    private static void addMatchedAmounts(ArrayList<Double> amounts, String text, Pattern pattern) {
+        Matcher matcher = pattern.matcher(text);
+        while (matcher.find()) {
+            String value = firstNonEmptyGroup(matcher);
+            double amount = safeParseDouble(value.replace(",", ""), 0);
+            if (amount > 0 && !containsAmount(amounts, amount)) {
+                amounts.add(amount);
+            }
+        }
+    }
+
+    private static String firstNonEmptyGroup(Matcher matcher) {
+        for (int i = 1; i <= matcher.groupCount(); i++) {
+            String value = matcher.group(i);
+            if (!isEmpty(value)) {
+                return value;
+            }
+        }
+        return "";
+    }
+
+    private static boolean containsAmount(ArrayList<Double> amounts, double target) {
+        for (double amount : amounts) {
+            if (Math.abs(amount - target) < 0.01) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static String firstAmountOrEmpty(String text) {
+        ArrayList<Double> amounts = extractAmounts(text);
+        if (amounts.isEmpty()) {
+            return "";
+        }
+        return String.format(Locale.US, "%.2f", amounts.get(0));
+    }
+
+    private static double safeParseDouble(String value, double defaultValue) {
+        try {
+            return Double.parseDouble(value);
+        } catch (Exception e) {
+            return defaultValue;
+        }
     }
 
     private static JSONObject buildAlipayXiaohebaoPrompt(Context context) throws JSONException {
@@ -295,60 +473,7 @@ public class ProjectUtil {
         return new JSONObject()
                 .put("enabled", !isEmpty(nickname))
                 .put("nickname", safeString(nickname))
-                .put("matchingRule", "小荷包通知中如果出现“xxx消费了”,xxx 必须与 nickname 对应才记录;其他成员消费返回 isBill=false");
-    }
-
-    private static boolean shouldIgnoreAlipayXiaohebaoNotification(Context context, RawNotification rawNotification) {
-        if (!"com.eg.android.AlipayGphone".equals(rawNotification.packageName)) {
-            return false;
-        }
-        String readableText = rawNotification.readableText();
-        if (!readableText.contains("小荷包") || !readableText.contains("消费了")) {
-            return false;
-        }
-        String nickname = (String) SpUtils.get(context, "is_alipay_xiaohebao", "");
-        if (isEmpty(nickname)) {
-            return true;
-        }
-        String consumerName = extractNameBefore(readableText, "消费了");
-        return !isEmpty(consumerName) && !nickname.equals(consumerName);
-    }
-
-    private static boolean shouldIgnoreNonXiaohebaoAlipayNotification(Context context, RawNotification rawNotification) {
-        if (!"com.eg.android.AlipayGphone".equals(rawNotification.packageName)) {
-            return false;
-        }
-        String nickname = (String) SpUtils.get(context, "is_alipay_xiaohebao", "");
-        if (isEmpty(nickname)) {
-            return false;
-        }
-        return !rawNotification.readableText().contains("小荷包");
-    }
-
-    private static String extractNameBefore(String text, String marker) {
-        int markerIndex = text.indexOf(marker);
-        if (markerIndex <= 0) {
-            return "";
-        }
-        int start = markerIndex - 1;
-        while (start >= 0 && !isNameSeparator(text.charAt(start))) {
-            start--;
-        }
-        return text.substring(start + 1, markerIndex).trim();
-    }
-
-    private static boolean isNameSeparator(char c) {
-        return Character.isWhitespace(c)
-                || c == ':'
-                || c == '：'
-                || c == ','
-                || c == '，'
-                || c == ';'
-                || c == '；'
-                || c == '('
-                || c == '（'
-                || c == ')'
-                || c == '）';
+                .put("matchingRule", "小荷包通知中如果出现“xxx消费了、支付了、付款了、支出了”,xxx 必须与 nickname 对应才记录;其他成员消费返回 isBill=false");
     }
 
     private static JSONObject buildBillExpectSchema() throws JSONException {
@@ -412,6 +537,9 @@ public class ProjectUtil {
                 double existingMoney = cursor.getDouble(5);
                 String existingBankName = cursor.getString(6);
                 String existingClock = cursor.getString(4);
+                if (!safeString(existingBankName).equals(safeString(bill.bankName))) {
+                    continue;
+                }
                 if (Math.abs(existingMoney - bill.money) >= 0.01) {
                     continue;
                 }
@@ -868,37 +996,166 @@ public class ProjectUtil {
     }
 
     private static JSONObject normalizeLlmJson(String responseText) throws JSONException {
-        JSONObject root = new JSONObject(extractFirstJsonObject(responseText));
+        String contentText = extractStreamingLlmContent(responseText);
+        JSONObject root = new JSONObject(extractFirstJsonObject(contentText));
+
+        String choiceContent = extractOpenAiChoiceContent(root);
+        if (!isEmpty(choiceContent)) {
+            return normalizeLlmJson(choiceContent);
+        }
+
         if (root.has("isBill")) {
+            ensureBillJsonSchema(root);
             return root;
         }
 
         String[] keys = new String[]{"data", "result", "response", "message", "content"};
         for (String key : keys) {
             Object value = root.opt(key);
-            if (value instanceof JSONObject && ((JSONObject) value).has("isBill")) {
-                return (JSONObject) value;
+            if (value instanceof JSONObject) {
+                try {
+                    return normalizeLlmJson(((JSONObject) value).toString());
+                } catch (JSONException ignored) {
+                }
             }
             if (value instanceof String && !isEmpty((String) value)) {
-                JSONObject nested = new JSONObject(extractFirstJsonObject((String) value));
-                if (nested.has("isBill")) {
-                    return nested;
+                try {
+                    return normalizeLlmJson((String) value);
+                } catch (JSONException ignored) {
                 }
             }
         }
+
+        ensureBillJsonSchema(root);
         return root;
+    }
+
+    private static String extractStreamingLlmContent(String responseText) {
+        if (isEmpty(responseText) || !responseText.contains("data:")) {
+            return responseText;
+        }
+
+        StringBuilder content = new StringBuilder();
+        String[] lines = responseText.split(String.valueOf((char) 10));
+        for (String line : lines) {
+            String trimmed = safeString(line).trim();
+            if (!trimmed.startsWith("data:")) {
+                continue;
+            }
+            String payload = trimmed.substring(5).trim();
+            if (isEmpty(payload) || "[DONE]".equals(payload)) {
+                continue;
+            }
+            try {
+                JSONObject event = new JSONObject(payload);
+                String choiceContent = extractOpenAiChoiceContent(event);
+                if (!isEmpty(choiceContent)) {
+                    content.append(choiceContent);
+                } else if (event.has("content")) {
+                    content.append(event.optString("content", ""));
+                }
+            } catch (JSONException ignored) {
+            }
+        }
+        return content.length() > 0 ? content.toString() : responseText;
+    }
+
+    private static String extractOpenAiChoiceContent(JSONObject root) {
+        JSONArray choices = root.optJSONArray("choices");
+        if (choices == null || choices.length() == 0) {
+            return "";
+        }
+
+        JSONObject choice = choices.optJSONObject(0);
+        if (choice == null) {
+            return "";
+        }
+
+        JSONObject delta = choice.optJSONObject("delta");
+        if (delta != null) {
+            String content = delta.optString("content", "");
+            if (!isEmpty(content)) {
+                return content;
+            }
+        }
+
+        JSONObject message = choice.optJSONObject("message");
+        if (message != null) {
+            String content = message.optString("content", "");
+            if (!isEmpty(content)) {
+                return content;
+            }
+        }
+
+        return choice.optString("text", "");
+    }
+
+    private static void ensureBillJsonSchema(JSONObject jsonObject) throws JSONException {
+        String[] required = new String[]{"isBill", "year", "month", "day", "clock", "money", "bankName", "orderRemark", "costType", "confidence"};
+        for (String key : required) {
+            if (!jsonObject.has(key)) {
+                throw new JSONException("LLM JSON missing required key: " + key);
+            }
+        }
     }
 
     private static String extractFirstJsonObject(String text) throws JSONException {
         if (isEmpty(text)) {
             throw new JSONException("empty json");
         }
-        int start = text.indexOf('{');
-        int end = text.lastIndexOf('}');
-        if (start < 0 || end <= start) {
-            throw new JSONException("json object not found");
+
+        String firstValid = "";
+        for (int start = 0; start < text.length(); start++) {
+            if (text.charAt(start) != 123) {
+                continue;
+            }
+
+            int depth = 0;
+            boolean inString = false;
+            boolean escape = false;
+            for (int i = start; i < text.length(); i++) {
+                char c = text.charAt(i);
+                if (escape) {
+                    escape = false;
+                    continue;
+                }
+                if (inString && c == 92) {
+                    escape = true;
+                    continue;
+                }
+                if (c == 34) {
+                    inString = !inString;
+                    continue;
+                }
+                if (inString) {
+                    continue;
+                }
+                if (c == 123) {
+                    depth++;
+                } else if (c == 125) {
+                    depth--;
+                    if (depth == 0) {
+                        String candidate = text.substring(start, i + 1);
+                        try {
+                            JSONObject parsed = new JSONObject(candidate);
+                            if (parsed.has("isBill")) {
+                                return candidate;
+                            }
+                            if (isEmpty(firstValid)) {
+                                firstValid = candidate;
+                            }
+                        } catch (JSONException ignored) {
+                        }
+                        break;
+                    }
+                }
+            }
         }
-        return text.substring(start, end + 1);
+
+        if (!isEmpty(firstValid)) {
+            return firstValid;
+        }
+        throw new JSONException("json object not found");
     }
 
     private static String joinUrl(String baseUrl, String path) {
@@ -909,13 +1166,20 @@ public class ProjectUtil {
     }
 
     private static synchronized boolean isDuplicateNotification(RawNotification rawNotification) {
-        String key = rawNotification.dedupKey();
+        String key = rawNotification.contentDedupKey();
         long now = System.currentTimeMillis();
-        if (key.equals(lastNotificationDedupKey) && now - lastNotificationDedupTime < NOTIFICATION_DEDUP_WINDOW_MS) {
+        Iterator<Map.Entry<String, Long>> iterator = recentNotificationDedupTimes.entrySet().iterator();
+        while (iterator.hasNext()) {
+            Map.Entry<String, Long> entry = iterator.next();
+            if (now - entry.getValue() >= NOTIFICATION_DEDUP_WINDOW_MS) {
+                iterator.remove();
+            }
+        }
+        Long lastSeenTime = recentNotificationDedupTimes.get(key);
+        if (lastSeenTime != null && now - lastSeenTime < NOTIFICATION_DEDUP_WINDOW_MS) {
             return true;
         }
-        lastNotificationDedupKey = key;
-        lastNotificationDedupTime = now;
+        recentNotificationDedupTimes.put(key, now);
         return false;
     }
 
@@ -1013,6 +1277,12 @@ public class ProjectUtil {
             return packageName + "|" + title + "|" + text + "|" + subText + "|" + bigText;
         }
 
+
+        String contentDedupKey() {
+            String content = packageName + "|" + title + "|" + text + "|" + firstAmountOrEmpty(readableText());
+            return content.replaceAll("\\s+", "");
+        }
+
         JSONObject toDebugJson() {
             JSONObject jsonObject = new JSONObject();
             try {
@@ -1072,6 +1342,17 @@ public class ProjectUtil {
                 return null;
             }
 
+            double confidence = jsonObject.optDouble("confidence", 0);
+            if (confidence < LLM_MIN_CONFIDENCE) {
+                debugLog("bill.ignore", "LLM confidence too low: " + confidence);
+                return null;
+            }
+
+            if (!amountMatchesNotification(rawNotification, money)) {
+                debugLog("bill.ignore", "LLM money does not match notification amount: " + money);
+                return null;
+            }
+
             String bankName = jsonObject.optString("bankName", "");
             if (!contains(ConstVariable.PAY_WAY, bankName)) {
                 bankName = inferPayWay(rawNotification.packageName, bankName);
@@ -1084,17 +1365,21 @@ public class ProjectUtil {
                 costType = "消费";
             }
 
+            Calendar calendar = Calendar.getInstance();
+            calendar.setTimeInMillis(rawNotification.postTime);
+            String clock = new SimpleDateFormat("M月d日 HH:mm").format(new Date(rawNotification.postTime));
+
             return new BillParseResult(
                     true,
-                    jsonObject.optInt("year", getCurrentYear()),
-                    jsonObject.optInt("month", getCurrentMonth()),
-                    jsonObject.optInt("day", getCurrentDay()),
-                    jsonObject.optString("clock", getCurrentTime()),
+                    calendar.get(Calendar.YEAR),
+                    calendar.get(Calendar.MONTH) + 1,
+                    calendar.get(Calendar.DAY_OF_MONTH),
+                    clock,
                     money,
                     bankName,
                     "",
                     costType,
-                    jsonObject.optDouble("confidence", 0));
+                    confidence);
         }
 
         private static String inferPayWay(String packageName, String fallback) {
