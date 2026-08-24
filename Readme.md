@@ -105,8 +105,13 @@ App 侧尽量不做账单语义判断。待支付、未支付、自动取消、�
 
 ## Star History
 
-[![Star History Chart](https://api.star-history.com/svg?repos=FuShengDuoBuYu/AutoBookKeepingBeta&type=Date)](https://star-history.com/#FuShengDuoBuYu/AutoBookKeepingBeta&Date)
-
+<a href="https://www.star-history.com/?repos=FuShengDuoBuYu%2FAutoBookKeepingBeta&type=date&legend=top-left">
+ <picture>
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=FuShengDuoBuYu/AutoBookKeepingBeta&type=date&theme=dark&legend=top-left&sealed_token=2Axdzd3TlGg6oRp1OWlXdJ9JRnurUTvchRDND356e1Cy1HNNR18CJrkSzg8Eng1PMafW2c4hmEOjZxsvXttCP8dzv16T-eXciqV9Ai4Ed2lh0Nfrvpy8xw" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=FuShengDuoBuYu/AutoBookKeepingBeta&type=date&legend=top-left&sealed_token=2Axdzd3TlGg6oRp1OWlXdJ9JRnurUTvchRDND356e1Cy1HNNR18CJrkSzg8Eng1PMafW2c4hmEOjZxsvXttCP8dzv16T-eXciqV9Ai4Ed2lh0Nfrvpy8xw" />
+   <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=FuShengDuoBuYu/AutoBookKeepingBeta&type=date&legend=top-left&sealed_token=2Axdzd3TlGg6oRp1OWlXdJ9JRnurUTvchRDND356e1Cy1HNNR18CJrkSzg8Eng1PMafW2c4hmEOjZxsvXttCP8dzv16T-eXciqV9Ai4Ed2lh0Nfrvpy8xw" />
+ </picture>
+</a>
 ## 贡献
 
 欢迎提交 Issue 或 Pull Request。建议在提交前说明问题场景、复现步骤、期望行为和相关日志；涉及通知识别的改动，请尽量附上脱敏后的通知样例。
