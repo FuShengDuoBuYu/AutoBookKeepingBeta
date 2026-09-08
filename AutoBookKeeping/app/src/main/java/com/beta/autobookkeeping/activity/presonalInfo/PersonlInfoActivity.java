@@ -1,144 +1,168 @@
 package com.beta.autobookkeeping.activity.presonalInfo;
 
-import static com.hss01248.dialog.StyledDialog.context;
 import static Util.ConstVariable.IP;
-
-import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.ContentResolver;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Looper;
-import android.provider.MediaStore;
 import android.util.Log;
-import android.view.Gravity;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
+
 import com.beta.autobookkeeping.R;
+import com.beta.autobookkeeping.activity.main.checking.UserRegister;
 import com.beta.autobookkeeping.activity.presonalInfo.personalInfoItems.BasicInfo;
 import com.beta.autobookkeeping.activity.presonalInfo.personalInfoItems.FamilyInfo;
 import com.hss01248.dialog.StyledDialog;
-import com.hss01248.dialog.interfaces.MyDialogListener;
 import com.yalantis.ucrop.UCrop;
 
 import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import Util.ProjectUtil;
 import Util.SpUtils;
-import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
-import okhttp3.RequestBody;
 import okhttp3.Response;
 
 public class PersonlInfoActivity extends AppCompatActivity {
-    private Uri resultUri;
-    private BasicInfo basicInfo = null;
-    private TextView phoneNum,nickname;
-    private LinearLayout familyDetail,llContainer;
+    private static final String TAG = "PersonlInfoActivity";
+    private static final OkHttpClient CLIENT = new OkHttpClient.Builder()
+            .connectTimeout(15, TimeUnit.SECONDS)
+            .readTimeout(60, TimeUnit.SECONDS)
+            .build();
+
+    private BasicInfo basicInfo;
+    private LinearLayout container;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_personl_info);
-        findViewByIdAndInit();
-        //查找个人基本家庭信息
-        getFamilyInfo();
+        container = findViewById(R.id.ll_container);
+        loadAccountInfo();
     }
 
-    private void findViewByIdAndInit(){
-        llContainer = findViewById(R.id.ll_container);
-        basicInfo = new BasicInfo((String) SpUtils.get(this,"phoneNum",""),(SpUtils.get(this,"nickName","")==null||SpUtils.get(this,"nickName","").equals(""))?"暂未设置":(String) SpUtils.get(this,"nickName",""),this);
-        LinearLayout basicInfoLayoutView = basicInfo.getLayoutView();
-        llContainer.addView(basicInfoLayoutView);
-    }
-
-    private void getFamilyInfo(){
-        if(SpUtils.get(PersonlInfoActivity.this,"familyId","")==null || "".equals(SpUtils.get(PersonlInfoActivity.this,"familyId",""))){
-            afterGetFamilyMembers(new JSONArray());
-        }
-        else {
-            StyledDialog.buildLoading().show();
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    String familyId = (String) SpUtils.get(PersonlInfoActivity.this,"familyId","");
-                    String url = IP+"/user/getFamilyMembers/"+familyId;
-                    OkHttpClient client = new OkHttpClient();
-                    JSONObject jsonObject = new JSONObject();
-                    Request request = new Request.Builder().url(url).get().build();
-                    try{
-                        Response response = client.newCall(request).execute();
-                        if(response.code()==200){
-                            JSONObject jsonResponse = new JSONObject(response.body().string());
-                            if(jsonResponse.getBoolean("success")){
-                                JSONArray familyMembers = jsonResponse.getJSONArray("data");
-                                afterGetFamilyMembers(familyMembers);
-                            }
-                            else{
-                                Looper.prepare();
-                                StyledDialog.dismissLoading(PersonlInfoActivity.this);
-                                ProjectUtil.toastMsg(context,jsonResponse.getString("message"));
-                                Looper.loop();
-                            }
-                        }
-                        else{
-                            Looper.prepare();
-                            StyledDialog.dismissLoading(PersonlInfoActivity.this);
-                            Log.d("tag",String.valueOf(response.code()));
-                            ProjectUtil.toastMsg(context,"服务器出错");
-                            Looper.loop();
-                        }
-                    } catch (JSONException | IOException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }).start();
-        }
-    }
-
-    private void afterGetFamilyMembers(JSONArray familyMembers){
-        runOnUiThread(new Runnable() {
+    /** Always refresh the server profile first so a new device does not use stale family/avatar data. */
+    private void loadAccountInfo() {
+        StyledDialog.buildLoading().show();
+        String phoneNum = (String) SpUtils.get(this, "phoneNum", "");
+        UserRegister.syncUserProfile(this, phoneNum, new UserRegister.SyncCallback() {
             @Override
-            public void run() {
-                StyledDialog.dismissLoading(PersonlInfoActivity.this);
-                FamilyInfo familyInfo = new FamilyInfo(PersonlInfoActivity.this,familyMembers);
-                llContainer.addView(familyInfo.getLayoutView());
+            public void onSuccess() {
+                renderBasicInfo();
+                loadFamilyMembers();
             }
+
+            @Override
+            public void onFailure(String message) {
+                ProjectUtil.toastMsg(PersonlInfoActivity.this, message + "，当前显示本机缓存");
+                renderBasicInfo();
+                loadFamilyMembers();
+            }
+        });
+    }
+
+    private void renderBasicInfo() {
+        container.removeAllViews();
+        String phoneNum = (String) SpUtils.get(this, "phoneNum", "");
+        String nickname = (String) SpUtils.get(this, "nickName", "");
+        basicInfo = new BasicInfo(phoneNum, nickname == null || nickname.trim().isEmpty() ? "暂未设置" : nickname, this);
+        container.addView(basicInfo.getLayoutView());
+    }
+
+    private void loadFamilyMembers() {
+        String familyId = (String) SpUtils.get(this, "familyId", "");
+        if (familyId == null || familyId.trim().isEmpty()) {
+            showFamilyMembers(new JSONArray());
+            return;
+        }
+
+        String normalizedFamilyId = familyId.trim();
+        new Thread(() -> {
+            Request request = new Request.Builder()
+                    .url(IP + "/user/getFamilyMembers/" + normalizedFamilyId)
+                    .get()
+                    .build();
+            try (Response response = CLIENT.newCall(request).execute()) {
+                String responseText = response.body() == null ? "" : response.body().string();
+                if (!response.isSuccessful() || responseText.isEmpty()) {
+                    showFamilyLoadError("家庭信息加载失败，请稍后重试");
+                    return;
+                }
+                JSONObject jsonResponse = new JSONObject(responseText);
+                if (!jsonResponse.optBoolean("success", false)) {
+                    String message = jsonResponse.optString("message", "家庭信息加载失败");
+                    if ("家庭不存在".equals(message)) {
+                        SpUtils.put(PersonlInfoActivity.this, "familyId", "");
+                        SpUtils.put(PersonlInfoActivity.this, "familyIdentity", "");
+                        showFamilyMembers(new JSONArray());
+                    } else {
+                        showFamilyLoadError(message);
+                    }
+                    return;
+                }
+                JSONArray familyMembers = jsonResponse.optJSONArray("data");
+                showFamilyMembers(familyMembers == null ? new JSONArray() : familyMembers);
+            } catch (Exception exception) {
+                Log.e(TAG, "loadFamilyMembers failed", exception);
+                showFamilyLoadError("家庭信息加载失败，请检查网络");
+            }
+        }, "family-members-sync").start();
+    }
+
+    private void showFamilyMembers(JSONArray familyMembers) {
+        runOnUiThread(() -> {
+            StyledDialog.dismissLoading(PersonlInfoActivity.this);
+            FamilyInfo familyInfo = new FamilyInfo(PersonlInfoActivity.this, familyMembers, this::loadAccountInfo);
+            container.addView(familyInfo.getLayoutView());
+        });
+    }
+
+    private void showFamilyLoadError(String message) {
+        runOnUiThread(() -> {
+            StyledDialog.dismissLoading(PersonlInfoActivity.this);
+            ProjectUtil.toastMsg(PersonlInfoActivity.this, message);
+            TextView errorView = new TextView(PersonlInfoActivity.this);
+            int padding = (int) (16 * getResources().getDisplayMetrics().density);
+            errorView.setPadding(padding, padding, padding, padding);
+            errorView.setText("家庭信息暂时无法加载，下次进入会自动重试");
+            container.addView(errorView);
         });
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-        if (resultCode == RESULT_OK && requestCode == UCrop.REQUEST_CROP) {
-            resultUri = UCrop.getOutput(data);
-            ContentResolver contentResolver = this.getContentResolver();
-            Bitmap bitmap = null;
-            try {
-                bitmap  = BitmapFactory.decodeStream(contentResolver.openInputStream(resultUri));
-            } catch (FileNotFoundException e) {
-                e.printStackTrace();
+        if (requestCode == BasicInfo.REQUEST_PORTRAIT && resultCode == RESULT_OK
+                && data != null && data.getData() != null && basicInfo != null) {
+            basicInfo.startUcrop(data.getData());
+        }
+        if (resultCode == RESULT_OK && requestCode == UCrop.REQUEST_CROP && data != null) {
+            Uri resultUri = UCrop.getOutput(data);
+            if (resultUri != null && basicInfo != null) {
+                ContentResolver contentResolver = getContentResolver();
+                try {
+                    Bitmap bitmap = BitmapFactory.decodeStream(contentResolver.openInputStream(resultUri));
+                    if (bitmap != null) {
+                        basicInfo.modifyPortrait(bitmap);
+                    }
+                } catch (FileNotFoundException exception) {
+                    Log.e(TAG, "cropped portrait not found", exception);
+                    ProjectUtil.toastMsg(this, "头像读取失败，请重新选择");
+                }
             }
-            StyledDialog.buildLoading().show();
-            basicInfo.modifyPortrait(bitmap);
-        } else if (resultCode == UCrop.RESULT_ERROR) {
-            final Throwable cropError = UCrop.getError(data);
+        } else if (resultCode == UCrop.RESULT_ERROR && data != null) {
+            Log.e(TAG, "portrait crop failed", UCrop.getError(data));
+            ProjectUtil.toastMsg(this, "头像裁剪失败，请重试");
         }
         super.onActivityResult(requestCode, resultCode, data);
     }

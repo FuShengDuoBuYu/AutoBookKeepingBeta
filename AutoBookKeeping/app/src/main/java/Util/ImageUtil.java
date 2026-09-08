@@ -42,9 +42,22 @@ public class ImageUtil {
     //将bitmap转为base64便于存储
     public static String bitmap2Base64(Bitmap bitmap){
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        //把bitmap100%高质量压缩 到 output对象里
-        bitmap.compress(Bitmap.CompressFormat.PNG, 10, outputStream);
-        return Base64.encodeToString(outputStream.toByteArray(), Base64.DEFAULT);
+        bitmap.compress(Bitmap.CompressFormat.PNG, 100, outputStream);
+        return Base64.encodeToString(outputStream.toByteArray(), Base64.NO_WRAP);
+    }
+
+    public static Bitmap scaleDown(Bitmap bitmap, int maxSize){
+        if(bitmap == null || maxSize <= 0){
+            return bitmap;
+        }
+        int width = bitmap.getWidth();
+        int height = bitmap.getHeight();
+        int longestSide = Math.max(width, height);
+        if(longestSide <= maxSize){
+            return bitmap;
+        }
+        float ratio = maxSize / (float) longestSide;
+        return Bitmap.createScaledBitmap(bitmap, Math.max(1, Math.round(width * ratio)), Math.max(1, Math.round(height * ratio)), true);
     }
 
     //把base64转为bitmap用于展示
@@ -54,7 +67,16 @@ public class ImageUtil {
         }
         try {
             byte[] bytes = Base64.decode(base64Image, Base64.DEFAULT);
-            return BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
+            BitmapFactory.Options bounds = new BitmapFactory.Options();
+            bounds.inJustDecodeBounds = true;
+            BitmapFactory.decodeByteArray(bytes, 0, bytes.length, bounds);
+            int sampleSize = 1;
+            while(bounds.outWidth / sampleSize > 512 || bounds.outHeight / sampleSize > 512){
+                sampleSize *= 2;
+            }
+            BitmapFactory.Options options = new BitmapFactory.Options();
+            options.inSampleSize = sampleSize;
+            return BitmapFactory.decodeByteArray(bytes, 0, bytes.length, options);
         } catch (IllegalArgumentException e) {
             return null;
         }

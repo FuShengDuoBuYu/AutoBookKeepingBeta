@@ -82,6 +82,7 @@ public class PersonalOrderDetailFragment extends Fragment {
     }
 
     public void addViewByData(Context context){
+        if (!isAdded() || getView() == null || lvOrderDetail == null || context == null) return;
         //获取要展示的数值
         Activity activity = getActivity();
         if(activity instanceof MainActivity){
@@ -148,7 +149,7 @@ public class PersonalOrderDetailFragment extends Fragment {
         bundle.putInt("month",cursor.getInt(2));
         bundle.putInt("day",cursor.getInt(3));
         bundle.putString("clock",cursor.getString(4));
-        bundle.putFloat("money",cursor.getFloat(5));
+        bundle.putDouble("money",cursor.getDouble(5));
         bundle.putString("bankName",cursor.getString(6));
         bundle.putString("orderRemark",cursor.getString(7));
         bundle.putString("costType",cursor.getString(8));
@@ -214,6 +215,7 @@ public class PersonalOrderDetailFragment extends Fragment {
                 //本地删除
                 String sql = "delete from orderInfo where id =" + itemId;
                 db.execSQL(sql);
+                com.beta.autobookkeeping.widget.OrderWidget.refreshAll(requireContext().getApplicationContext());
                 ProjectUtil.toastMsg(getContext(),"删除成功");
                 addViewByData(getContext());
                 //在activity更新数据
@@ -267,6 +269,8 @@ public class PersonalOrderDetailFragment extends Fragment {
 
     @Override
     public void onDestroyView() {
+        lvOrderDetail = null;
+        svOrderDetail = null;
         if(db != null && db.isOpen()){
             db.close();
         }

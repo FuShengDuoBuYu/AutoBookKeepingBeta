@@ -43,7 +43,6 @@ import com.beta.autobookkeeping.R;
 import com.beta.autobookkeeping.fragment.orderDetail.FamilyOrderDetailFragment;
 import com.beta.autobookkeeping.fragment.orderDetail.PersonalOrderDetailFragment;
 import com.beta.autobookkeeping.fragment.orderDetail.TabOrderDetailFragmentPagerAdapter;
-import com.beta.autobookkeeping.service.NotificationReceiver;
 
 import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.tabs.TabLayoutMediator;
@@ -75,6 +74,7 @@ public class MainActivity extends AppCompatActivity {
     private TextView tvAllTodayOrder,tvAllMonthOrder,tv_title;
     private LinearLayout lvOrderDetail,llCostTitle;
     private ScrollView svOrderDetail;
+    private AlertDialog loginDialog;
     Bundle bundle;
     int currentViewPageFragmentIndex = 0;
     //数据库实例
@@ -83,20 +83,20 @@ public class MainActivity extends AppCompatActivity {
     private List<OrderInfo> orderInfos = new ArrayList<>();
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         //设置初始偏好数据
         initSpAndSqlLiteData();
 
-        PermissonChecking.ifGetPermission(MainActivity.this,MainActivity.this);
         findViewByIdAndInit();
         //初始化页面布局
         initFragmentAndViewPage();
 
-        startService(new Intent(MainActivity.this, NotificationReceiver.class));
         //设置手机号
         setPhoneNum();
-        //设置开屏动画
-        super.onCreate(savedInstanceState);
+        if(!"".equals(SpUtils.get(this,"phoneNum",""))){
+            PermissonChecking.ifGetPermission(this);
+        }
     }
     //初始化fragment和viewpage
     private void initFragmentAndViewPage(){
@@ -276,14 +276,14 @@ public class MainActivity extends AppCompatActivity {
         return false;
     }
 
-    //注册手机号
+    //登录或注册账号。两个动作必须显式区分，避免输错手机号时创建新账号。
     private void setPhoneNum(){
         if(
                 SpUtils.get(this,"phoneNum","")==null || SpUtils.get(this,"phoneNum","").equals("")
         ){
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
-            builder.setTitle("登录/注册");
-            builder.setMessage("请输入手机号和密码,若手机号未注册将自动创建账号");
+            builder.setTitle("登录账号");
+            builder.setMessage("已有账号请选择登录；首次使用请选择注册。换新设备登录后会从云端恢复个人资料和账单。 ");
             final EditText etPhoneNum = new EditText(this);
             etPhoneNum.setInputType(InputType.TYPE_CLASS_PHONE);
             etPhoneNum.setHint("请输入手机号");
@@ -296,18 +296,49 @@ public class MainActivity extends AppCompatActivity {
             ll.addView(etPassword);
             builder.setView(ll);
             builder.setCancelable(false);
-            builder.setPositiveButton("确定", new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-                    if(etPhoneNum.getText().toString().matches("^[1][3,4,5,7,8,9][0-9]{9}$")){
-                        UserRegister.userRegister(etPhoneNum.getText().toString(),etPassword.getText().toString(),MainActivity.this);
-                    }else{
-                        toastMsg(MainActivity.this,"输入有误,请重试");
+            builder.setPositiveButton("登录", null);
+            builder.setNeutralButton("注册", null);
+            loginDialog = builder.create();
+            loginDialog.setOnShowListener(ignored -> {
+                loginDialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(view -> {
+                    String phoneNum = etPhoneNum.getText().toString().trim();
+                    String password = etPassword.getText().toString();
+                    if(!phoneNum.matches("^1[3-9][0-9]{9}$") || password.isEmpty()){
+                        toastMsg(MainActivity.this,"请输入正确的手机号和密码");
+                        return;
                     }
-                }
-            }).show();
+                    UserRegister.login(phoneNum,password,MainActivity.this);
+                });
+                loginDialog.getButton(AlertDialog.BUTTON_NEUTRAL).setOnClickListener(view -> {
+                    String phoneNum = etPhoneNum.getText().toString().trim();
+                    String password = etPassword.getText().toString();
+                    if(!phoneNum.matches("^1[3-9][0-9]{9}$")){
+                        toastMsg(MainActivity.this,"请输入正确的手机号");
+                        return;
+                    }
+                    if(password.length() < 6){
+                        toastMsg(MainActivity.this,"注册密码至少需要6位");
+                        return;
+                    }
+                    UserRegister.register(phoneNum,password,MainActivity.this);
+                });
+            });
+            loginDialog.show();
         }else {
-            UserRegister.syncUserProfile(this, (String) SpUtils.get(this,"phoneNum",""), () -> FamilyChecking.checkFamily(MainActivity.this));
+            UserRegister.syncAccountOnLaunch(this, (String) SpUtils.get(this,"phoneNum",""), new UserRegister.SyncCallback() {
+                @Override
+                public void onSuccess() {
+                    refreshAfterCloudOrderSync();
+                    FamilyChecking.checkFamily(MainActivity.this);
+                }
+
+                @Override
+                public void onFailure(String message) {
+                    toastMsg(MainActivity.this, message);
+                    refreshAfterCloudOrderSync();
+                    FamilyChecking.checkFamily(MainActivity.this);
+                }
+            });
         }
     }
 
@@ -383,14 +414,27 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void refreshAfterCloudOrderSync(){
+        com.beta.autobookkeeping.widget.OrderWidget.refreshAll(getApplicationContext());
+        if (isFinishing() || isDestroyed()) return;
         showDayAndMonthMoney();
         if(fragments == null || fragments.isEmpty()){
             return;
         }
         Fragment personalFragment = fragments.get(0);
-        if(personalFragment instanceof PersonalOrderDetailFragment){
+        if(personalFragment instanceof PersonalOrderDetailFragment && personalFragment.getView() != null){
             ((PersonalOrderDetailFragment) personalFragment).addViewByData(this);
         }
+        if(fragments.size() > 1 && fragments.get(1) instanceof FamilyOrderDetailFragment){
+            ((FamilyOrderDetailFragment) fragments.get(1)).refreshFamilyOrders();
+        }
+    }
+
+    public void onAuthenticationSuccess(){
+        if(loginDialog != null && loginDialog.isShowing()){
+            loginDialog.dismiss();
+        }
+        refreshAfterCloudOrderSync();
+        PermissonChecking.ifGetPermission(this);
     }
 
     public void clickFamilyItemToShowDetail(View v, Pair<View, String>... pairs){
@@ -420,5 +464,10 @@ public class MainActivity extends AppCompatActivity {
             db.close();
         }
         super.onDestroy();
+    }
+
+    @Override protected void onResume() {
+        super.onResume();
+        com.beta.autobookkeeping.widget.OrderWidget.refreshAll(getApplicationContext());
     }
 }

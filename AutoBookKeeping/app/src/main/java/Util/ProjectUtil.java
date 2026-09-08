@@ -20,7 +20,6 @@ import android.service.notification.StatusBarNotification;
 import android.util.Log;
 
 import androidx.core.app.NotificationCompat;
-import androidx.core.app.RemoteInput;
 
 import com.beta.autobookkeeping.BuildConfig;
 import com.beta.autobookkeeping.activity.main.entity.OrderInfo;
@@ -206,12 +205,12 @@ public class ProjectUtil {
         return cal.get(Calendar.MINUTE);
     }
 
-    public static void handleNotificationBillWithLlm(Context context, StatusBarNotification sbn) {
+    public static void handleNotificationBillWithRegex(Context context, StatusBarNotification sbn) {
         RawNotification rawNotification = RawNotification.from(sbn);
-        handleRawNotificationBillWithLlm(context, rawNotification);
+        handleRawNotificationBillWithRegex(context, rawNotification);
     }
 
-    public static void handleNotificationBillWithLlmForDebug(Context context, String packageName, String title, String text, String subText, String bigText, ArrayList<String> lines) {
+    public static void handleNotificationBillWithRegexForDebug(Context context, String packageName, String title, String text, String subText, String bigText, ArrayList<String> lines) {
         if (!BuildConfig.DEBUG) {
             return;
         }
@@ -224,10 +223,21 @@ public class ProjectUtil {
                 lines,
                 System.currentTimeMillis(),
                 "debug-" + packageName + "-" + System.currentTimeMillis());
-        handleRawNotificationBillWithLlm(context, rawNotification);
+        handleRawNotificationBillWithRegex(context, rawNotification);
     }
 
-    private static void handleRawNotificationBillWithLlm(Context context, RawNotification rawNotification) {
+    /** Compatibility entry point for old debug/install code; parsing is now fully local. */
+    @Deprecated
+    public static void handleNotificationBillWithLlm(Context context, StatusBarNotification sbn) {
+        handleNotificationBillWithRegex(context, sbn);
+    }
+
+    @Deprecated
+    public static void handleNotificationBillWithLlmForDebug(Context context, String packageName, String title, String text, String subText, String bigText, ArrayList<String> lines) {
+        handleNotificationBillWithRegexForDebug(context, packageName, title, text, subText, bigText, lines);
+    }
+
+    private static void handleRawNotificationBillWithRegex(Context context, RawNotification rawNotification) {
         if (rawNotification == null || isEmpty(rawNotification.readableText())) {
             debugLog("notification.ignore", "empty notification");
             return;
@@ -250,9 +260,9 @@ public class ProjectUtil {
         Context appContext = context.getApplicationContext();
         new Thread(() -> {
             try {
-                BillParseResult bill = parseNotificationBillWithLlm(appContext, rawNotification);
+                BillParseResult bill = parseNotificationBillWithRegex(appContext, rawNotification);
                 if (bill == null || !bill.isBill) {
-                    debugLog("bill.ignore", "LLM result is not a bill or invalid");
+                    debugLog("bill.ignore", "regex result is not a bill or invalid");
                     return;
                 }
                 debugLog("bill.parsed", bill.toDebugJson().toString());
@@ -260,16 +270,43 @@ public class ProjectUtil {
                     debugLog("bill.ignore", "duplicate bill by amount/payWay/time window");
                     return;
                 }
-                ContentValues values = buildOrderValues(appContext, bill);
-                int orderId = addOrderToRemoteAndLocal(appContext, values);
-                if (orderId > 0) {
-                    bill.id = orderId;
-                    showAutoBillNotification(appContext, bill);
-                }
+                // Parsing creates only a notification draft. Saving belongs to the detail screen.
+                bill.id = 0;
+                showAutoBillNotification(appContext, bill);
             } catch (Exception e) {
                 Log.e(TAG, "handle notification bill failed", e);
             }
         }).start();
+    }
+
+    private static BillParseResult parseNotificationBillWithRegex(Context context, RawNotification rawNotification) {
+        String nickname = (String) SpUtils.get(context, "is_alipay_xiaohebao", "");
+        NotificationBillParser.ParsedBill parsedBill = NotificationBillParser.parse(
+                rawNotification.packageName,
+                rawNotification.title,
+                rawNotification.text,
+                rawNotification.readableText(),
+                nickname
+        );
+        if (parsedBill == null) {
+            return null;
+        }
+
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTimeInMillis(rawNotification.postTime);
+        String clock = new SimpleDateFormat("M月d日 HH:mm", Locale.CHINA).format(new Date(rawNotification.postTime));
+        return new BillParseResult(
+                true,
+                calendar.get(Calendar.YEAR),
+                calendar.get(Calendar.MONTH) + 1,
+                calendar.get(Calendar.DAY_OF_MONTH),
+                clock,
+                parsedBill.money,
+                parsedBill.bankName,
+                "",
+                parsedBill.costType,
+                1.0
+        );
     }
 
     private static BillParseResult parseNotificationBillWithLlm(Context context, RawNotification rawNotification) throws IOException, JSONException {
@@ -639,8 +676,20 @@ public class ProjectUtil {
     }
 
     private static void showAutoBillNotification(Context context, BillParseResult bill) {
-        showAutoBillMainNotification(context, buildAutoBillBundle(bill));
+        Bundle draft = buildAutoBillBundle(bill);
+        draft.putBoolean("notificationDraft", true);
+        draft.putString("draftOwner", (String) SpUtils.get(context, "phoneNum", ""));
+        draft.putString("draftToken", java.util.UUID.randomUUID().toString());
+        draft.putInt("draftNotificationId", nextDraftNotificationId(context));
+        showAutoBillMainNotification(context, draft);
         Log.d(TAG, "auto bill notification shown: " + (bill.money >= 0 ? "收入" : "支出") + " " + String.format("%.2f", Math.abs(bill.money)));
+    }
+
+    private static synchronized int nextDraftNotificationId(Context context) {
+        android.content.SharedPreferences prefs = context.getSharedPreferences("bill_drafts", Context.MODE_PRIVATE);
+        int next = prefs.getInt("nextNotificationId", 1000000) + 1;
+        prefs.edit().putInt("nextNotificationId", next).commit();
+        return next;
     }
 
     private static Bundle buildAutoBillBundle(BillParseResult bill) {
@@ -662,61 +711,40 @@ public class ProjectUtil {
         orderDetail.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
         orderDetail.putExtras(billBundle);
         int orderId = billBundle.getInt("id");
+        boolean draft = billBundle.getBoolean("notificationDraft", false);
+        int notificationId = draft ? billBundle.getInt("draftNotificationId") : 10000 + orderId;
+        if (draft) orderDetail.setData(android.net.Uri.parse("bookkeeping://draft/" + billBundle.getString("draftToken")));
         double money = billBundle.getDouble("money");
         String bankName = safeString(billBundle.getString("bankName"));
         String costType = safeString(billBundle.getString("costType"));
         String clock = safeString(billBundle.getString("clock"));
         PendingIntent detailPendingIntent = PendingIntent.getActivity(
                 context,
-                orderId,
+                notificationId,
                 orderDetail,
                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
 
         String orderType = money >= 0 ? "收入" : "支出";
         String amount = String.format("%.2f", Math.abs(money));
         String summary = bankName + " · " + costType + " · " + clock;
-        PendingIntent undoPendingIntent = PendingIntent.getBroadcast(
-                context,
-                orderId * 10 + 1,
-                buildNotificationActionIntent(context, AutoBillNotificationActionReceiver.ACTION_UNDO_AUTO_BILL, billBundle),
-                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
-        RemoteInput remarkInput = new RemoteInput.Builder(AutoBillNotificationActionReceiver.KEY_TEXT_REPLY)
-                .setLabel("添加备注")
-                .build();
-        PendingIntent remarkPendingIntent = PendingIntent.getBroadcast(
-                context,
-                orderId * 10 + 2,
-                buildNotificationActionIntent(context, AutoBillNotificationActionReceiver.ACTION_ADD_AUTO_BILL_REMARK, billBundle),
-                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_MUTABLE);
-        PendingIntent categoryPendingIntent = PendingIntent.getBroadcast(
-                context,
-                orderId * 10 + 3,
-                buildCategoryPageActionIntent(context, billBundle, 0),
-                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(context, ORDER_NOTIFICATION_CHANNEL)
                 .setSmallIcon(R.drawable.ic_launcher_foreground)
-                .setContentTitle(orderType + " " + amount + "元")
+                .setContentTitle((draft ? "待确认 · " : "") + orderType + " " + amount + "元")
                 .setContentText(summary)
                 .setStyle(new NotificationCompat.BigTextStyle()
                         .setBigContentTitle(orderType + " " + amount + "元")
-                        .bigText("来源: " + bankName + "\n分类: " + costType + "\n时间: " + clock + "\n状态: 已记录,可编辑"))
+                        .bigText("来源：" + bankName + "\n分类：" + costType + "\n时间：" + clock))
                 .setSubText(summary)
                 .setContentIntent(detailPendingIntent)
-                .setAutoCancel(true)
-                .setPriority(NotificationCompat.PRIORITY_MAX)
+                .setAutoCancel(!draft)
+                .setPriority(NotificationCompat.PRIORITY_HIGH)
                 .setCategory(NotificationCompat.CATEGORY_STATUS)
                 .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
-                .setDefaults(Notification.DEFAULT_ALL)
-                .addAction(R.drawable.ic_launcher_foreground, "撤销记录", undoPendingIntent)
-                .addAction(R.drawable.ic_launcher_foreground, "更多分类", categoryPendingIntent)
-                .addAction(new NotificationCompat.Action.Builder(R.drawable.ic_launcher_foreground, "添加备注", remarkPendingIntent)
-                        .addRemoteInput(remarkInput)
-                        .setAllowGeneratedReplies(false)
-                        .build());
+                .setDefaults(Notification.DEFAULT_ALL);
 
         NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
-        notificationManager.notify(10000 + orderId, builder.build());
+        notificationManager.notify(notificationId, builder.build());
     }
 
     private static Intent buildNotificationActionIntent(Context context, String action, Bundle billBundle) {

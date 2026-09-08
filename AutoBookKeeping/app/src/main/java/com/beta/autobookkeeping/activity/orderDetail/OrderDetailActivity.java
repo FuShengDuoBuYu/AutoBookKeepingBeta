@@ -198,6 +198,17 @@ public class OrderDetailActivity extends AppCompatActivity {
     private void handleMsg(Bundle bundle){
         //不是手动添加
         if(bundle != null){
+            if (bundle.getBoolean("notificationDraft", false)) {
+                if (getSharedPreferences("bill_drafts", MODE_PRIVATE)
+                        .getBoolean(bundle.getString("draftToken"), false)) {
+                    finish();
+                    return;
+                }
+                isChangeOrderInfo = true;
+                changeOrderInfo(bundle);
+                isChangeOrderInfo = false;
+                return;
+            }
             //修改账单
             if(bundle.getInt("id")!=0){
                 isChangeOrderInfo = true;
@@ -213,6 +224,28 @@ public class OrderDetailActivity extends AppCompatActivity {
 
     //写入数据库数据
     private void setDataBaseData(){
+        if (!btnSaveChanges.isEnabled()) return;
+        if (bundle != null && bundle.getBoolean("notificationDraft", false)) {
+            String owner = bundle.getString("draftOwner", "");
+            if (owner.isEmpty() || !owner.equals(SpUtils.get(this, "phoneNum", ""))) {
+                ProjectUtil.toastMsg(this, "请先登录收到该通知时的账号，再保存账单");
+                return;
+            }
+            if (getSharedPreferences("bill_drafts", MODE_PRIVATE)
+                    .getBoolean(bundle.getString("draftToken"), false)) {
+                ProjectUtil.toastMsg(this, "这笔账单已保存");
+                finish();
+                return;
+            }
+        }
+        try {
+            double amount = Double.parseDouble(etOrderNumber.getText().toString());
+            if (!Double.isFinite(amount) || amount <= 0) throw new NumberFormatException();
+        } catch (NumberFormatException exception) {
+            ProjectUtil.toastMsg(this, "请输入大于0的有效金额");
+            return;
+        }
+        btnSaveChanges.setEnabled(false);
         StyledDialog.buildLoading().show();
         SQLiteDatabase db = SQLiteDatabase.openOrCreateDatabase(this.getFilesDir().toString() + "/orderInfo.db", null);
         //执行更新数据库操作
@@ -223,11 +256,8 @@ public class OrderDetailActivity extends AppCompatActivity {
                     String url = IP+"/modifyOrder/"+bundle.getInt("id");
                     OkHttpClient client = new OkHttpClient();
                     JSONObject jsonObject = new JSONObject();
-                    String sql = "update orderInfo set day="+orderDay+",month="+orderMonth+",clock='"+orderTime+
-                            "',money="+(btnOrderType.getText().toString().equals("收入")?"":"-")+Double.valueOf(etOrderNumber.getText().toString())+",bankName='"+btnPayWay.getText()+
-                            "',orderRemark='"+etOrderRemark.getText()+"',costType='"+(btnOrderType.getText().toString().equals("收入")?"收入":btnCostType.getText().toString())+"' where id="+
-                            bundle.getInt("id");
                     try {
+                        jsonObject.put("year",orderYear);
                         jsonObject.put("day",orderDay);
                         jsonObject.put("month",orderMonth);
                         jsonObject.put("clock",orderTime);
@@ -249,12 +279,14 @@ public class OrderDetailActivity extends AppCompatActivity {
                             JSONObject jsonResponse = new JSONObject(response.body().string());
                             if(jsonResponse.getBoolean("success")){
                                 refreshLocalSql(db,null);
+                                return;
                             }
                         }
                         // str为json字符串
                     } catch (IOException | JSONException e) {
                         e.printStackTrace();
                     }
+                    handleSaveFailure(db);
                 }
             }).start();
         }
@@ -310,14 +342,25 @@ public class OrderDetailActivity extends AppCompatActivity {
                             if(jsonResponse.getBoolean("success")){
                                 values.put("id",Integer.valueOf(jsonResponse.getString("data")));
                                 refreshLocalSql(db,values);
+                                return;
                             }
                         }
                     } catch (IOException | JSONException e) {
                         e.printStackTrace();
                     }
+                    handleSaveFailure(db);
                 }
             }).start();
         }
+    }
+
+    private void handleSaveFailure(SQLiteDatabase db) {
+        db.close();
+        runOnUiThread(() -> {
+            StyledDialog.dismissLoading(this);
+            btnSaveChanges.setEnabled(true);
+            ProjectUtil.toastMsg(this, "未收到保存成功确认，请先核对云端账单，避免重复提交");
+        });
     }
 
     //后端返回成功后更新本地数据库
@@ -325,16 +368,33 @@ public class OrderDetailActivity extends AppCompatActivity {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
+                StyledDialog.dismissLoading(OrderDetailActivity.this);
                 if(isChangeOrderInfo){
-                    String sql = "update orderInfo set day="+orderDay+",month="+orderMonth+",clock='"+orderTime+
-                            "',money="+(btnOrderType.getText().toString().equals("收入")?"":"-")+Double.valueOf(etOrderNumber.getText().toString())+",bankName='"+btnPayWay.getText()+
-                            "',orderRemark='"+etOrderRemark.getText()+"',costType='"+(btnOrderType.getText().toString().equals("收入")?"收入":btnCostType.getText().toString())+"' where id="+
-                            bundle.getInt("id");
-                    db.execSQL(sql);
+                    ContentValues updateValues = new ContentValues();
+                    updateValues.put("year",orderYear);
+                    updateValues.put("month",orderMonth);
+                    updateValues.put("day",orderDay);
+                    updateValues.put("clock",orderTime);
+                    updateValues.put("money",(btnOrderType.getText().toString().equals("收入")?1:-1)*Double.valueOf(etOrderNumber.getText().toString()));
+                    updateValues.put("bankName",btnPayWay.getText().toString());
+                    updateValues.put("orderRemark",etOrderRemark.getText().toString());
+                    updateValues.put("costType",btnOrderType.getText().toString().equals("收入")?"收入":btnCostType.getText().toString());
+                    db.update("orderInfo",updateValues,"id=?",new String[]{String.valueOf(bundle.getInt("id"))});
+                    db.close();
+                    com.beta.autobookkeeping.widget.OrderWidget.refreshAll(getApplicationContext());
                     finish();
                 }
                 else{
                     db.insert("orderInfo",null,values);
+                    db.close();
+                    com.beta.autobookkeeping.widget.OrderWidget.refreshAll(getApplicationContext());
+                    if (bundle != null && bundle.getBoolean("notificationDraft", false)) {
+                        getSharedPreferences("bill_drafts", MODE_PRIVATE).edit()
+                                .putBoolean(bundle.getString("draftToken"), true).commit();
+                        android.app.NotificationManager manager = (android.app.NotificationManager)
+                                getSystemService(NOTIFICATION_SERVICE);
+                        manager.cancel(bundle.getInt("draftNotificationId"));
+                    }
                     finish();
                 }
             }
@@ -344,17 +404,18 @@ public class OrderDetailActivity extends AppCompatActivity {
     //修改数据库中的数据
     private void changeOrderInfo(Bundle bundle){
         if(isChangeOrderInfo){
+            double money = bundle.getDouble("money",0.0);
             //将数据传过来
-            etOrderNumber.setText(String.valueOf((Math.abs(bundle.getFloat("money")))));
+            etOrderNumber.setText(String.valueOf(Math.abs(money)));
             orderYear = bundle.getInt("year");
             orderMonth = bundle.getInt("month");
             orderDay = bundle.getInt("day");
             orderTime = bundle.getString("clock");
             btnGetCurrentTime.setText(orderTime);
             etOrderRemark.setText(bundle.getString("orderRemark"));
-            btnOrderType.setText(bundle.getFloat("money")>0?"收入":"支出");
+            btnOrderType.setText(money>0?"收入":"支出");
             btnPayWay.setText(bundle.getString("bankName"));
-            btnCostType.setText(bundle.getFloat("money")>0?"其他":bundle.getString("costType"));
+            btnCostType.setText(money>0?"其他":bundle.getString("costType"));
             isChangeOrderInfo = true;
         }
     }

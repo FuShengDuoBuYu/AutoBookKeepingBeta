@@ -4,48 +4,29 @@ import static Util.ConstVariable.IP;
 import static Util.ImageUtil.base642bitmap;
 import static Util.ImageUtil.bitmap2Base64;
 import static Util.ImageUtil.getCircleBitmap;
+import static Util.ImageUtil.scaleDown;
 
 import android.app.Activity;
-import android.content.ContentResolver;
 import android.content.Context;
+import android.content.Intent;
+import android.content.ActivityNotFoundException;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.Canvas;
-import android.graphics.Paint;
-import android.graphics.PorterDuff;
-import android.graphics.PorterDuffXfermode;
-import android.graphics.Rect;
 import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
-import android.os.Looper;
-import android.provider.MediaStore;
-import android.util.Log;
-import android.view.View;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import androidx.fragment.app.Fragment;
-
 import com.beta.autobookkeeping.R;
 import com.hss01248.dialog.StyledDialog;
 import com.hss01248.dialog.interfaces.MyDialogListener;
-import com.luck.picture.lib.basic.PictureSelector;
-import com.luck.picture.lib.config.SelectMimeType;
-import com.luck.picture.lib.engine.CropEngine;
-import com.luck.picture.lib.entity.LocalMedia;
-import com.luck.picture.lib.interfaces.OnResultCallbackListener;
 import com.yalantis.ucrop.UCrop;
 import com.yalantis.ucrop.UCropActivity;
 
-import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URL;
-import java.util.ArrayList;
+import java.util.concurrent.TimeUnit;
 
 import Util.ProjectUtil;
 import Util.SpUtils;
@@ -56,226 +37,210 @@ import okhttp3.RequestBody;
 import okhttp3.Response;
 
 public class BasicInfo {
-    private String phoneNum;
-    private String nickname;
-    private Context context;
-    private ImageView iv_portrait;
-    private TextView tv_nickName,tv_phoneNum;
-    private LinearLayout ll_nickName,ll_portrait;
-    private Activity activity;
+    public static final int REQUEST_PORTRAIT = 4102;
+    private static final MediaType JSON = MediaType.parse("application/json;charset=utf-8");
+    private static final OkHttpClient CLIENT = new OkHttpClient.Builder()
+            .connectTimeout(15, TimeUnit.SECONDS)
+            .writeTimeout(30, TimeUnit.SECONDS)
+            .readTimeout(60, TimeUnit.SECONDS)
+            .build();
 
-    public BasicInfo(String phoneNum, String nickname,Context context) {
+    private final String phoneNum;
+    private final String nickname;
+    private final Context context;
+    private final Activity activity;
+    private ImageView portraitView;
+    private TextView nicknameView;
+
+    public BasicInfo(String phoneNum, String nickname, Context context) {
         this.phoneNum = phoneNum;
         this.nickname = nickname;
         this.context = context;
-        activity = (Activity) context;
+        this.activity = (Activity) context;
     }
 
-    //返回view用于添加
-    public LinearLayout getLayoutView(){
-        LinearLayout basicInfo = (LinearLayout) LinearLayout.inflate(context, R.layout.item_activity_personal_info_basic_info,null);
-        findViewById(basicInfo);
-        //设置头像
-        if(SpUtils.get(context,"portrait","")==null||"".equals(SpUtils.get(context,"portrait",""))){
-            iv_portrait.setBackground(context.getDrawable(R.drawable.ic_portrait));
-        }
-        else{
-            Bitmap portraitBitmap = base642bitmap((String) SpUtils.get(context,"portrait",""));
-            if(portraitBitmap == null){
-                iv_portrait.setBackground(context.getDrawable(R.drawable.ic_portrait));
-            } else {
-                iv_portrait.setBackground(new BitmapDrawable(context.getResources(), portraitBitmap));
-            }
-        }
-        //设置值
-        tv_phoneNum.setText(this.phoneNum);
-        tv_nickName.setText(this.nickname);
-        //设置监听
-        ll_nickName.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                StyledDialog.buildNormalInput("修改昵称", "请输入昵称", null, "确定", "取消", new MyDialogListener() {
-                    String nickname;
-                    @Override
-                    public void onFirst() {
-                        modifyNickName(nickname);
-                    }
-                    @Override
-                    public void onSecond() {}
-                    @Override
-                    public void onGetInput(CharSequence input1, CharSequence input2) {
-                        nickname = input1.toString();
-                        super.onGetInput(input1, input2);
-                    }
-                }).show();
-            }
-        });
-        ll_portrait.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                StyledDialog.buildIosAlert("选择图片", "请将图片压缩分辨率或其他方法控制在5KB左右,否则会非常非常卡\n(开发者这里偷懒了)", new MyDialogListener() {
-                    @Override
-                    public void onFirst() {
-                        PictureSelector.create(context)
-                        .openSystemGallery(SelectMimeType.ofImage())
-                        .forSystemResult(new OnResultCallbackListener<LocalMedia>() {
-                            @Override
-                            public void onResult(ArrayList<LocalMedia> result) {
-                                startUcrop(Uri.parse(result.get(0).getPath()));
-                            }
-                            @Override
-                            public void onCancel() {
+    public LinearLayout getLayoutView() {
+        LinearLayout layout = (LinearLayout) LinearLayout.inflate(context, R.layout.item_activity_personal_info_basic_info, null);
+        TextView phoneView = layout.findViewById(R.id.user_phone_num);
+        nicknameView = layout.findViewById(R.id.user_nickname);
+        LinearLayout nicknameRow = layout.findViewById(R.id.ll_nick_name);
+        LinearLayout portraitRow = layout.findViewById(R.id.ll_portrait);
+        portraitView = layout.findViewById(R.id.iv_portrait);
 
-                            }
-                        });
+        showPortrait((String) SpUtils.get(context, "portrait", ""));
+        phoneView.setText(phoneNum);
+        nicknameView.setText(nickname);
+
+        nicknameRow.setOnClickListener(view -> StyledDialog.buildNormalInput(
+                "修改昵称",
+                "请输入昵称",
+                null,
+                "确定",
+                "取消",
+                new MyDialogListener() {
+                    private String inputNickname = "";
+
+                    @Override
+                    public void onFirst() {
+                        modifyNickname(inputNickname);
                     }
 
                     @Override
                     public void onSecond() {
-
                     }
-                }).setBtnText("我知道啦","取消").show();
-            }
-        });
-        return basicInfo;
+
+                    @Override
+                    public void onGetInput(CharSequence input1, CharSequence input2) {
+                        inputNickname = input1 == null ? "" : input1.toString().trim();
+                        super.onGetInput(input1, input2);
+                    }
+                }).show());
+
+        portraitRow.setOnClickListener(view -> StyledDialog.buildIosAlert(
+                "选择头像",
+                "选择并裁剪图片后，应用会自动压缩再上传。",
+                new MyDialogListener() {
+                    @Override
+                    public void onFirst() {
+                        Intent picker = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+                        picker.addCategory(Intent.CATEGORY_OPENABLE);
+                        picker.setType("image/*");
+                        picker.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                        try {
+                            activity.startActivityForResult(picker, REQUEST_PORTRAIT);
+                        } catch (ActivityNotFoundException exception) {
+                            ProjectUtil.toastMsg(context, "未找到系统图片选择器，请启用系统文件应用");
+                        }
+                    }
+
+                    @Override
+                    public void onSecond() {
+                    }
+                }).setBtnText("选择图片", "取消").show());
+        return layout;
     }
 
-    //裁剪图片
-    private void startUcrop(Uri uri){
-        Uri destinationUri = Uri.fromFile(new File(activity.getFilesDir(),"portrait.png"));
-        UCrop uCrop = UCrop.of(uri,destinationUri);
-        //裁剪设置
+    private void showPortrait(String portrait) {
+        Bitmap portraitBitmap = portrait == null || portrait.isEmpty() ? null : base642bitmap(portrait);
+        if (portraitBitmap == null) {
+            portraitView.setImageDrawable(context.getDrawable(R.drawable.ic_portrait));
+        } else {
+            portraitView.setImageDrawable(new BitmapDrawable(context.getResources(), portraitBitmap));
+        }
+    }
+
+    public void startUcrop(Uri uri) {
+        Uri destinationUri = Uri.fromFile(new File(activity.getFilesDir(), "portrait.jpg"));
         UCrop.Options options = new UCrop.Options();
         options.setCompressionFormat(Bitmap.CompressFormat.JPEG);
-        //只允许缩放,不允许旋转等
-        options.setAllowedGestures(UCropActivity.ALL,UCropActivity.ALL,UCropActivity.ALL);
+        options.setAllowedGestures(UCropActivity.ALL, UCropActivity.ALL, UCropActivity.ALL);
         options.setCircleDimmedLayer(true);
         options.setShowCropFrame(false);
         options.setShowCropGrid(false);
-        options.setCompressionQuality(10);
-        uCrop.withOptions(options).withAspectRatio(1,1);
-        uCrop.start(activity);
+        options.setCompressionQuality(80);
+        UCrop.of(uri, destinationUri)
+                .withOptions(options)
+                .withAspectRatio(1, 1)
+                .start(activity);
     }
 
-    //收取裁剪后的uri
-    public void modifyPortrait(Bitmap bitmap){
+    public void modifyPortrait(Bitmap bitmap) {
+        if (bitmap == null) {
+            ProjectUtil.toastMsg(context, "头像读取失败，请重新选择");
+            return;
+        }
         StyledDialog.buildLoading().show();
-        Bitmap newPortraitBitmap = getCircleBitmap(bitmap);
-        BitmapDrawable newPortrait = new BitmapDrawable(newPortraitBitmap);
-        String base64Image = bitmap2Base64(newPortraitBitmap);
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                String url = IP+"/user/modifyPortrait";
-                OkHttpClient client = new OkHttpClient();
-                JSONObject jsonObject = new JSONObject();
-                try {
-                    jsonObject.put("phoneNum",phoneNum);
-                    jsonObject.put("newPortrait",base64Image);
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-                RequestBody body = RequestBody.create(jsonObject.toString(), MediaType.parse("application/json;charset=utf-8"));
-                Request request = new Request.Builder().url(url).put(body).build();
-                try{
-                    Response response = client.newCall(request).execute();
-                    if(response.code()==200){
-                        JSONObject jsonResponse = new JSONObject(response.body().string());
-                        if(jsonResponse.getBoolean("success")){
-                            refreshPortrait(newPortrait,base64Image);
-                        }
-                        else{
-                            Looper.prepare();
-                            StyledDialog.dismissLoading(activity);
-                            ProjectUtil.toastMsg(context,jsonResponse.getString("message"));
-                            Looper.loop();
-                        }
+        Bitmap resizedBitmap = scaleDown(bitmap, 256);
+        Bitmap circularBitmap = getCircleBitmap(resizedBitmap);
+        String base64Image = bitmap2Base64(circularBitmap);
+        if (base64Image.length() > 500000) {
+            circularBitmap = getCircleBitmap(scaleDown(bitmap, 160));
+            base64Image = bitmap2Base64(circularBitmap);
+        }
+        Bitmap finalBitmap = circularBitmap;
+        String finalBase64Image = base64Image;
+
+        new Thread(() -> {
+            try {
+                JSONObject payload = new JSONObject();
+                payload.put("phoneNum", phoneNum);
+                payload.put("newPortrait", finalBase64Image);
+                Request request = new Request.Builder()
+                        .url(IP + "/user/modifyPortrait")
+                        .put(RequestBody.create(payload.toString(), JSON))
+                        .build();
+                try (Response response = CLIENT.newCall(request).execute()) {
+                    String responseText = response.body() == null ? "" : response.body().string();
+                    if (!response.isSuccessful() || responseText.isEmpty()) {
+                        finishWithError("头像上传失败，请稍后重试");
+                        return;
                     }
-                    else{
-                        Looper.prepare();
+                    JSONObject jsonResponse = new JSONObject(responseText);
+                    if (!jsonResponse.optBoolean("success", false)) {
+                        finishWithError(jsonResponse.optString("message", "头像上传失败"));
+                        return;
+                    }
+                    activity.runOnUiThread(() -> {
+                        SpUtils.put(context, "portrait", finalBase64Image);
+                        portraitView.setImageDrawable(new BitmapDrawable(context.getResources(), finalBitmap));
                         StyledDialog.dismissLoading(activity);
-                        ProjectUtil.toastMsg(context,"服务器出错");
-                        Looper.loop();
-                    }
-                } catch (JSONException | IOException e) {
-                    e.printStackTrace();
+                        ProjectUtil.toastMsg(context, "头像更换成功");
+                    });
                 }
+            } catch (Exception exception) {
+                finishWithError("网络异常，请检查网络后重试");
             }
-        }).start();
+        }, "portrait-upload").start();
     }
 
-    private void refreshPortrait(BitmapDrawable newPortrait,String newPortraitString){
-        SpUtils.put(context,"portrait",newPortraitString);
-
-        activity.runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                StyledDialog.dismissLoading(activity);
-                iv_portrait.setBackground(null);
-                iv_portrait.setBackground(newPortrait);
-                ProjectUtil.toastMsg(context,"更换头像成功");
-            }
-        });
-    }
-
-    private void modifyNickName(String newNickName){
+    private void modifyNickname(String rawNickname) {
+        String newNickname = rawNickname == null ? "" : rawNickname.trim();
+        if (newNickname.isEmpty()) {
+            ProjectUtil.toastMsg(context, "昵称不能为空");
+            return;
+        }
+        if (newNickname.length() > 30) {
+            ProjectUtil.toastMsg(context, "昵称不能超过30个字符");
+            return;
+        }
         StyledDialog.buildLoading().show();
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                String url = IP+"/user/modifyNickname";
-                OkHttpClient client = new OkHttpClient();
-                JSONObject jsonObject = new JSONObject();
-                try {
-                    jsonObject.put("phoneNum",phoneNum);
-                    jsonObject.put("newNickname",newNickName);
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-                RequestBody body = RequestBody.create(jsonObject.toString(), MediaType.parse("application/json;charset=utf-8"));
-                Request request = new Request.Builder().url(url).put(body).build();
-                try{
-                    Response response = client.newCall(request).execute();
-                    if(response.code()==200){
-                        JSONObject jsonResponse = new JSONObject(response.body().string());
-                        if(jsonResponse.getBoolean("success")){
-                            refreshNickname(newNickName);
-                        }
-                        else{
-                            Looper.prepare();
-                            ProjectUtil.toastMsg(context,jsonResponse.getString("message"));
-                            Looper.loop();
-                        }
+        new Thread(() -> {
+            try {
+                JSONObject payload = new JSONObject();
+                payload.put("phoneNum", phoneNum);
+                payload.put("newNickname", newNickname);
+                Request request = new Request.Builder()
+                        .url(IP + "/user/modifyNickname")
+                        .put(RequestBody.create(payload.toString(), JSON))
+                        .build();
+                try (Response response = CLIENT.newCall(request).execute()) {
+                    String responseText = response.body() == null ? "" : response.body().string();
+                    if (!response.isSuccessful() || responseText.isEmpty()) {
+                        finishWithError("昵称修改失败，请稍后重试");
+                        return;
                     }
-                    else{
-                        Looper.prepare();
-                        ProjectUtil.toastMsg(context,"服务器出错");
-                        Looper.loop();
+                    JSONObject jsonResponse = new JSONObject(responseText);
+                    if (!jsonResponse.optBoolean("success", false)) {
+                        finishWithError(jsonResponse.optString("message", "昵称修改失败"));
+                        return;
                     }
-                } catch (JSONException | IOException e) {
-                    e.printStackTrace();
+                    activity.runOnUiThread(() -> {
+                        SpUtils.put(context, "nickName", newNickname);
+                        nicknameView.setText(newNickname);
+                        StyledDialog.dismissLoading(activity);
+                        ProjectUtil.toastMsg(context, "昵称修改成功");
+                    });
                 }
+            } catch (Exception exception) {
+                finishWithError("网络异常，请检查网络后重试");
             }
-        }).start();
+        }, "nickname-update").start();
     }
 
-    private void refreshNickname(String newNickname){
-        activity.runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                SpUtils.put(context,"nickName",newNickname);
-                tv_nickName.setText(newNickname);
-                StyledDialog.dismissLoading(activity);
-                ProjectUtil.toastMsg(context,"修改成功");
-            }
+    private void finishWithError(String message) {
+        activity.runOnUiThread(() -> {
+            StyledDialog.dismissLoading(activity);
+            ProjectUtil.toastMsg(context, message);
         });
-    }
-
-    private void findViewById(LinearLayout l){
-        tv_phoneNum = l.findViewById(R.id.user_phone_num);
-        tv_nickName = l.findViewById(R.id.user_nickname);
-        ll_nickName = l.findViewById(R.id.ll_nick_name);
-        ll_portrait = l.findViewById(R.id.ll_portrait);
-        iv_portrait = l.findViewById(R.id.iv_portrait);
     }
 }

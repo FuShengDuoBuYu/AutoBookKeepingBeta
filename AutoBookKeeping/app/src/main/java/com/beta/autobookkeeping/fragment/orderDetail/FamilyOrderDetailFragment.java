@@ -110,18 +110,12 @@ public class FamilyOrderDetailFragment extends Fragment {
 
     @Override
     public void onResume() {
-        getFamilyOrders();
-        //更新头部信息
-
         super.onResume();
+        getFamilyOrders();
     }
 
-    @Override
-    public void onStart() {
+    public void refreshFamilyOrders(){
         getFamilyOrders();
-
-
-        super.onStart();
     }
 
     private void findViewById(View v){
@@ -129,18 +123,22 @@ public class FamilyOrderDetailFragment extends Fragment {
     }
 
     private void getFamilyOrders(){
+        if (!isAdded() || getView() == null || ll_FamilyOrders == null) return;
         if(activity == null){
             return;
         }
         if (SpUtils.get(activity, "familyId", "")==null || SpUtils.get(activity, "familyId", "").equals("")) {
-            Toast.makeText(activity, "您还没有加入家庭", Toast.LENGTH_SHORT).show();
+            if(ll_FamilyOrders != null){
+                ll_FamilyOrders.removeAllViews();
+            }
             return;
         }
+        final String requestFamilyId = (String) SpUtils.get(activity, "familyId", "");
         StyledDialog.buildLoading().show();
         new Thread(new Runnable() {
             @Override
             public void run() {
-                String url = IP+"/findMonthFamilyOrders/"+ SpUtils.get(getContext(),"familyId","")+"/"+String.valueOf(ProjectUtil.getCurrentMonth());
+                String url = IP+"/findMonthFamilyOrders/"+ requestFamilyId+"/"+String.valueOf(ProjectUtil.getCurrentMonth());
                 OkHttpClient client = new OkHttpClient();
                 Request request = new Request.Builder().url(url).get().build();
                 try (Response response = client.newCall(request).execute()){
@@ -197,10 +195,13 @@ public class FamilyOrderDetailFragment extends Fragment {
             }
         }
         JSONArray finalFamilyOrders = familyOrders;
-        getActivity().runOnUiThread(new Runnable() {
+        if (activity == null) return;
+        activity.runOnUiThread(new Runnable() {
             @SuppressLint("ResourceType")
             @Override
             public void run() {
+                if (!isAdded() || getView() == null || linearLayout == null || linearLayout != ll_FamilyOrders
+                        || activity.isFinishing() || activity.isDestroyed()) return;
                 linearLayout.removeAllViews();
                 if(finalFamilyOrders.length() == 0){
                     if(activity instanceof MainActivity){

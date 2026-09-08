@@ -1,35 +1,51 @@
 package com.beta.autobookkeeping.activity.main.checking;
 
-import android.Manifest;
 import android.app.Activity;
-import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.os.Build;
+import android.provider.Settings;
 
-import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.core.app.ActivityCompat;
+import androidx.core.app.NotificationManagerCompat;
 
-import java.util.ArrayList;
-import java.util.List;
+public final class PermissonChecking {
+    private static final int REQUEST_NOTIFICATIONS = 667;
+    private static final String POST_NOTIFICATIONS = "android.permission.POST_NOTIFICATIONS";
+    private static boolean listenerDialogShowing;
 
-public class PermissonChecking {
-    //查看有没有获取到权限,没有就弹窗获取权限
-    public static void ifGetPermission(Context context, Activity activity){
-//        List<String> permissions = new ArrayList<>();
-//        //获取短信权限
-//        if(PackageManager.PERMISSION_GRANTED != ActivityCompat.checkSelfPermission(context, Manifest.permission.RECEIVE_SMS)){
-//            permissions.add(Manifest.permission.RECEIVE_SMS);
-//        }
-//        if(PackageManager.PERMISSION_GRANTED != ActivityCompat.checkSelfPermission(context, Manifest.permission.READ_SMS)){
-//            permissions.add(Manifest.permission.READ_SMS);
-//        }
-//        //获取后台弹出权限
-//        if(PackageManager.PERMISSION_GRANTED != ActivityCompat.checkSelfPermission(context, Manifest.permission.SYSTEM_ALERT_WINDOW)){
-//            permissions.add(Manifest.permission.SYSTEM_ALERT_WINDOW);
-//        }
-//        //一次性获取权限
-//        if (permissions.size() != 0) {
-//            //这里谷歌原生可以直接来实现,但是小米等不可以
-//            ActivityCompat.requestPermissions(activity,(String[]) permissions.toArray(new String[0]),667);
-//        }
+    private PermissonChecking() {
+    }
+
+    public static void ifGetPermission(Activity activity) {
+        requestNotificationDisplayPermission(activity);
+        requestNotificationListenerAccess(activity);
+    }
+
+    private static void requestNotificationDisplayPermission(Activity activity) {
+        if (Build.VERSION.SDK_INT >= 33
+                && ActivityCompat.checkSelfPermission(activity, POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(activity, new String[]{POST_NOTIFICATIONS}, REQUEST_NOTIFICATIONS);
+        }
+    }
+
+    private static void requestNotificationListenerAccess(Activity activity) {
+        if (NotificationManagerCompat.getEnabledListenerPackages(activity).contains(activity.getPackageName())
+                || listenerDialogShowing
+                || activity.isFinishing()) {
+            return;
+        }
+        listenerDialogShowing = true;
+        new AlertDialog.Builder(activity)
+                .setTitle("开启自动记账")
+                .setMessage("自动记账需要读取支付宝、微信和银行的交易通知。请在系统页面中允许本应用访问通知；内容只会按本地规则解析。")
+                .setPositiveButton("去开启", (dialog, which) -> {
+                    listenerDialogShowing = false;
+                    activity.startActivity(new Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS));
+                })
+                .setNegativeButton("暂不开启", (dialog, which) -> listenerDialogShowing = false)
+                .setOnCancelListener(dialog -> listenerDialogShowing = false)
+                .show();
     }
 }

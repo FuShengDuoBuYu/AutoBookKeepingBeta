@@ -26,7 +26,7 @@ public class DebugNotificationTestReceiver extends BroadcastReceiver {
             }
         }
 
-        ProjectUtil.handleNotificationBillWithLlmForDebug(
+        ProjectUtil.handleNotificationBillWithRegexForDebug(
                 context,
                 packageName == null ? "" : packageName,
                 title == null ? "" : title,
