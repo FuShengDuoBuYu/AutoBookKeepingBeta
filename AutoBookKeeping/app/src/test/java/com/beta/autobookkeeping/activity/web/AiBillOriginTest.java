@@ -16,6 +16,12 @@ public class AiBillOriginTest {
     }
 
     @Test
+    public void requestsNativeTicketOnTheConfiguredOrigin() {
+        AiBillOrigin origin = requireOrigin("https://bills.example.test:8443");
+        assertEquals("https://bills.example.test:8443/api/session/ticket", origin.ticketUrl());
+    }
+
+    @Test
     public void preservesConfiguredNonDefaultPort() {
         AiBillOrigin origin = requireOrigin("https://bills.example.test:8443");
         assertEquals("https://bills.example.test:8443/api/session/exchange", origin.exchangeUrl());

@@ -21,8 +21,16 @@ final class AiBillOrigin {
     }
 
     String exchangeUrl() {
+        return urlFor("/api/session/exchange");
+    }
+
+    String ticketUrl() {
+        return urlFor("/api/session/ticket");
+    }
+
+    private String urlFor(String path) {
         String authority = port == HTTPS_PORT ? host : host + ":" + port;
-        return "https://" + authority + "/api/session/exchange";
+        return "https://" + authority + path;
     }
 
     boolean allows(String value) {

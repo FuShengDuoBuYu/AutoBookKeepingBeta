@@ -70,7 +70,7 @@ public class AiBillActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
 
         origin = AiBillOrigin.fromConfig(BuildConfig.AI_BILL_ORIGIN);
-        HttpUrl ticketUrl = HttpUrl.parse(BuildConfig.API_BASE_URL + "/auth/ai-bill/ticket");
+        HttpUrl ticketUrl = origin == null ? null : HttpUrl.parse(origin.ticketUrl());
         if (origin == null || ticketUrl == null || !ticketUrl.isHttps()) {
             finishWithMessage(R.string.ai_bill_unconfigured);
             return;
