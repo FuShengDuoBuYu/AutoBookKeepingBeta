@@ -12,7 +12,7 @@
 ![minSdk](https://img.shields.io/badge/minSdk-29-blue)
 ![targetSdk](https://img.shields.io/badge/targetSdk-31-blue)
 
-自动记账是一个 Android 端个人/家庭账本应用，目标是用尽量少的手动输入完成日常收支记录、分类统计和云端同步。项目当前重点能力包括通知账单识别、家庭账本、多维账单查询、月度报表、自定义分类和本地/云端数据同步。
+自动记账是一个 Android 端个人/家庭账本应用，支持通知账单识别、家庭账本、多维账单查询、月度报表、自定义分类和本地/云端数据同步。AI 账单通过应用内 WebView 连接自部署 Agent，基于授权账本进行多轮分析。
 
 > 使用文档已迁移到 [Wiki](https://github.com/FuShengDuoBuYu/AutoBookKeepingBeta/wiki)。
 
@@ -25,6 +25,8 @@
 - **账单管理**：支持新增、删除、修改、按时间/类别/关键字等组合查询历史账单。
 - **云端同步**：登录后同步用户资料和账单数据，降低换机或重装后的数据迁移成本。
 - **自定义分类**：支持自定义账单类型，并在图表和筛选中复用。
+- **AI 账单分析**支持收支结构、月度趋势、变化原因、异常和重复记账线索、周期性收支、收入与支出预测、预算执行、储蓄目标和用户给定条件下的结余推演。
+- **历史对话**支持恢复最近会话、查看历史会话、分页加载旧消息和新建对话。服务端按账号及个人/家庭账本范围保存和读取记录。
 
 ## 预览
 
@@ -52,7 +54,36 @@ AutoBookKeepingBeta
 └── Readme.md
 ```
 
-## AI 账单解析流程
+## AI 账单分析
+
+从 App 中的“ai账单”入口打开页面，使用当前账号密码验证后进入。页面顶部提供“历史对话”和“新对话”，可在个人版和家庭版之间切换。家庭版需要当前账号已经加入家庭。
+
+可以尝试这些问题。
+
+- 分析最近半年的收支结构和变化，哪些类别推动了支出增长？
+- 最近有没有异常大额消费、疑似重复记账或持续发生的固定开销？
+- 根据历史规律预估下个月收入、支出和结余，并说明依据和不确定因素。
+- 如果下个月增加八节课、每节收入 200 元，同时减少 300 元餐饮支出，结余会怎样？
+- 本月预算 4000 元，还剩多少？已有存款 10000 元，按当前收支多久能达到 20000 元？
+
+Agent 将问题拆成账本查询和计算任务，组合工具后生成解释。金额正负与 Android 记账口径一致。预测使用历史数据形成条件估计，并标明未完月份、记录缺失和非经常入账。资产余额、债务余额和未来合同安排等信息需要另行提供。
+
+```mermaid
+flowchart LR
+    A[Android AI 账单入口] -->|一次性登录票据| B[同源 WebView 页面]
+    B -->|安全会话与流式对话| C[book_agent]
+    C --> D[授权账本查询]
+    D --> E[FastAPI AI 账单专用服务]
+    C --> F[趋势、结构、异常、周期与情景计算工具]
+    F --> G[家用模型解释分析结果]
+    C --> H[MongoDB 会话、消息与执行证据]
+```
+
+当前 AI 页面部署于 `https://bill.fushengduobuyu.com`。Agent 和账本专用服务由家中电脑的 systemd 管理，支持开机启动。Android 原生层负责登录入口、HTTPS 源校验和 WebView 生命周期，Vue 页面负责聊天及历史界面。[Agent 仓库](https://github.com/FuShengDuoBuYu/book_agent) · [账本后端仓库](https://github.com/FuShengDuoBuYu/AutoBookKeepingBetaBackend/tree/python)
+
+Agent 的 `/ready` 用于检查服务就绪状态。会话保存在 MongoDB 的 `agent_sessions` 和 `agent_messages`，回答记录附带执行计划、工具证据、分析版本和耗时，供后续回归与调优使用。模型上下文默认读取最近六条消息，页面历史记录支持分页回看。
+
+## 通知账单识别流程
 
 ```mermaid
 flowchart LR
@@ -79,6 +110,44 @@ flowchart LR
 - App 名称包含“银行 / 信用卡 / 支付宝 / 微信 / 云闪付 / 美团 / 京东”等关键词的应用
 
 App 侧尽量不做账单语义判断。待支付、未支付、自动取消、验证码、登录、配置更新、小荷包成员匹配、是否存在明确金额等判断主要由 LLM 根据 prompt 完成；本地只保留 5 分钟内相同内容和金额的重复通知拦截，以及 LLM 返回后的金额/置信度兜底校验。
+
+## 本地构建与调试
+
+Android 工程位于 `AutoBookKeeping/`，当前版本为 `1.4`，`versionCode` 为 `19`。
+
+| 项目 | 当前配置 |
+| --- | --- |
+| 构建 JDK | JDK 11 |
+| Gradle Wrapper | 7.0.2 |
+| Android Gradle Plugin | 7.0.0 |
+| compileSdk / targetSdk | 31 / 31 |
+| minSdk | 29，Android 10 |
+| Java 源码与字节码 | Java 8 |
+
+安装 Android SDK 后，在工程的 `local.properties` 中配置本机 `sdk.dir`。AI 账单域名通过 `AI_BILL_ORIGIN` 注入，读取优先级为 Gradle 项目参数、`local.properties`、环境变量。值应为 HTTPS 源地址，例如 `https://bill.fushengduobuyu.com`。配置为空时，App 会提示 AI 账单服务尚未配置。
+
+在 Windows PowerShell 中执行以下命令。
+
+```powershell
+cd AutoBookKeeping
+.\gradlew.bat "-PAI_BILL_ORIGIN=https://bill.fushengduobuyu.com" :app:testDebugUnitTest :app:assembleDebug
+```
+
+APK 输出到 `AutoBookKeeping/app/build/outputs/apk/debug/app-debug.apk`。USB 调试已连接且设备授权后，可以覆盖安装相同包名、兼容版本及相同签名的 APK。
+
+```powershell
+adb devices
+adb install -r app/build/outputs/apk/debug/app-debug.apk
+```
+
+USB 断开时仍可构建 APK、运行单元测试、调试家中的 Agent 和在桌面浏览器中验证移动端页面。ADB 安装、通知监听实测及 Android WebView 真机验证需要设备连接。AI 页面与服务端代码部署后，已安装的 App 重新进入 AI 账单即可加载新版页面。修改原生代码、包内域名配置或签名配置时需要重新构建 APK。
+
+## 开发与回归
+
+- Android 改动运行 `:app:testDebugUnitTest`，界面及通知相关行为补充设备验证。
+- Agent 改动在其仓库运行 `python -B -m unittest discover -s tests -v` 和 `npm --prefix frontend run build`。`python -m scripts.evaluate_analysis` 使用虚构账单测试配置中的真实模型，可比较规划工具和回答效果。
+- 跨仓库变更同步核对登录票据、会话、查询权限及接口格式。模型连接参数、数据库凭据和会话令牌通过部署环境提供。
+- 功能修改使用 `codex/` 分支，以独立提交和 PR 记录变更、验证结果及部署步骤。
 
 ## 版本记录
 
