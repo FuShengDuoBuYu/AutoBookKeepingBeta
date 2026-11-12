@@ -48,6 +48,8 @@ import okhttp3.Response;
 import okhttp3.ResponseBody;
 
 public class AiBillActivity extends AppCompatActivity {
+    private static final String EXPIRED_SESSION_COOKIE =
+            "__Host-book-agent=; Max-Age=0; Path=/; Secure; HttpOnly; SameSite=Strict";
     private static final MediaType JSON = MediaType.parse("application/json;charset=utf-8");
     private static final OkHttpClient TICKET_CLIENT = new OkHttpClient.Builder()
             .callTimeout(60, TimeUnit.SECONDS)
@@ -183,12 +185,26 @@ public class AiBillActivity extends AppCompatActivity {
                         return;
                     }
                     dialog.dismiss();
-                    awaitingExchange = true;
-                    progress.setVisibility(View.VISIBLE);
-                    byte[] formBody = ("ticket=" + Uri.encode(ticket)).getBytes(StandardCharsets.UTF_8);
-                    webView.postUrl(origin.exchangeUrl(), formBody);
+                    exchangeTicket(ticket);
                 });
             }
+        });
+    }
+
+    private void exchangeTicket(String ticket) {
+        awaitingExchange = true;
+        progress.setVisibility(View.VISIBLE);
+        String url = origin.exchangeUrl();
+        byte[] formBody = ("ticket=" + Uri.encode(ticket)).getBytes(StandardCharsets.UTF_8);
+        CookieManager.getInstance().setCookie(url, EXPIRED_SESSION_COOKIE, expired -> {
+            if (isFinishing() || isDestroyed()) {
+                return;
+            }
+            if (!Boolean.TRUE.equals(expired)) {
+                finishWithMessage(R.string.ai_bill_open_failed);
+                return;
+            }
+            webView.postUrl(url, formBody);
         });
     }
 
