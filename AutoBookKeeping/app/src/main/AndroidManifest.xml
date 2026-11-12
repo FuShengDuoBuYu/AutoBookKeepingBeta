@@ -18,7 +18,7 @@
         <activity
             android:name=".activity.web.AiBillActivity"
             android:excludeFromRecents="true"
-            android:exported="true"
+            android:exported="false"
             android:theme="@style/Theme.AppCompat.DayNight.NoActionBar" />
         <activity
             android:name=".activity.orderItemSearch.OrderItemSearchActivity"

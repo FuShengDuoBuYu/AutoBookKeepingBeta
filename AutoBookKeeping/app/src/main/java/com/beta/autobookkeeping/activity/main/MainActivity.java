@@ -237,12 +237,10 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View view) {
                 String phoneNum = (String) SpUtils.get(MainActivity.this,"phoneNum","");
                 if(phoneNum == null || phoneNum.trim().equals("")){
-                    toastMsg(MainActivity.this,"请先登录后再查看AI账单");
+                    toastMsg(MainActivity.this, getString(R.string.ai_bill_sign_in_first));
                     return;
                 }
-                Intent intent = new Intent(MainActivity.this, AiBillActivity.class);
-                intent.putExtra("phoneNum", phoneNum.trim());
-                startActivity(intent);
+                startActivity(new Intent(MainActivity.this, AiBillActivity.class));
             }
         });
     }
