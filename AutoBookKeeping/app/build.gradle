@@ -10,6 +10,11 @@ if (localPropertiesFile.exists()) {
     }
 }
 
+def aiBillOrigin = (project.findProperty('AI_BILL_ORIGIN')
+        ?: localProperties.getProperty('AI_BILL_ORIGIN')
+        ?: System.getenv('AI_BILL_ORIGIN')
+        ?: '').toString()
+
 def bookkeepingStoreFile = rootProject.file('../keys.jks')
 def bookkeepingStorePassword = localProperties.getProperty('BOOKKEEPING_STORE_PASSWORD')
         ?: project.findProperty('BOOKKEEPING_STORE_PASSWORD')
@@ -37,6 +42,7 @@ android {
         versionName "1.4"
         lintOptions { checkReleaseBuilds false }
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        buildConfigField "String", "AI_BILL_ORIGIN", groovy.json.JsonOutput.toJson(aiBillOrigin)
     }
 
     signingConfigs {

@@ -5,6 +5,17 @@
     <string name="month_all_cost">本月累计</string>
     <string name="searchMonthlyReport">查看月度报告</string>
     <string name="ai_bill">ai账单</string>
+    <string name="ai_bill_unconfigured">当前版本未配置 AI 账单服务</string>
+    <string name="ai_bill_sign_in_first">请先登录后再查看 AI 账单</string>
+    <string name="ai_bill_verify_message">请输入账号密码以打开 AI 账单</string>
+    <string name="ai_bill_password_hint">账号密码</string>
+    <string name="ai_bill_password_required">请输入账号密码</string>
+    <string name="ai_bill_continue">继续</string>
+    <string name="ai_bill_verifying">正在验证账号…</string>
+    <string name="ai_bill_auth_rejected">账号或密码不正确，请重试</string>
+    <string name="ai_bill_auth_failed">暂时无法验证账号，请稍后重试</string>
+    <string name="ai_bill_opening">正在打开 AI 账单</string>
+    <string name="ai_bill_open_failed">无法打开 AI 账单，请稍后重试</string>
     <string name="deleteAllOrders">清空所有账单记录</string>
     <string name="OrderDetail">账单详情</string>
     <string name="hint_input_cost_number">请输入金额(元)</string>
