@@ -74,6 +74,8 @@ Agent 先独立理解用户目标、对话指代和本轮是承接、纠正还�
 
 分析表格及图表随历史对话恢复。普通浏览器可导出 CSV 和 PNG；Android WebView 的文件下载仍需单独在设备上验证。服务端页面独立发布，手机通过配置的 AI 账单域名加载当前界面。
 
+回答阶段先把用户已经提出的目标绑定到计算证据，再逐段解释，最后校对整份回答。成员小计、筛选后的分期总额和变化均由程序计算；模型不能自行编造新的分析目标，也不能把查询期累计金额当作月收入。每段保留账本、指标和统计口径，遗漏的必要事实单独展示。明确询问购买、储蓄等决策时，即使模型漏选工具，规划器也会核对并补充对应计算，避免向用户索要无关条件。
+
 ```mermaid
 flowchart LR
     A[Android AI 账单入口] -->|一次性登录票据| B[同源 WebView 页面]
@@ -88,6 +90,8 @@ flowchart LR
 当前 AI 页面部署于 `https://bill.fushengduobuyu.com`。Agent 和账本专用服务由家中电脑的 systemd 管理，支持开机启动。Android 原生层负责登录入口、HTTPS 源校验和 WebView 生命周期，Vue 页面负责聊天及历史界面。[Agent 仓库](https://github.com/FuShengDuoBuYu/book_agent) · [账本后端仓库](https://github.com/FuShengDuoBuYu/AutoBookKeepingBetaBackend/tree/python)
 
 Agent 的 `/ready` 用于检查服务就绪状态。会话保存在 MongoDB 的 `agent_sessions` 和 `agent_messages`，回答记录附带意图理解、执行计划、调查与重新计算、工具证据、结构化用户条件、报告审查结果、分析版本、模型配置和耗时，供后续回归与调优使用；页面历史接口仅公开消息及校验过的表格图表。规划从最近十二条用户与助手消息中按模型预算取用，明确的财务条件独立保留，不将模型旧回答当作用户给定的余额或变化。页面历史记录支持分页回看。
+
+调优时可查看内部 `validation.attempts[].compositionPlan` 中每段的回答目标和证据引用，以及 `calls.composition` 中每次模型调用的 token 数与耗时。应分别检查意图、计划、工具结果和解释，不能只以答案非空、模型自评通过或 `/ready` 正常判断效果。
 
 ## 通知账单识别流程
 
