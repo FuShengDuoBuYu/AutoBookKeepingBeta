@@ -74,7 +74,7 @@ Agent 先独立理解用户目标、对话指代和本轮是承接、纠正还�
 
 分析表格及图表随历史对话恢复。普通浏览器可导出 CSV 和 PNG；Android WebView 的文件下载仍需单独在设备上验证。服务端页面独立发布，手机通过配置的 AI 账单域名加载当前界面。
 
-回答阶段由模型选择本轮用户已经要求的目标、已有事实和中性提纲；变化归因、目标能否达到、条件是否已计入、未知输入与行动建议均从同账本的程序分析发现生成。成员小计、筛选后的分期总额、金额、日期与表格也由程序核算。遗漏的必需证据会连同解释补齐。已移除自由财务正文和不可靠的模型自审，避免正确取数后又编造原因、余额或未来安排。意图理解、对话承接、工具选择和备注来源调查仍由 Agent 规划；图表是核算结果的展示。明确询问购买、储蓄等决策时，规划器会核对并补充相应工具，已知价格不会再次作为未知条件索取。
+回答阶段由模型选择本轮用户已经要求的目标、已有事实和中性提纲；变化归因、目标能否达到、条件是否已计入、未知输入与行动建议均从同账本的程序分析发现生成。成员小计、筛选后的分期总额、金额、日期与表格也由程序核算。遗漏的必需证据会连同解释补齐。已移除自由财务正文和不可靠的模型自审，避免正确取数后又编造原因、余额或未来安排。意图理解、对话承接、工具选择和备注来源调查仍由 Agent 规划；图表是核算结果的展示。明确询问购买、储蓄等决策时，规划器会核对并补充相应工具，已知价格不会再次作为未知条件索取。取消截止日期后仍可计算达标时长；延长期限时比较前后每月目标要求，并区分历史月结余能力。各份收入样本、一次性入账剔除、查询时间和来源占比分母均单独标注。
 
 ```mermaid
 flowchart LR
@@ -84,7 +84,7 @@ flowchart LR
     D --> E[FastAPI AI 账单专用服务]
     C --> F[趋势、结构、异常、周期与情景计算工具]
     F --> G[程序生成有证据的分析与建议]
-    C --> I[家用模型理解意图、规划及查证]
+    C --> I[可配置模型理解意图、规划及查证]
     C --> H[MongoDB 会话、消息与执行证据]
 ```
 
@@ -92,7 +92,9 @@ flowchart LR
 
 Agent 的 `/ready` 用于检查服务就绪状态。会话保存在 MongoDB 的 `agent_sessions` 和 `agent_messages`，回答记录附带意图理解、执行计划、调查与重新计算、工具证据、结构化用户条件、报告提纲、分析发现、分析版本、发布修订、模型配置和耗时，供后续回归与调优使用；页面历史接口仅公开消息及校验过的表格图表。规划从最近十二条用户与助手消息中按模型预算取用，明确的财务条件独立保留，不将模型旧回答当作用户给定的余额或变化。页面历史记录支持分页回看。
 
-调优时可查看内部 `validation.compositionPlan` 中每段的回答目标和证据引用，以及 `validation.calls` 中每次模型调用的 token 数与耗时。当前私有元数据为 `analysisVersion=5`；`validation.status=grounded` 只表示解释与程序发现一致，`compositionStatus` 区分提纲正常和回退。应分别检查意图、计划、工具结果和解释，不能只以答案非空、模型自评通过或 `/ready` 正常判断效果。
+AI账单当前选用官方 OpenAI Responses API 的 `gpt-6.1-terra`，保留Luna及家中原生Ollama作为可配置后端。11月20日同一冻结版本的30轮连续对话人工复核，Qwen、Luna、Terra分别通过21、22、25轮；剩余失败和后续修复记录见[Agent模型对照](https://github.com/FuShengDuoBuYu/book_agent/blob/main/docs/model-comparison-2026-11-19.md)。API 密钥只在家中服务器配置，不能打包进 APK。模型与接入方式由服务端选择，不需要改手机页面；通知识别使用自己的模型配置。
+
+调优时可查看内部 `validation.compositionPlan` 中每段的回答目标和证据引用，以及 `validation.calls` 中报告提纲的 token 数与耗时。`modelUsage` 则记录意图、规划、核对、调查和提纲等各阶段的调用、缓存、推理 token、耗时及估算 API 费用；失败调用缺少用量时标记费用未知。当前私有元数据为 `analysisVersion=5`；`validation.status=grounded` 只表示解释与程序发现一致，`compositionStatus` 区分提纲正常和回退。应分别检查意图、计划、工具结果和解释，不能只以答案非空、模型自评通过或 `/ready` 正常判断效果。
 
 ## 通知账单识别流程
 
@@ -105,11 +107,11 @@ flowchart LR
     E --> F["写入账本并发送确认通知"]
 ```
 
-当前 LLM 接口使用 OpenAI-compatible API：
+通知账单识别的 LLM 接口使用 OpenAI-compatible API：
 
 - Endpoint: `POST /v1/chat/completions`
 - 默认模型：`qwen3.5:9b`
-- 推荐参数：`think=false`、`stream=false`、`response_format={"type":"json_object"}`、`num_ctx=93696`
+- 当前识别代码参数：`think=false`、`stream=false`、`response_format={"type":"json_object"}`、`num_ctx=93696`
 
 ## 通知识别范围
 
@@ -151,12 +153,12 @@ adb devices
 adb install -r app/build/outputs/apk/debug/app-debug.apk
 ```
 
-USB 断开时仍可构建 APK、运行单元测试、调试家中的 Agent 和在桌面浏览器中验证移动端页面。ADB 安装、通知监听实测及 Android WebView 真机验证需要设备连接。AI 页面与服务端代码部署后，已安装的 App 重新进入 AI 账单即可加载新版页面。修改原生代码、包内域名配置或签名配置时需要重新构建 APK。
+USB 断开时仍可构建 APK、运行单元测试、调试家中的 Agent 和在桌面浏览器中验证移动端页面。ADB 安装、通知监听实测及 Android WebView 真机验证需要设备连接。AI 页面与服务端代码部署后，已安装且已经指向同一AI账单域名的 App 重新进入页面即可加载新版界面。修改原生代码、包内域名配置或签名配置时需要重新构建 APK。
 
 ## 开发与回归
 
 - Android 改动运行 `:app:testDebugUnitTest`，界面及通知相关行为补充设备验证。
-- Agent 改动在其仓库运行 `python -B -m unittest discover -s tests -v` 和 `npm --prefix frontend run build`。`python -m scripts.evaluate_analysis` 与 `python -m scripts.evaluate_acceptance` 使用虚构账单测试配置中的真实模型，覆盖计算、综合分析及连续追问；程序检查后还需人工复核解释和建议。验收口径见 [Agent 分析质量回归](https://github.com/FuShengDuoBuYu/book_agent/blob/main/docs/analysis-agent-v2-evaluation.md)。
+- Agent 改动在其仓库运行 `python -B -m unittest discover -s tests -v` 和 `npm --prefix frontend run build`。`python -m scripts.evaluate_analysis`、`python -m scripts.evaluate_acceptance` 和三十轮的 `python -m scripts.evaluate_dialogues --max-cost-usd 1` 使用虚构账单测试配置中的真实模型，覆盖计算、综合分析及连续追问；程序检查后还需人工复核解释和建议。验收口径见 [Agent 分析质量回归](https://github.com/FuShengDuoBuYu/book_agent/blob/main/docs/analysis-agent-v2-evaluation.md)。
 - 跨仓库变更同步核对登录票据、会话、查询权限及接口格式。模型连接参数、数据库凭据和会话令牌通过部署环境提供。
 - 功能修改使用 `codex/` 分支，以独立提交和 PR 记录变更、验证结果及部署步骤。
 
